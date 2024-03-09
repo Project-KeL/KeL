@@ -1,10 +1,10 @@
 OBJDIR = obj
 
 CPPFLAGS = -std=c2x
-SRCS = $(wildcard src/*.c) $(wildcard *.c)
+SRCS = $(wildcard ./*.c) $(wildcard ./src/*.c) $(wildcard ./src/*/*.c)
 OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS))
 
-exl : $(OBJS)
+kel : $(OBJS)
 	gcc $(LDFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o : %.c
