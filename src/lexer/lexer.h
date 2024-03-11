@@ -7,13 +7,13 @@
 
 typedef enum: uint32_t {
 #define TOKEN_TYPE(type) TokenType_ ## type
-	TOKEN_TYPE(NO),
+	TOKEN_TYPE(NO) = 0,
 	TOKEN_TYPE(SPECIAL),
 	TOKEN_TYPE(QUALIFIER_KEY),
 	TOKEN_TYPE(QUALIFIER_LOCK),
 	TOKEN_TYPE(QUALIFIER_KEY_LOCK),
 	TOKEN_TYPE(KEY),
-	TOKEN_TYPE(LOCK), // a lock alone is incomplete
+	TOKEN_TYPE(LOCK),
 	TOKEN_TYPE(KEYWORD),
 	TOKEN_TYPE(IDENTIFIER),
 	TOKEN_TYPE(LITERAL),
@@ -68,7 +68,8 @@ typedef enum: uint32_t {
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 
-/* the piece of code is from:
+/*
+ * the piece of code is from:
  * - start to lock_end for keys, locks and keywords
  * - start to end for the rest
 */
@@ -77,7 +78,6 @@ typedef struct {
 	uint32_t type;
 	uint32_t subtype1;
 	uint32_t subtype2;
-	bool has_value;
 	union {
 		struct {
 			long int start;

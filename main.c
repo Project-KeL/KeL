@@ -52,7 +52,9 @@ char** argv) {
 		error = true;
 		goto ERROR_3;
 	}
-
+#ifndef NDEBUG 
+	debug_print_tokens(&lexer);
+#endif
 	if(create_parser(
 		&lexer,
 		&parser)
@@ -61,9 +63,6 @@ char** argv) {
 		goto ERROR_4;
 	}
 
-#ifndef NDEBUG 
-	debug_print_tokens(&lexer);
-#endif
 	binary_x64(
 		&binary,
 		&parser);
