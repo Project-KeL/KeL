@@ -71,6 +71,7 @@ Token* restrict token) {
 	*token = (Token) {
 		.type = TokenType_SPECIAL,
 		.subtype1 = subtype,
+		.subtype2 = TokenSubtype_NO,
 		.start = start,
 		.end = end};
 }
@@ -85,7 +86,6 @@ Token* token) {
 		.type = TokenType_LITERAL,
 		.subtype1 = subtype1,
 		.subtype2 = subtype2,
-		.subtype2 = TokenSubtype_NO,
 		.start = start,
 		.end = end};
 }
@@ -517,17 +517,13 @@ Token* token) {
 
 		buffer_end += 1;
 
-		if(!is_digit(code[buffer_end])
-		&& (code[buffer_end] <= 64
-		 && code[buffer_end] >= 71)) {
+		if(!is_digit_hex(code[buffer_end])) {
 			token_error = true;
 			return false;
 		}
 NO_BASE_CHECK:
 		while(!is_eof(code[buffer_end]) 
-		   && (is_digit(code[buffer_end])
-		    || (code[buffer_end] > 64
-		     && code[buffer_end] < 71)
+		   && (is_digit_hex(code[buffer_end])
 		    || code[buffer_end] == '`')) buffer_end += 1;
 		// a number cannot be followed by '`' and must be followed by a blank or a special symbole
 		if(code[buffer_end - 1] == '`'

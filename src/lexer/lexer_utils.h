@@ -5,6 +5,7 @@ bool is_eof(char c);
 bool is_significant(char c);
 bool is_alphabetical(char c);
 bool is_digit(char c);
+bool is_digit_hex(char c);
 bool is_open_delimiter(char c);
 bool is_close_delimiter(char c);
 bool is_delimiter(char c);

@@ -19,16 +19,22 @@ bool is_digit(char c) {
 	return c > 47 && c < 58;
 }
 
+bool is_digit_hex(char c) {
+	return is_digit(c)
+		|| (c > 64
+		 && c < 71);
+}
+
 bool is_open_delimiter(char c) {
 	return c == '('
 	    || c == '['
-		|| c == '{';
+	    || c == '{';
 }
 
 bool is_close_delimiter(char c) {
 	return c == ')'
 	    || c == ']'
-		|| c == '}';
+	    || c == '}';
 }
 
 bool is_delimiter(char c) {
@@ -40,7 +46,7 @@ bool is_command(char c) {
 	return c == '#'
 	    || c == '@';
 }
-// is interpreted when encounter alone
+// is interpreted when encountered alone
 bool is_interpreted(char c) {
 	return is_delimiter(c)
 	    || is_command(c)
