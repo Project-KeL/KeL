@@ -34,22 +34,19 @@ long int end) {
 	for(long int i = start;
 	i < end;
 	i += 1) {
-		printf("%d, %c\n", end - start, code[i]); 
-		assert(is_digit(code[i])
-			|| (code[i] > 64
-			 && code[i] < 71));
+		const char c = code[i];
+		printf("%d, %c\n", end - start, c); 
+		assert(is_digit_hex(c));
 		assert((base < 9
-			 && code[i] - '0' < base)
+			 && c - '0' < base)
 			|| (base == 16
-			 && (code[i] > 64
-		      || code[i] < 71)));
+			 && is_digit_hex(c)));
 
-		if(code[i] > 64
-		&& code[i] < 71) {
+		if(is_alphabetical_A_F(c))  {
 			assert(base == 16);
-			ret = 16 * ret + 10 + code[i] - 'A';
+			ret = 16 * ret + 10 + c - 'A';
 		} else
-			ret = base * ret + code[i] - '0';
+			ret = base * ret + c - '0';
 	}
 
 	return ret;

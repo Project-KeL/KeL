@@ -10,6 +10,10 @@ bool is_significant(char c) {
 	return c > 32 && c < 127;
 }
 
+bool is_alphabetical_A_F(char c) {
+	return c > 64 && c < 71;
+}
+
 bool is_alphabetical(char c) {
 	return c > 64 && c < 91
 	    || c > 96 && c < 123;
@@ -20,9 +24,7 @@ bool is_digit(char c) {
 }
 
 bool is_digit_hex(char c) {
-	return is_digit(c)
-		|| (c > 64
-		 && c < 71);
+	return is_digit(c) || is_alphabetical_A_F(c);	
 }
 
 bool is_open_delimiter(char c) {

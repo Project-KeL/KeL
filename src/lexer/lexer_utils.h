@@ -3,6 +3,7 @@
 
 bool is_eof(char c);
 bool is_significant(char c);
+bool is_alphabetical_A_F(char c);
 bool is_alphabetical(char c);
 bool is_digit(char c);
 bool is_digit_hex(char c);
