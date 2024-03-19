@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "binary.h"
+#include "../linker/elf.h"
 
 bool create_binary(
 const char* restrict path,
@@ -71,88 +72,31 @@ uint16_t byte) {
 	binary, \
 	word)
 
-typedef struct {
-	uint8_t e_ident[16];
-	uint16_t e_type;
-	uint16_t e_machine;
-	uint32_t e_version;
-	uint64_t e_entry;
-	uint64_t e_phoff;
-	uint64_t e_shoff;
-	uint32_t e_flags;
-	uint16_t e_ehsize;
-	uint16_t e_phentsize; // size per program header 
-	uint16_t e_phnum; // number of program headers
-	uint16_t e_shentsize; // size per section header
-	uint16_t e_shnum; // number of section headers
-	uint16_t e_shstrndx; // section header string table index
-} ELF_EHDR;
-
-typedef struct {
-	uint32_t p_type;
-	uint32_t p_flags;
-	uint64_t p_offset; // offset of the segment
-	uint64_t p_vaddr; // virtual address
-	uint64_t p_paddr; // physical address
-	uint64_t p_filesz; // size of the segment in the file
-	uint64_t p_memsz; // size of the segment in memory
-	uint64_t p_align;
-} ELF_PHDR;
-
 static void binary_x64_elf_initialize(Binary* restrict binary) {
-	static_assert(sizeof(ELF_EHDR) == 0x40);
-	static_assert(sizeof(ELF_PHDR) == 0x38);
-	ELF_EHDR ehdr = {
-		.e_ident = {
-			0x7F,
-			'E',
-			'L',
-			'F',
-			0x02, // 64 bits
-			0x01, // LSB
-			0x01, // ELF version
-			0x00, // OS ABI (ignore)
-			0x00, // ABI version (ignore)
-			// padding
-			0x00,
-			0x00,
-			0x00,
-			0x00,
-			0x00,
-			0x00,
-			0x00},
-		.e_type = 0x02, // 0x02: executable file
-		.e_machine = 0x3E, // x64
-		.e_version = 0x01,
-		.e_entry = 0x08048078,
-		.e_phoff = 0x40,
-		.e_shoff = 0,
-		.e_flags = 0,
-		.e_ehsize = 0x40,
-		.e_phentsize = 0x38,
-		.e_phnum = 0x01,
-		.e_shentsize = 0,
-		.e_shnum = 0,
-		.e_shstrndx = 0
-	};
-
+	ELF_EHDR ehdr = create_elf_ehdr(
+		ELF_E_TYPE_EXEC,
+		0x08048078, // e_entry
+		0x40, // e_phoff
+		0x00, // e_shoff
+		0x38, // e_phentsize
+		0x01, // e_phnum
+		0x00, // e_shentsize
+		0x00, // e_shnum
+		0x00); // e_shstrndx
 	fwrite(
 		&ehdr,
 		sizeof(ELF_EHDR),
 		1,
 		binary->file);
-
-	ELF_PHDR phdr = {
-		.p_type = 0x01, // PT_LOAD
-		.p_flags = 0x01 | 0x02 | 0x04, // XWR
-		.p_offset = 0,
-		.p_vaddr = 0x08048000,
-		.p_paddr = 0x08048000,
-		.p_filesz = 0, // reserved
-		.p_memsz = 0, // reserved
-		.p_align = 0x1000
-	};
-
+	ELF_PHDR phdr = create_elf_phdr(
+		ELF_P_TYPE_LOAD, // p_type
+		ELF_P_FLAG_X | ELF_P_FLAG_W | ELF_P_FLAG_R, // p_flags
+		0, // p_offset
+		0x08048000, // p_vaddr
+		0x08048000, // p_paddr
+		0, // p_filesz: reserved
+		0, // p_memsz: reserved
+		0x1000); // p_align
 	fwrite(
 		&phdr,
 		sizeof(ELF_PHDR),
