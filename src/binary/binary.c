@@ -73,30 +73,44 @@ uint16_t byte) {
 	word)
 
 static void binary_x64_elf_initialize(Binary* restrict binary) {
-	ELF_EHDR ehdr = create_elf_ehdr(
-		ELF_E_TYPE_EXEC,
-		0x08048078, // e_entry
-		0x40, // e_phoff
-		0x00, // e_shoff
-		0x38, // e_phentsize
-		0x01, // e_phnum
-		0x00, // e_shentsize
-		0x00, // e_shnum
-		0x00); // e_shstrndx
+	ELF_EHDR ehdr = (ELF_EHDR) {
+		.e_ident = {
+			[ELF_E_INDEX_MAGIC_0] = ELF_E_MAGIC_0,
+			[ELF_E_INDEX_MAGIC_1] = ELF_E_MAGIC_1,
+			[ELF_E_INDEX_MAGIC_2] = ELF_E_MAGIC_2,
+			[ELF_E_INDEX_MAGIC_3] = ELF_E_MAGIC_3,
+			[ELF_E_INDEX_CLASS] = ELF_E_CLASS_64,
+			[ELF_E_INDEX_DATA] = ELF_E_DATA_LSB,
+			[ELF_E_INDEX_VERSION] = ELF_E_VERSION_CURRENT,
+			[ELF_E_INDEX_OS_ABI] = ELF_E_OS_ABI_NONE,
+			[ELF_E_INDEX_ABI_VERSION] = ELF_E_ABI_VERSION_0},
+		.e_type = ELF_E_TYPE_EXEC,
+		.e_machine = ELF_E_MACHINE_x64, // x64
+		.e_version = 1,
+		.e_entry = 0x08048078,
+		.e_phoff = 0x40,
+		.e_shoff = 0x00,
+		.e_flags = 0,
+		.e_ehsize = 0x40,
+		.e_phentsize = 0x38,
+		.e_phnum = 1,
+		.e_shentsize = 0x00,
+		.e_shnum = 0,
+		.e_shstrndx = 0x00};
 	fwrite(
 		&ehdr,
 		sizeof(ELF_EHDR),
 		1,
 		binary->file);
-	ELF_PHDR phdr = create_elf_phdr(
-		ELF_P_TYPE_LOAD, // p_type
-		ELF_P_FLAG_X | ELF_P_FLAG_W | ELF_P_FLAG_R, // p_flags
-		0, // p_offset
-		0x08048000, // p_vaddr
-		0x08048000, // p_paddr
-		0, // p_filesz: reserved
-		0, // p_memsz: reserved
-		0x1000); // p_align
+	ELF_PHDR phdr = {
+		.p_type = ELF_P_TYPE_LOAD,
+		.p_flags = ELF_P_FLAG_X | ELF_P_FLAG_W | ELF_P_FLAG_R,
+		.p_offset = 0x00,
+		.p_vaddr = 0x08048000,
+		.p_paddr = 0x08048000,
+		.p_filesz = 0,
+		.p_memsz = 0,
+		.p_align = 0x1000};
 	fwrite(
 		&phdr,
 		sizeof(ELF_PHDR),
