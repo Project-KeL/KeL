@@ -3,8 +3,10 @@
 
 #include "parser.h"
 
-bool is_at(
-	long int* i,
+bool is_scope(
+	long int i,
+	const Lexer* restrict lexer);
+long int get_j_scope_parent(
 	long int j,
 	Parser* parser);
 

@@ -87,7 +87,7 @@ static void binary_x64_elf_initialize(Binary* restrict binary) {
 		.e_type = ELF_E_TYPE_EXEC,
 		.e_machine = ELF_E_MACHINE_x64, // x64
 		.e_version = 1,
-		.e_entry = 0x08048078,
+		.e_entry = 0x400078,
 		.e_phoff = 0x40,
 		.e_shoff = 0x00,
 		.e_flags = 0,
@@ -106,11 +106,11 @@ static void binary_x64_elf_initialize(Binary* restrict binary) {
 		.p_type = ELF_P_TYPE_LOAD,
 		.p_flags = ELF_P_FLAG_X | ELF_P_FLAG_W | ELF_P_FLAG_R,
 		.p_offset = 0x00,
-		.p_vaddr = 0x08048000,
-		.p_paddr = 0x08048000,
+		.p_vaddr = 0x400000,
+		.p_paddr = 0x400000,
 		.p_filesz = 0,
 		.p_memsz = 0,
-		.p_align = 0x1000};
+		.p_align = 0};
 	fwrite(
 		&phdr,
 		sizeof(ELF_PHDR),
@@ -145,11 +145,11 @@ const Parser* restrict parser) {
 	for(long int i = 0;
 	i < parser->count - 1;
 	++i) {
-		const Node* restrict const node = &parser->nodes[i];
-
+		const Node* node = &parser->nodes[i];
+/*
 		if(node->type == NodeType_CORE_B) {
 			APPEND_BYTE(node->value);
-		}
+*/
 	}
 
 	binary_x64_elf_terminate(binary);

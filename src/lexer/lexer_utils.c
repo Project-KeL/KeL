@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include "lexer_utils.h"
+#include <stdio.h>
 
 bool is_eof(char c) {
 	return c == '\0';
@@ -176,4 +177,26 @@ long int* end) {
 	return get_next_word_immediate(
 		string,
 		end);
+}
+
+bool skip_comment(
+const char* code,
+long int* start,
+long int* end) {
+	if(code[*start] != '|'
+	|| is_eof(code[*end])
+	|| code[*end] != '-')
+		return false;
+
+	do {
+		*end += 1;
+	} while(code[*end] != '-'
+	   || code[*end + 1] != '|'); // error checked
+		
+	*end += 2;
+	get_next_word(
+		code,
+		start,
+		end);
+	return true;
 }

@@ -42,7 +42,7 @@ char** argv) {
 		goto ERROR_2;
 	}
 
-	printf("%s\n\n", source.content);
+	printf("%s\n", source.content);
 
 	if(create_lexer(
 		&source,
@@ -52,17 +52,24 @@ char** argv) {
 		error = true;
 		goto ERROR_3;
 	}
-#ifndef NDEBUG 
+#ifndef NDEBUG
+	printf("\n|- TOKENS -|\n");
 	debug_print_tokens(&lexer);
+	printf("\n");
 #endif
 	if(create_parser(
 		&lexer,
+		&allocator,
 		&parser)
 	== false) {
 		error = true;
 		goto ERROR_4;
 	}
-
+#ifndef NDEBUG
+	printf("\n|- NODES -|\n");
+	debug_print_nodes(&parser);
+	printf("\n");
+#endif
 	binary_x64(
 		&binary,
 		&parser);

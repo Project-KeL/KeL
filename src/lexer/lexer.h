@@ -15,16 +15,23 @@ typedef enum: uint32_t {
 	TOKEN_TYPE(KEY),
 	TOKEN_TYPE(LOCK),
 	TOKEN_TYPE(KEYWORD),
+	TOKEN_TYPE(PERIOD_KEY),
 	TOKEN_TYPE(IDENTIFIER),
 	TOKEN_TYPE(LITERAL),
 #undef TOKEN_TYPE
 } TokenType;
 
+#define SHIFT_TOKEN_SUBTYPE_QUALIFIER_KEY 28
+#define SHIFT_TOKEN_SUBTYPE_QUALIFIER_LOCK 24
+
+#define MASK_TOKEN_SUBTYPE_QUALIFIER_KEY 0xF0000000
+#define MASK_TOKEN_SUBTYPE_QUALIFIER_LOCK 0x0F000000
+
 typedef enum: uint32_t {
 #define TOKEN_SUBTYPE(subtype) TokenSubtype_ ## subtype
 	TOKEN_SUBTYPE(NO) = 0,
 	// litteral
-	TOKEN_SUBTYPE(LITERAL_NUMBER),
+	TOKEN_SUBTYPE(LITERAL_NUMBER), // the base is the highest byte
 	TOKEN_SUBTYPE(LITERAL_STRING),
 	TOKEN_SUBTYPE(LITERAL_ASCII),
 	// special
@@ -58,13 +65,13 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(RCBRACE),
 	TOKEN_SUBTYPE(PIPE),
 	TOKEN_SUBTYPE(TILDE),
-	// key qualifier
-	TOKEN_SUBTYPE(QUALIFIER_KEY_ENTRY),
-	TOKEN_SUBTYPE(QUALIFIER_KEY_INC),
-	TOKEN_SUBTYPE(QUALIFIER_KEY_MUT),
-	// lock qualifier
-	TOKEN_SUBTYPE(QUALIFIER_LOCK_DEFAULT),
-	TOKEN_SUBTYPE(QUALIFIER_LOCK_INC),
+	// key qualifier (last highest byte high 4 bits)
+	TOKEN_SUBTYPE(QUALIFIER_KEY_ENTRY) = 1 << 24,
+	TOKEN_SUBTYPE(QUALIFIER_KEY_INC) = 1 << 25,
+	TOKEN_SUBTYPE(QUALIFIER_KEY_MUT) = 1 << 26,
+	// lock qualifier (last highest byte low 4 bits)
+	TOKEN_SUBTYPE(QUALIFIER_LOCK_DEFAULT) = 1 << 28,
+	TOKEN_SUBTYPE(QUALIFIER_LOCK_INC) = 1 << 29,
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 
@@ -76,8 +83,7 @@ typedef enum: uint32_t {
 
 typedef struct {
 	uint32_t type;
-	uint32_t subtype1;
-	uint32_t subtype2;
+	uint32_t subtype;
 	union {
 		struct {
 			long int start;
@@ -86,8 +92,7 @@ typedef struct {
 			long int key_start;
 			long int key_end;
 			long int lock_start;
-			long int lock_end;};
-	};
+			long int lock_end;};};
 } Token;
 
 typedef struct {

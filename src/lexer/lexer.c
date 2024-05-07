@@ -15,9 +15,10 @@
  * 5 - is_lock
  * 6 - is_qualifier_key_lock
  * 7 - is_keyword
- * 8 - is_delimiter
+ * 8 - is_period_key
  * 9 - is_literal
- * 10 - is_valid_name
+ * 10 - is_special
+ * 11 - is_valid_name
  *
  * qualifier cases are checked first to detect the brackets, so it is easier to detect
  * names (for instance, the name of a key or a lock).
@@ -70,22 +71,7 @@ Token* restrict token) {
 
 	*token = (Token) {
 		.type = TokenType_SPECIAL,
-		.subtype1 = subtype,
-		.subtype2 = TokenSubtype_NO,
-		.start = start,
-		.end = end};
-}
-
-static void create_token_literal(
-TokenSubtype subtype1,
-TokenSubtype subtype2,
-long int start,
-long int end,
-Token* token) {
-	*token = (Token) {
-		.type = TokenType_LITERAL,
-		.subtype1 = subtype1,
-		.subtype2 = subtype2,
+		.subtype = subtype,
 		.start = start,
 		.end = end};
 }
@@ -98,8 +84,7 @@ long int end,
 Token* restrict token) {
 	*token = (Token) {
 		.type = type,
-		.subtype1 = subtype,
-		.subtype2 = TokenSubtype_NO,
+		.subtype = subtype,
 		.start = start,
 		.end = end};
 }
@@ -113,12 +98,23 @@ long int lock_end,
 Token* restrict token) {
 	*token = (Token) {
 		.type = type,
-		.subtype1 = TokenSubtype_NO,
-		.subtype2 = TokenSubtype_NO,
+		.subtype = TokenSubtype_NO,
 		.key_start = key_start,
 		.key_end = key_end,
 		.lock_start = lock_start,
 		.lock_end = lock_end};
+}
+
+static void create_token_literal(
+TokenSubtype subtype,
+long int start,
+long int end,
+Token* token) {
+	*token = (Token) {
+		.type = TokenType_LITERAL,
+		.subtype = subtype,
+		.start = start,
+		.end = end};
 }
 
 static bool is_valid_qualifier_key(
@@ -132,12 +128,12 @@ long int end) {
 	if(strcmp(
 		"entry",
 		code)
-	< 0)
+	<= 0)
 		*subtype = TokenSubtype_QUALIFIER_KEY_ENTRY;
 	else if(strcmp(
 		"mut",
 		code)
-	< 0)
+	<= 0)
 		*subtype = TokenSubtype_QUALIFIER_KEY_MUT;
 
 	return *subtype != TokenSubtype_NO;
@@ -154,7 +150,7 @@ long int end) {
 	if(strcmp(
 		"default",
 		code)
-	< 0)
+	<= 0)
 		*subtype = TokenSubtype_QUALIFIER_LOCK_DEFAULT;
 
 	return *subtype != TokenSubtype_NO;
@@ -216,9 +212,6 @@ long int* key_end) {
 		return false;
 	}
 
-	if(code[buffer_end] != ':')
-		return false;
-
 	*end = buffer_end;
 	return true;
 }
@@ -240,10 +233,16 @@ Token* token) {
 		&buffer_end,
 		&key_start,
 		&key_end)
+	|| (is_significant(code[buffer_end])
+	 && code[buffer_end] != ':') // syntax error here
 	|| is_significant(code[buffer_end + 1]))
 		return false;
 
-	*end = buffer_end + 1;
+	*end = buffer_end;
+
+	if(code[buffer_end] == ':')
+		*end += 1;
+
 	create_token_qualifier(
 		TokenType_QUALIFIER_KEY,
 		subtype,
@@ -260,7 +259,8 @@ long int start,
 long int* end,
 Token* token) {
 	if(previous_is_command
-	|| code[*end] != ':'
+	|| (is_significant(code[*end])
+	 && code[*end] != ':')
 	|| is_valid_name(
 		code,
 		start,
@@ -268,14 +268,17 @@ Token* token) {
 	== false)
 		return false;
 
-	*end += 1; // skip the ':'
 	create_token_colon_word(
 		TokenType_KEY,
 		start,
-		*end - 1, // ignore colon
+		*end,
 		*end,
 		*end,
 		token);
+	
+	if(code[*end] == ':')
+		*end += 1;
+
 	return true;
 }
 
@@ -429,8 +432,7 @@ Token* token) {
 	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_QUALIFIER_KEY_LOCK,
-		.subtype1 = subtype1,
-		.subtype2 = subtype2,
+		.subtype = subtype1 | subtype2,
 		.key_start = key_start,
 		.key_end = key_end,
 		.lock_start = lock_start,
@@ -497,21 +499,18 @@ const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
-	TokenSubtype subtype1;
-	TokenSubtype subtype2 = TokenSubtype_NO; // useless except for numbers
+	TokenSubtype subtype;
 	long int buffer_end = start + 1;
 
 	if(is_digit(code[start])) {
-		subtype2 = 10;
-
 		if(code[start] != '0'
 		|| is_digit(code[buffer_end]))
 			goto NO_BASE_CHECK;
 
 		switch(code[buffer_end]) {
-			case 'b': subtype2 = 2; break;
-			case 'o': subtype2 = 8; break;
-			case 'x': subtype2 = 16; break;
+			case 'b': break;
+			case 'o': break;
+			case 'x': break;
 			default: token_error = true; return false; // unknown base
 		}
 
@@ -533,7 +532,7 @@ NO_BASE_CHECK:
 			return false;
 		}
 
-		subtype1 = TokenSubtype_LITERAL_NUMBER;
+		subtype = TokenSubtype_LITERAL_NUMBER;
 	} else if(code[start] == '`') {
 		while(!is_eof(code[buffer_end])
 		   && code[buffer_end] != '`') buffer_end += 1;
@@ -544,7 +543,7 @@ NO_BASE_CHECK:
 		}
 
 		buffer_end += 1;
-		subtype1 = TokenSubtype_LITERAL_STRING;
+		subtype = TokenSubtype_LITERAL_STRING;
 	} else if(code[start] == '\\') {
 		if(!is_alphabetical(code[buffer_end])
 		&& !is_digit(code[buffer_end])) {
@@ -553,17 +552,50 @@ NO_BASE_CHECK:
 		}
 
 		buffer_end += 1;
-		subtype1 = TokenSubtype_LITERAL_ASCII;
+		subtype = TokenSubtype_LITERAL_ASCII;
 	} else
 		return false;
 
 	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_LITERAL,
-		.subtype1 = subtype1,
-		.subtype2 = subtype2,
+		.subtype = subtype,
 		.start = start,
 		.end = *end};
+	return true;
+}
+
+static bool if_period_key_create_token(
+const char* code,
+long int start,
+long int* end,
+Token* token) {
+	if(code[start] != '.'
+	|| is_eof(code[start + 1])
+	|| !is_significant(code[start + 1]))
+		return false;
+
+	long int buffer_end = start + 1;
+	get_next_word(
+		code,
+		&start,
+		&buffer_end);
+
+	if(is_valid_name(
+		code,
+		start,
+		buffer_end)
+	== false)
+		return false;
+
+	*end = buffer_end;
+	create_token_colon_word(
+		TokenType_PERIOD_KEY,
+		start + 1,
+		buffer_end,
+		buffer_end,
+		buffer_end,
+		token);
 	return true;
 }
 
@@ -596,8 +628,7 @@ Token* token) {
 
 	*token = (Token) {
 		.type = TokenType_IDENTIFIER,
-		.subtype1 = TokenSubtype_NO,
-		.subtype2 = TokenSubtype_NO,
+		.subtype = TokenSubtype_NO,
 		.start = start,
 		.end = end};
 	return true;
@@ -628,6 +659,14 @@ Lexer* restrict lexer) {
 		&start,
 		&end)
 	== true) {
+		while(skip_comment(
+			code,
+			&start,
+			&end)) continue;
+
+		if(is_eof(code[start]))
+			break;
+		// allocation
 		if(lexer->count <= i) {
 			Token* tokens_realloc = realloc(
 				lexer->tokens,
@@ -641,10 +680,8 @@ Lexer* restrict lexer) {
 			lexer->tokens = tokens_realloc;
 			lexer->count += TOKENS_CHUNK;
 		}
-
+		// create tokens
 		Token* token = &lexer->tokens[i];
-		TokenSubtype subtype1;
-		TokenSubtype subtype2;
 
 		if(if_command_create_token(
 			code,
@@ -696,11 +733,14 @@ Lexer* restrict lexer) {
 			token)
 		== true) {
 			// OK
-		} else if(if_delimiter_create_token(
+		} else if(if_period_key_create_token(
 			code,
 			start,
-			token)) {
+			&end,
+			token)
+		== true) {
 			// OK
+
 		} else if(if_literal_create_token(
 			code,
 			start,
@@ -711,7 +751,8 @@ Lexer* restrict lexer) {
 		} else if(if_special_create_token(
 			code,
 			start,
-			token)) {
+			token)
+		== true) {
 			// OK
 		} else if(if_valid_name_create_token(
 			code,
@@ -721,6 +762,7 @@ Lexer* restrict lexer) {
 		== true) {
 			// OK
 		} else {
+			destroy_lexer(lexer);
 			return false;
 		}
 
@@ -733,7 +775,7 @@ Lexer* restrict lexer) {
 	Token* tokens_realloc = realloc(
 		lexer->tokens,
 		lexer->count * sizeof(Token));
-#undef TOKENS_CHUNK
+#undef TOKENS_CHUNK // no more allocation reminder
 	if(tokens_realloc == NULL) {
 		destroy_lexer(lexer);
 		return false;
@@ -742,8 +784,7 @@ Lexer* restrict lexer) {
 	lexer->tokens = tokens_realloc;
 	lexer->tokens[lexer->count - 1] = (Token) {
 		.type = TokenType_NO,
-		.subtype1 = TokenSubtype_NO,
-		.subtype2 = TokenSubtype_NO,
+		.subtype = TokenSubtype_NO,
 		.start = 0,
 		.end = 0}; // last token is a null one
 	return true;

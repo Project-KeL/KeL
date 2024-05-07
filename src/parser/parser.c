@@ -1,19 +1,46 @@
 #include <assert.h>
 #include <string.h>
 #include "parser.h"
+#include "parser_error.h"
 #include "parser_utils.h"
+#include "parser_utils_core.h"
 #include <stdio.h>
 
-// later: check errors + use a goto replacing NULL by parser (avoid two almost identical loops)?
+// i is the current token to be processed
+// j is the current node to be created
+
+static bool if_scope_create_node(
+long int i,
+long int j,
+Parser* restrict parser) {
+	if(is_scope(
+		i,
+		parser->lexer)
+	== false)
+		return false;
+
+	parser->nodes[j] = (Node) {
+		.type = NodeType_SCOPE_START,
+		.value = NodeTypeScope_NO};
+	return true;
+}
+
+static bool if_period_create_node(
+long int i,
+long int j,
+Parser* restrict parser) {
+	if(parser->lexer->tokens[i].subtype != TokenSubtype_PERIOD)
+		return false;
+
+	parser->nodes[j] = (Node) {.type = NodeType_SCOPE_END};
+	return true;
+}
 
 bool create_parser(
-Lexer* lexer,
+const Lexer* lexer,
+Allocator* restrict allocator,
 Parser* restrict parser) {
-#define CMP(str) strncmp( \
-	str, \
-	&code[token->start], \
-	token->end - token->start) \
-== 0
+	assert(lexer != NULL);
 	assert(lexer->tokens != NULL);
 	assert(lexer->tokens[lexer->count - 1].type == TokenType_NO);
 	parser->lexer = lexer;
@@ -22,65 +49,64 @@ Parser* restrict parser) {
 
 	const char* code = lexer->source->content;
 	const Token* tokens = lexer->tokens;
-	long int* count = &parser->count;
+	long int i = 0;
 	long int j = 0;
-	
-	for(
-	long int i = 0;
-	i < lexer->count - 1;
-	i += 1) {
-		switch(tokens[i].type) {
-		case TokenType_SPECIAL:
-			if(is_at(
-				&i,
-				j,
-				parser)
-			== true) {
-				// OK
-			} else
-				return false;
 
-			break;
-		default: return false;
-		}
-
-		*count += 1;
-	}
-
-	*count += 1; // null node
-	parser->nodes = calloc(*count, sizeof(Node));
-
-	if(parser->nodes == NULL) {
-		printf("Allocation error.\n");
-		parser->lexer = NULL;
+	if(!parser_scan_errors(lexer))
 		return false;
-	}
-	
-	j = 0;
+#define NODES_CHUNK 4096
+	while(i < lexer->count - 1) { // null token
+		// allocation
+		if(parser->count <= i) {
+			Node* nodes_realloc = realloc(
+				parser->nodes,
+				(parser->count + NODES_CHUNK) * sizeof(Node));
 
-	for(
-	long int i = 0;
-	i < lexer->count - 1;
-	i += 1) {
-		switch(tokens[i].type) {
-		case TokenType_SPECIAL:
-			if(is_at(
-				&i,
-				j,
-				parser)
-			== true) {
-				// OK
+			if(nodes_realloc == NULL) {
+				destroy_parser(parser);
+				return false;
 			}
 
-			break;
-		default: break;
+			parser->nodes = nodes_realloc;
+			parser->count += NODES_CHUNK;
 		}
-
+		// create nodes
+		if(if_scope_create_node(
+			i,
+			j,
+			parser)
+		== true) {
+			// OK
+		} else if(if_period_create_node(
+			i,
+			j,
+			parser)
+		== true) {
+			// OK
+		} else {
+			destroy_parser(parser);
+			return false;
+		}
+		// loop end
+		i += 1;
 		j += 1;
 	}
 
+	parser->count = i + 1; // null node
+	Node* nodes_realloc = realloc(
+		parser->nodes,
+		parser->count);
+#undef NODES_CHUNK // no more allocation reminder
+	if(nodes_realloc == NULL) {
+		destroy_parser(parser);
+		return false;
+	}
+
+	parser->nodes = nodes_realloc;
+	parser->nodes[parser->count - 1] = (Node) {
+		.type = NodeType_NO,
+		.child = NULL}; // null node
 	return true;
-#undef CMP
 }
 
 void destroy_parser(Parser* restrict parser) {

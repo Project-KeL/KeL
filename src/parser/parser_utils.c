@@ -5,127 +5,33 @@
 #include "../lexer/lexer_utils.h"
 #include "parser_utils.h"
 
-#define CMP_LOCK(str) strncmp( \
-	str, \
-	&code[tokens[buffer_i].lock_start], \
-	tokens[buffer_i].lock_end - tokens[buffer_i].lock_start) == 0
+// look at the commit 147b4b12 to get back the string to uint64_t converter
 
-static uint64_t string_to_uint64(
-const char* code,
-long int start,
-long int end) {
-	uint_fast8_t base = 10;
+bool is_scope(
+long int i,
+const Lexer* restrict lexer) {
+	const Token* token = &lexer->tokens[i];
 
-	if(code[start] == '0'
-	&& !is_digit(code[start + 1])) {
-		switch(code[start + 1]) {
-		case 'b': base = 2; break;
-		case 'o': base = 8; break;
-		case 'x': base = 16; break;
-		default: assert(false);
-		}
-
-		start += 2;
-	}
-	// ignore zeros
-	while(code[start] == '0') start += 1;
-	uint64_t ret = 0;
-
-	for(long int i = start;
-	i < end;
-	i += 1) {
-		const char c = code[i];
-		printf("%d, %c\n", end - start, c); 
-		assert(is_digit_hex(c));
-		assert((base < 9
-			 && c - '0' < base)
-			|| (base == 16
-			 && is_digit_hex(c)));
-
-		if(is_alphabetical_A_F(c))  {
-			assert(base == 16);
-			ret = 16 * ret + 10 + c - 'A';
-		} else
-			ret = base * ret + c - '0';
-	}
-
-	return ret;
-}
-
-static bool is_core_feature(
-long int* i,
-long int j,
-Parser* parser) {
-	const char* code = parser->lexer->source->content;
-	const Token* tokens = parser->lexer->tokens;
-	long int buffer_i = *i;
-	Node buffer_node;
-
-	if(CMP_LOCK("byte")) {
-		buffer_i += 1;
-
-		if(tokens[buffer_i].subtype1 != TokenSubtype_LCBRACE)
-			return false;
-
-		buffer_i += 1;
-
-		if(tokens[buffer_i].type != TokenType_LITERAL
-		&& (tokens[buffer_i].subtype1 != TokenSubtype_LITERAL_NUMBER
-		 || tokens[buffer_i].subtype1 != TokenSubtype_LITERAL_ASCII))
-			return false;
-
-		if(parser->nodes != NULL) {
-			buffer_node = (Node) {
-				.type = NodeType_CORE_B,
-				.value = string_to_uint64( // check errors (between 0x00 and 0xFF)
-					code,
-					tokens[buffer_i].key_start,
-					tokens[buffer_i].key_end),
-				.child1 = NULL,
-				.child2 = NULL};
-		}
-
-		buffer_i += 1;
-
-		if(tokens[buffer_i].subtype1 != TokenSubtype_RCBRACE)
-			return false; // syntax error!
-
-		buffer_i += 1;
-
-		if(tokens[buffer_i].subtype1 != TokenSubtype_SEMICOLON)
-			return false; // syntax error!
-	} else
+	if(token->type != TokenType_KEY
+	|| strcmp(
+		"scope",
+		&lexer->source->content[token->key_start])
+	> 0)
 		return false;
 
-	*i = buffer_i;
-
-	if(parser->nodes != NULL)
-		parser->nodes[j] = buffer_node;
-
 	return true;
 }
 
-bool is_at(
-long int* i,
+long int get_j_scope_parent(
 long int j,
 Parser* parser) {
-	assert(parser->lexer != NULL);
-	long int buffer_i = *i + 1;
+	NodeType type;
 
-	// key case
-	
-	// lock case
-	if(is_core_feature(
-		&buffer_i,
-		j,
-		parser)
-	== true) {
-		// OK
-	} else
-		return false;	
+	do {
+		j -= 1;
+		type = parser->nodes[j].type;
+	} while(type != NodeType_SCOPE_START
+	     && j > 0);
 
-	*i = buffer_i;
-	return true;
+	return j;
 }
-
-#undef CMP_LOCK

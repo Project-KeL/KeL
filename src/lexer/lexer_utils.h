@@ -33,5 +33,9 @@ bool get_next_word(
 	const char* restrict string,
 	long int* start,
 	long int* end);
+bool skip_comment(
+	const char* code,
+	long int* start,
+	long int* end);
 
 #endif

@@ -8,6 +8,7 @@
  * 3 - a colon cannot be followed by EOF
  * 4 - scan lonely colon
  * 5 - array and pointer check 
+ * 6 - comments have to be well delimited
  */
 
 #include <stdio.h>
@@ -32,7 +33,7 @@ Allocator* restrict allocator) {
 
 	for(;
 	!is_eof(source->content[i]);
-	++i) {
+	i += 1) {
 		const char c = source->content[i];
 
 		if(is_open_delimiter(c)) {
@@ -64,6 +65,25 @@ Allocator* restrict allocator) {
 			&& source->content[i + 1] != '&'
 			&& source->content[i + 1] != '*')
 				return false;
+		} else if(c == '|') {
+			if(!is_eof(source->content[i + 1])
+			&& source->content[i + 1] != '-')
+				continue;
+
+			i += 1;
+
+			do {
+				i += 1;
+			} while(!is_eof(source->content[i])
+			     && (source->content[i] != '-'
+			      || (!is_eof(source->content[i + 1])
+			       && source->content[i + 1] != '|')));
+			
+			if(is_eof(source->content[i])
+			|| source->content[i] != '-'
+			|| is_eof(source->content[i + 1])
+			|| source->content[i + 1] != '|')
+				return false; // comment syntax error
 		}
 	}
 
