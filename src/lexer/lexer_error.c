@@ -19,7 +19,9 @@ Allocator* restrict allocator) {
 		allocator_fit(
 			allocator,
 			source->length)); // at least the size of the source (matching parenthesis)
-
+	const char* code = source->content;
+	char c_previous = '\0';
+	bool marker_literal_string = false;
 	size_t open_delimiter_count = 0;
 	long int i = 0;
 	// lonely colon: avoid to test i != 0 in the loop
@@ -32,9 +34,9 @@ Allocator* restrict allocator) {
 	}
 
 	for(;
-	!is_eof(source->content[i]);
+	!is_eof(code[i]);
 	i += 1) {
-		const char c = source->content[i];
+		const char c = code[i];
 
 		if(is_open_delimiter(c)) {
 			allocator->last[open_delimiter_count] = c;
@@ -51,41 +53,63 @@ Allocator* restrict allocator) {
 
 			open_delimiter_count -= 1;
 		} else if(c == ':') {
-			if(is_eof(source->content[i + 1]))
+			if(is_eof(code[i + 1]))
 				return false;
 
-			if(!is_significant(source->content[i - 1])
-			&& !is_significant(source->content[i + 1]))
+			if(!is_significant(code[i - 1])
+			&& !is_significant(code[i + 1]))
 				return false;
 
-			if(!is_significant(source->content[i - 1])
-			&& !is_alphabetical(source->content[i + 1])
-			&& source->content[i + 1] != '('
-			&& source->content[i + 1] != '['
-			&& source->content[i + 1] != '&'
-			&& source->content[i + 1] != '*')
+			if(!is_significant(code[i - 1])
+			&& !is_alphabetical(code[i + 1])
+			&& code[i + 1] != '('
+			&& code[i + 1] != '['
+			&& code[i + 1] != '&'
+			&& code[i + 1] != '*')
 				return false;
-		} else if(c == '|') {
-			if(!is_eof(source->content[i + 1])
-			&& source->content[i + 1] != '-')
+		} else if(!marker_literal_string
+		       && c_previous != '\\'
+		       && c == '-') {
+			if(is_eof(code[i + 1])
+			|| code[i + 1] != '-')
 				continue;
 
 			i += 1;
 
 			do {
 				i += 1;
-			} while(!is_eof(source->content[i])
-			     && (source->content[i] != '-'
-			      || (!is_eof(source->content[i + 1])
-			       && source->content[i + 1] != '|')));
+			} while(code[i] != '\n'
+			     && !is_eof(code[i]));
+		} else if(!marker_literal_string
+		       && c_previous != '\\'
+		       && c == '|') {
+			if(is_eof(code[i + 1])
+			|| code[i + 1] != '-'
+			|| is_eof(code[i + 2]
+			|| code[i + 2] != '-'))
+				continue;
+
+			i += 2;
+
+			do {
+				i += 1;
+			} while(!is_eof(code[i])
+			     && code[i] != '-'
+			     || (!is_eof(code[i + 1])
+			      && code[i + 1] != '-')
+				 || (!is_eof(code[i + 2])
+				  && code[i + 2] != '|'));
 			
-			if(is_eof(source->content[i])
-			|| source->content[i] != '-'
-			|| is_eof(source->content[i + 1])
-			|| source->content[i + 1] != '|')
+			if(is_eof(code[i]))
 				return false; // comment syntax error
 		}
+
+		if(c == '`')
+			marker_literal_string = !marker_literal_string;
+
+		c_previous = c;
 	}
 
-	return open_delimiter_count == 0;
+	return open_delimiter_count == 0
+	    && marker_literal_string == false;
 }

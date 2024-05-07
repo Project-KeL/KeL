@@ -183,17 +183,34 @@ bool skip_comment(
 const char* code,
 long int* start,
 long int* end) {
-	if(code[*start] != '|'
-	|| is_eof(code[*end])
-	|| code[*end] != '-')
+	if(code[*start] == '-') {
+		if(is_eof(code[*start + 1])
+		|| code[*start + 1] != '-')
+			return false;
+
+		do {
+			*end += 1;
+		} while(code[*end] != '\n'
+			 && !is_eof(code[*end]));
+	} else if(code[*start] == '|') {
+		if(is_eof(code[*start + 1])
+		|| code[*start + 1] != '-'
+		|| is_eof(code[*start + 2])
+		|| code[*start + 2] != '-')
+			return false;
+
+		*end += 1;
+
+		do {
+			*end += 1;
+		} while(code[*end] != '-'
+		   || code[*end + 1] != '-'
+		   || code[*end + 2] != '|'); // error checked
+			
+		*end += 3;
+	} else
 		return false;
 
-	do {
-		*end += 1;
-	} while(code[*end] != '-'
-	   || code[*end + 1] != '|'); // error checked
-		
-	*end += 2;
 	get_next_word(
 		code,
 		start,

@@ -662,7 +662,7 @@ Lexer* restrict lexer) {
 		while(skip_comment(
 			code,
 			&start,
-			&end)) continue;
+			&end)) continue; // `marker_literal_string` is not necessary
 
 		if(is_eof(code[start]))
 			break;
