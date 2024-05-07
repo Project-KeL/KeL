@@ -479,21 +479,6 @@ Token* token) {
 	return true;
 }
 
-static bool if_delimiter_create_token(
-const char* code,
-long int start,
-Token* token) {
-	if(!is_delimiter(code[start]))
-		return false;
-
-	create_token_special(
-		code,
-		start,
-		start + 1,
-		token);
-	return true;
-}
-
 static bool if_literal_create_token(
 const char* restrict code,
 long int start,
@@ -585,7 +570,7 @@ Token* token) {
 	*end = buffer_end;
 	create_token_colon_word(
 		TokenType_PERIOD_KEY,
-		start + 1,
+		start,
 		buffer_end,
 		buffer_end,
 		buffer_end,
