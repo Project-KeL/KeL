@@ -545,12 +545,6 @@ NO_BASE_CHECK:
 		buffer_end += 1;
 		subtype = TokenSubtype_LITERAL_STRING;
 	} else if(code[start] == '\\') {
-		if(!is_alphabetical(code[buffer_end])
-		&& !is_digit(code[buffer_end])) {
-			token_error = true;
-			return false;
-		}
-
 		buffer_end += 1;
 		subtype = TokenSubtype_LITERAL_ASCII;
 	} else

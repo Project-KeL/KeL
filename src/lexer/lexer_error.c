@@ -3,12 +3,13 @@
 #include "lexer_utils.h"
 
 /*
- * 1 - a lock qualifier cannot be the first token
- * 2 - scan delimiters matching
- * 3 - a colon cannot be followed by EOF
- * 4 - scan lonely colon
- * 5 - array and pointer check 
- * 6 - comments have to be well delimited
+ * 1 - a backslash must be followed by a letter or a digit
+ * 2 - a lock qualifier cannot be the first token
+ * 3 - scan delimiters matching
+ * 4 - a colon cannot be followed by EOF
+ * 5 - scan lonely colon
+ * 6 - array and pointer check 
+ * 7 - comments have to be well delimited
  */
 
 #include <stdio.h>
@@ -20,7 +21,6 @@ Allocator* restrict allocator) {
 			allocator,
 			source->length)); // at least the size of the source (matching parenthesis)
 	const char* code = source->content;
-	char c_previous = '\0';
 	bool marker_literal_string = false;
 	size_t open_delimiter_count = 0;
 	long int i = 0;
@@ -38,7 +38,14 @@ Allocator* restrict allocator) {
 	i += 1) {
 		const char c = code[i];
 
-		if(is_open_delimiter(c)) {
+		if(c == '\\') {
+			if(is_eof(code[i + 1])
+			|| !is_significant(code[i + 1]))
+				return false;
+			
+			i += 1;
+			continue;
+		} else if(is_open_delimiter(c)) {
 			allocator->last[open_delimiter_count] = c;
 			open_delimiter_count += 1;
 		} else if(is_close_delimiter(c)) {
@@ -68,7 +75,6 @@ Allocator* restrict allocator) {
 			&& code[i + 1] != '*')
 				return false;
 		} else if(!marker_literal_string
-		       && c_previous != '\\'
 		       && c == '-') {
 			if(is_eof(code[i + 1])
 			|| code[i + 1] != '-')
@@ -81,7 +87,6 @@ Allocator* restrict allocator) {
 			} while(code[i] != '\n'
 			     && !is_eof(code[i]));
 		} else if(!marker_literal_string
-		       && c_previous != '\\'
 		       && c == '|') {
 			if(is_eof(code[i + 1])
 			|| code[i + 1] != '-'
@@ -106,8 +111,6 @@ Allocator* restrict allocator) {
 
 		if(c == '`')
 			marker_literal_string = !marker_literal_string;
-
-		c_previous = c;
 	}
 
 	return open_delimiter_count == 0
