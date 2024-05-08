@@ -3,7 +3,6 @@
 #include "parser.h"
 #include "parser_error.h"
 #include "parser_utils.h"
-#include "parser_utils_core.h"
 #include <stdio.h>
 
 // i is the current token to be processed

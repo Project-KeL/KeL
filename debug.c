@@ -7,7 +7,7 @@ void debug_print_tokens(const Lexer* lexer) {
 	const char* code = lexer->source->content;
 
 	for(long int i = 0;
-	i < lexer->count - 1;
+	i < lexer->count;
 	i += 1) {
 		const Token* token = &lexer->tokens[i];
 		printf(

@@ -68,6 +68,7 @@ Allocator* restrict allocator) {
 				return false;
 
 			if(!is_significant(code[i - 1])
+			&& !is_command(code[i + 1])
 			&& !is_alphabetical(code[i + 1])
 			&& code[i + 1] != '('
 			&& code[i + 1] != '['

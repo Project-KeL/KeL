@@ -262,8 +262,6 @@ long int start,
 long int* end,
 Token* token) {
 	if(previous_is_command
-	|| (is_significant(code[*end])
-	 && code[*end] != ':')
 	|| is_valid_name(
 		code,
 		start,
