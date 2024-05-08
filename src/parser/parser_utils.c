@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "../lexer/lexer_utils.h"
+#include "lexer_utils.h"
 #include "parser_utils.h"
 
 // look at the commit 147b4b12 to get back the string to uint64_t converter

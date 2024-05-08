@@ -8,7 +8,7 @@ kel : $(OBJS)
 	gcc $(LDFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o : %.c
-	gcc $(CPPFLAGS) -o $@ -c $<
+	gcc $(CPPFLAGS) -o $@ -c -I./headers $<
 
 .PHONY : clean
 

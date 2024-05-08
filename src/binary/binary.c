@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "binary.h"
-#include "../linker/elf.h"
+#include "elf.h"
 
 bool create_binary(
 const char* restrict path,

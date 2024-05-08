@@ -2,8 +2,8 @@
 #define PARSER_H
 
 #include <stdint.h>
-#include "../allocator.h"
-#include "../lexer/lexer.h"
+#include "allocator.h"
+#include "lexer.h"
 
 #define MASK_NODE_TYPE 0xFFFF000000000000
 

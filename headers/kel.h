@@ -5,9 +5,9 @@
 #include <stdint.h>
 
 #include "allocator.h"
-#include "binary/binary.h"
-#include "lexer/lexer.h"
-#include "parser/parser.h"
+#include "binary.h"
+#include "lexer.h"
+#include "parser.h"
 #include "source.h"
 
 #endif

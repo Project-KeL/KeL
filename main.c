@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
-#include "src/kel.h"
+#include "kel.h"
 
 int main(
 int argc,

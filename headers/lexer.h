@@ -2,8 +2,8 @@
 #define LEXER_H
 
 #include <stdint.h>
-#include "../allocator.h"
-#include "../source.h"
+#include "allocator.h"
+#include "source.h"
 
 typedef enum: uint32_t {
 #define TOKEN_TYPE(type) TokenType_ ## type
