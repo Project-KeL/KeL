@@ -46,9 +46,9 @@ Parser* restrict parser) {
 	parser->lexer = lexer;
 	parser->nodes = NULL;
 	parser->count = 0;
-
 	const char* code = lexer->source->content;
 	const Token* tokens = lexer->tokens;
+	long int count_scope = 0;
 	long int i = 0;
 	long int j = 0;
 
@@ -76,13 +76,17 @@ Parser* restrict parser) {
 			j,
 			parser)
 		== true) {
-			// OK
+			count_scope += 1;
+		// check end of scope (period) or end of instruction (semicolon)
 		} else if(if_period_create_node(
 			i,
 			j,
 			parser)
 		== true) {
-			// OK
+			count_scope -= 1;
+		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
+			i += 1;
+			continue; // no new node
 		} else {
 			destroy_parser(parser);
 			return false;
@@ -92,7 +96,7 @@ Parser* restrict parser) {
 		j += 1;
 	}
 
-	parser->count = i + 1; // null node
+	parser->count = j + 1; // null node
 	Node* nodes_realloc = realloc(
 		parser->nodes,
 		parser->count);
