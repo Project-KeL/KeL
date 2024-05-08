@@ -29,7 +29,7 @@ void debug_print_tokens(const Lexer* lexer) {
 
 void debug_print_nodes(const Parser* parser) {
 	for(long int j = 0;
-	j < parser->count - 1;
+	j < parser->count;
 	j += 1) {
 		const Node* node = &parser->nodes[j];
 		printf(
@@ -39,7 +39,7 @@ void debug_print_nodes(const Parser* parser) {
 
 	printf(
 		"\nNumber of nodes: %d",
-		parser->count - 1);
+		parser->count);
 }
 
 #endif

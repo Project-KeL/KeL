@@ -22,7 +22,7 @@ Allocator* restrict allocator) {
 			source->length)); // at least the size of the source (matching parenthesis)
 	const char* code = source->content;
 	bool marker_literal_string = false;
-	size_t open_delimiter_count = 0;
+	size_t count_delimiter_open = 0;
 	long int i = 0;
 	// lonely colon: avoid to test i != 0 in the loop
 	if(source->content[i] == ':') {
@@ -46,19 +46,19 @@ Allocator* restrict allocator) {
 			i += 1;
 			continue;
 		} else if(is_open_delimiter(c)) {
-			allocator->last[open_delimiter_count] = c;
-			open_delimiter_count += 1;
+			allocator->last[count_delimiter_open] = c;
+			count_delimiter_open += 1;
 		} else if(is_close_delimiter(c)) {
-			if(open_delimiter_count == 0)
+			if(count_delimiter_open == 0)
 				return false;
 
 			if(delimiter_match(
-				allocator->last[open_delimiter_count - 1],
+				allocator->last[count_delimiter_open - 1],
 				c)
 			== false)
 				return false;
 
-			open_delimiter_count -= 1;
+			count_delimiter_open -= 1;
 		} else if(c == ':') {
 			if(is_eof(code[i + 1]))
 				return false;
@@ -113,6 +113,6 @@ Allocator* restrict allocator) {
 			marker_literal_string = !marker_literal_string;
 	}
 
-	return open_delimiter_count == 0
+	return count_delimiter_open == 0
 	    && marker_literal_string == false;
 }

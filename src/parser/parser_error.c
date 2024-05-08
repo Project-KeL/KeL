@@ -9,7 +9,7 @@ bool parser_scan_errors(const Lexer* restrict lexer) {
 	size_t count_scope_nest = 0;
 
 	for(long int i = 0;
-	i < lexer->count - 1;
+	i < lexer->count;
 	i += 1) {
 		const Token* token = &lexer->tokens[i];
 

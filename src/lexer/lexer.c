@@ -750,7 +750,7 @@ Lexer* restrict lexer) {
 		i += 1;
 	}
 
-	lexer->count = i + 1; // null token
+	lexer->count = i;
 	Token* tokens_realloc = realloc(
 		lexer->tokens,
 		lexer->count * sizeof(Token));
@@ -761,11 +761,6 @@ Lexer* restrict lexer) {
 	}
 
 	lexer->tokens = tokens_realloc;
-	lexer->tokens[lexer->count - 1] = (Token) {
-		.type = TokenType_NO,
-		.subtype = TokenSubtype_NO,
-		.start = 0,
-		.end = 0}; // last token is a null one
 	return true;
 }
 

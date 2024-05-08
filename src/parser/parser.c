@@ -42,20 +42,18 @@ Allocator* restrict allocator,
 Parser* restrict parser) {
 	assert(lexer != NULL);
 	assert(lexer->tokens != NULL);
-	assert(lexer->tokens[lexer->count - 1].type == TokenType_NO);
 	parser->lexer = lexer;
 	parser->nodes = NULL;
 	parser->count = 0;
 	const char* code = lexer->source->content;
 	const Token* tokens = lexer->tokens;
-	long int count_scope = 0;
 	long int i = 0;
 	long int j = 0;
 
 	if(!parser_scan_errors(lexer))
 		return false;
 #define NODES_CHUNK 4096
-	while(i < lexer->count - 1) { // null token
+	while(i < lexer->count) {
 		// allocation
 		if(parser->count <= i) {
 			Node* nodes_realloc = realloc(
@@ -76,14 +74,14 @@ Parser* restrict parser) {
 			j,
 			parser)
 		== true) {
-			count_scope += 1;
+			// OK
 		// check end of scope (period) or end of instruction (semicolon)
 		} else if(if_period_create_node(
 			i,
 			j,
 			parser)
 		== true) {
-			count_scope -= 1;
+			// OK
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
 			continue; // no new node
@@ -96,7 +94,7 @@ Parser* restrict parser) {
 		j += 1;
 	}
 
-	parser->count = j + 1; // null node
+	parser->count = j;
 	Node* nodes_realloc = realloc(
 		parser->nodes,
 		parser->count);
@@ -107,9 +105,6 @@ Parser* restrict parser) {
 	}
 
 	parser->nodes = nodes_realloc;
-	parser->nodes[parser->count - 1] = (Node) {
-		.type = NodeType_NO,
-		.child = NULL}; // null node
 	return true;
 }
 
