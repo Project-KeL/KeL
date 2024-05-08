@@ -125,15 +125,17 @@ long int end) {
 	*subtype = TokenSubtype_NO;
 	code = &code[start]; // for strcmp
 
-	if(strcmp(
+	if(strncmp(
 		"entry",
-		code)
-	<= 0)
+		code,
+		end - start)
+	== 0)
 		*subtype = TokenSubtype_QUALIFIER_KEY_ENTRY;
-	else if(strcmp(
+	else if(strncmp(
 		"mut",
-		code)
-	<= 0)
+		code,
+		end - start)
+	== 0)
 		*subtype = TokenSubtype_QUALIFIER_KEY_MUT;
 
 	return *subtype != TokenSubtype_NO;
@@ -147,10 +149,11 @@ long int end) {
 	*subtype = TokenSubtype_NO;
 	code = &code[start];
 
-	if(strcmp(
+	if(strncmp(
 		"default",
-		code)
-	<= 0)
+		code,
+		end - start)
+	== 0)
 		*subtype = TokenSubtype_QUALIFIER_LOCK_DEFAULT;
 
 	return *subtype != TokenSubtype_NO;

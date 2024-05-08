@@ -13,10 +13,11 @@ const Lexer* restrict lexer) {
 	const Token* token = &lexer->tokens[i];
 
 	if(token->type != TokenType_KEY
-	|| strcmp(
+	|| strncmp(
 		"scope",
-		&lexer->source->content[token->key_start])
-	> 0)
+		&lexer->source->content[token->key_start],
+		token->key_end - token->key_start)
+	!= 0)
 		return false;
 
 	return true;
