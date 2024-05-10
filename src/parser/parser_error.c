@@ -13,10 +13,10 @@ bool parser_scan_errors(const Lexer* restrict lexer) {
 	i += 1) {
 		const Token* token = &lexer->tokens[i];
 
-		if(token->type == TokenType_KEY) {
+		if(token->type == TokenType_L) {
 			if(strcmp(
 				"scope",
-				&code[token->key_start])
+				&code[token->L_start])
 			<= 0)
 				count_scope_nest += 1;
 		} else if(token->subtype == TokenSubtype_PERIOD) {

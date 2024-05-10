@@ -3,46 +3,27 @@
 #include "lexer_utils.h"
 #include <stdio.h>
 
-bool is_eof(char c) {
-	return c == '\0';
+bool isXdigit(char c) {
+	return isdigit(c)
+	    || (c >= 'A'
+		 && c <= 'F');
 }
 
-bool is_significant(char c) {
-	return c > 32 && c < 127;
-}
-
-bool is_alphabetical_A_F(char c) {
-	return c > 64 && c < 71;
-}
-
-bool is_alphabetical(char c) {
-	return c > 64 && c < 91
-	    || c > 96 && c < 123;
-}
-
-bool is_digit(char c) {
-	return c > 47 && c < 58;
-}
-
-bool is_digit_hex(char c) {
-	return is_digit(c) || is_alphabetical_A_F(c);	
-}
-
-bool is_open_delimiter(char c) {
+bool is_delimiter_open(char c) {
 	return c == '('
 	    || c == '['
 	    || c == '{';
 }
 
-bool is_close_delimiter(char c) {
+bool is_delimiter_close(char c) {
 	return c == ')'
 	    || c == ']'
 	    || c == '}';
 }
 
 bool is_delimiter(char c) {
-	return is_open_delimiter(c)
-	    || is_close_delimiter(c);
+	return is_delimiter_open(c)
+	    || is_delimiter_close(c);
 }
 
 bool is_command(char c) {
@@ -113,15 +94,15 @@ const char* restrict string,
 long int start,
 long int end) {
 	string = &string[start]; // because start is left untouched
-	bool is_valid = is_alphabetical(string[0]);
+	bool is_valid = isalpha(string[0]);
 
 	for(long int i = 1;
 	i < end - start;
 	i += 1) {
 		const char c = string[i];
 		is_valid = is_valid
-			&& (is_alphabetical(c)
-			 || is_digit(c));
+			&& (isalpha(c)
+			 || isdigit(c));
 	}
 
 	return is_valid;
@@ -130,13 +111,13 @@ long int end) {
 bool skip_significant_but_not_special(
 const char* restrict string,
 long int* restrict end) {
-	if(!is_significant(string[*end])
+	if(!isgraph(string[*end])
 	|| is_special(string[*end]))
 		return false;
 
 	do {
 		*end += 1;
-	} while(is_significant(string[*end])
+	} while(isgraph(string[*end])
 	     && !is_special(string[*end]));
 
 	return true;
@@ -145,14 +126,14 @@ long int* restrict end) {
 void skip_unsignificant_but_not_eof(
 const char* restrict string,
 long int* restrict end) {
-	while(!is_eof(string[*end])
-	   && !is_significant(string[*end])) *end += 1;
+	while(string[*end] != '\0'
+	   && !isgraph(string[*end])) *end += 1;
 }
 
 bool get_next_word_immediate(
 const char* restrict string,
 long int* restrict end) {
-	if(is_eof(string[*end]))
+	if(string[*end] == '0')
 		return false;
 	else if(is_special(string[*end])) {
 		*end += 1;
@@ -184,18 +165,18 @@ const char* code,
 long int* start,
 long int* end) {
 	if(code[*start] == '-') {
-		if(is_eof(code[*start + 1])
+		if(code[*start + 1] == '\0'
 		|| code[*start + 1] != '-')
 			return false;
 
 		do {
 			*end += 1;
 		} while(code[*end] != '\n'
-			 && !is_eof(code[*end]));
+			 && code[*end] != '\0');
 	} else if(code[*start] == '|') {
-		if(is_eof(code[*start + 1])
+		if(code[*start + 1] == '\0'
 		|| code[*start + 1] != '-'
-		|| is_eof(code[*start + 2])
+		|| code[*start + 2] == '\0'
 		|| code[*start + 2] != '-')
 			return false;
 

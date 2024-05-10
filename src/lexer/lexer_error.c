@@ -3,6 +3,8 @@
 #include "lexer_utils.h"
 
 /*
+ * QUALIFIER_L_LBRACKET
+ * QUALIFIER_L_RBRACKET
  * 1 - a backslash must be followed by a letter or a digit
  * 2 - a lock qualifier cannot be the first token
  * 3 - scan delimiters matching
@@ -23,32 +25,34 @@ Allocator* restrict allocator) {
 	const char* code = source->content;
 	bool marker_literal_string = false;
 	size_t count_delimiter_open = 0;
-	long int i = 0;
-	// lonely colon: avoid to test i != 0 in the loop
-	if(source->content[i] == ':') {
-		if(!is_significant(source->content[i + 1])
-		|| source->content[i + 1] == '[')
+	long int start = 0;
+	long int end = 0;
+	// lonely colon: avoid to test start != 0 in the loop
+	if(source->content[start] == ':') {
+		if(!isgraph(source->content[start + 1])
+		|| source->content[start + 1] == '[')
 			return false;
 		else
-			i += 1;
+			start += 1;
 	}
 
-	for(;
-	!is_eof(code[i]);
-	i += 1) {
-		const char c = code[i];
-
-		if(c == '\\') {
-			if(is_eof(code[i + 1])
-			|| !is_significant(code[i + 1]))
-				return false;
-			
-			i += 1;
-			continue;
-		} else if(is_open_delimiter(c)) {
+	while(get_next_word(
+		code,
+		&start,
+		&end)
+	== true) {
+		// cannot call skip_comment
+		const char c = code[start];
+		// LITERAL_ASCII_NO
+		if(c == '\\'
+		&& code[start + 1] != '\0'
+		&& !isgraph(code[start + 1])) {
+			return false;
+		// DELIMITER_MATCH
+		} else if(is_delimiter_open(c)) {
 			allocator->last[count_delimiter_open] = c;
 			count_delimiter_open += 1;
-		} else if(is_close_delimiter(c)) {
+		} else if(is_delimiter_close(c)) {
 			if(count_delimiter_open == 0)
 				return false;
 
@@ -59,55 +63,64 @@ Allocator* restrict allocator) {
 				return false;
 
 			count_delimiter_open -= 1;
+		// COLON
 		} else if(c == ':') {
-			if(is_eof(code[i + 1]))
+			// COLON_EOF
+			if(code[start + 1] == '\0')
 				return false;
-
-			if(!is_significant(code[i - 1])
-			&& !is_significant(code[i + 1]))
+			// COLON_RIGHT_COLON
+			if(code[start + 1] == ':')
 				return false;
-
-			if(!is_significant(code[i - 1])
-			&& !is_command(code[i + 1])
-			&& !is_alphabetical(code[i + 1])
-			&& code[i + 1] != '('
-			&& code[i + 1] != '['
-			&& code[i + 1] != '&'
-			&& code[i + 1] != '*')
+			// COLON_LONELY
+			if(!isgraph(code[start - 1])
+			 && !isgraph(code[start + 1]))
 				return false;
+			// COLON_LONELY_RIGHT_SPECIAL_LEFT
+			if(is_special(code[start - 1])
+			 && !isgraph(code[start + 1]))
+				return false;
+			// COLON_LONELY_RIGHT_ALONE_LEFT
+			if(!isgraph(code[start - 1])
+			&& !is_command(code[start + 1])
+			&& !isalpha(code[start + 1]) // an R begins with a letter
+			&& code[start + 1] != '('
+			&& code[start + 1] != '['
+			&& code[start + 1] != '&')
+				return false;
+		// process a comment
 		} else if(!marker_literal_string
 		       && c == '-') {
-			if(is_eof(code[i + 1])
-			|| code[i + 1] != '-')
+			if(code[start + 1] != '\0'
+			|| code[start + 1] != '-')
 				continue;
 
-			i += 1;
+			start += 1;
 
 			do {
-				i += 1;
-			} while(code[i] != '\n'
-			     && !is_eof(code[i]));
+				start += 1;
+			} while(code[start] != '\n'
+			     && code[start] != '\0');
+		// COMMENT_MULTILINE_TRAIL_NO
 		} else if(!marker_literal_string
 		       && c == '|') {
-			if(is_eof(code[i + 1])
-			|| code[i + 1] != '-'
-			|| is_eof(code[i + 2]
-			|| code[i + 2] != '-'))
+			if(code[start + 1] == '\0'
+			|| code[start + 1] != '-'
+			|| code[start + 2] == '\0'
+			|| code[start + 2] != '-')
 				continue;
 
-			i += 2;
+			start += 2;
 
 			do {
-				i += 1;
-			} while(!is_eof(code[i])
-			     && code[i] != '-'
-			     || (!is_eof(code[i + 1])
-			      && code[i + 1] != '-')
-				 || (!is_eof(code[i + 2])
-				  && code[i + 2] != '|'));
-			
-			if(is_eof(code[i]))
-				return false; // comment syntax error
+				start += 1;
+			} while(code[start] != '\0'
+			     && code[start] != '-'
+			     || (code[start + 1] != '\0'
+			      && code[start + 1] != '-')
+				 || (code[start + 2] != '\0'
+				  && code[start + 2] != '|'));
+			if(code[start] == '\0')
+				return false;
 		}
 
 		if(c == '`')

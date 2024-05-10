@@ -8,24 +8,25 @@
 typedef enum: uint32_t {
 #define TOKEN_TYPE(type) TokenType_ ## type
 	TOKEN_TYPE(NO) = 0,
+	TOKEN_TYPE(COMMAND),
 	TOKEN_TYPE(SPECIAL),
-	TOKEN_TYPE(QUALIFIER_KEY),
-	TOKEN_TYPE(QUALIFIER_LOCK),
-	TOKEN_TYPE(QUALIFIER_KEY_LOCK),
-	TOKEN_TYPE(KEY),
-	TOKEN_TYPE(LOCK),
-	TOKEN_TYPE(KEYWORD),
-	TOKEN_TYPE(PERIOD_KEY),
+	TOKEN_TYPE(QL),
+	TOKEN_TYPE(QR),
+	TOKEN_TYPE(QLR),
+	TOKEN_TYPE(L),
+	TOKEN_TYPE(R),
+	TOKEN_TYPE(LR),
+	TOKEN_TYPE(PL),
 	TOKEN_TYPE(IDENTIFIER),
 	TOKEN_TYPE(LITERAL),
 #undef TOKEN_TYPE
 } TokenType;
 
-#define SHIFT_TOKEN_SUBTYPE_QUALIFIER_KEY 28
-#define SHIFT_TOKEN_SUBTYPE_QUALIFIER_LOCK 24
+#define SHIFT_TOKEN_SUBTYPE_QL 28
+#define SHIFT_TOKEN_SUBTYPE_QR 24
 
-#define MASK_TOKEN_SUBTYPE_QUALIFIER_KEY 0xF0000000
-#define MASK_TOKEN_SUBTYPE_QUALIFIER_LOCK 0x0F000000
+#define MASK_TOKEN_SUBTYPE_QL 0xF0000000
+#define MASK_TOKEN_SUBTYPE_QR 0x0F000000
 
 typedef enum: uint32_t {
 #define TOKEN_SUBTYPE(subtype) TokenSubtype_ ## subtype
@@ -65,19 +66,19 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(RCBRACE),
 	TOKEN_SUBTYPE(PIPE),
 	TOKEN_SUBTYPE(TILDE),
-	// key qualifier (last highest byte high 4 bits)
-	TOKEN_SUBTYPE(QUALIFIER_KEY_ENTRY) = 1 << 24,
-	TOKEN_SUBTYPE(QUALIFIER_KEY_INC) = 1 << 25,
-	TOKEN_SUBTYPE(QUALIFIER_KEY_MUT) = 1 << 26,
+	// L qualifier (last highest byte high 4 bits)
+	TOKEN_SUBTYPE(QL_ENTRY) = 1 << 24,
+	TOKEN_SUBTYPE(QL_INC) = 1 << 25,
+	TOKEN_SUBTYPE(QL_MUT) = 1 << 26,
 	// lock qualifier (last highest byte low 4 bits)
-	TOKEN_SUBTYPE(QUALIFIER_LOCK_DEFAULT) = 1 << 28,
-	TOKEN_SUBTYPE(QUALIFIER_LOCK_INC) = 1 << 29,
+	TOKEN_SUBTYPE(QR_DEFAULT) = 1 << 28,
+	TOKEN_SUBTYPE(QR_INC) = 1 << 29,
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 
 /*
  * the piece of code is from:
- * - start to lock_end for keys, locks and keywords
+ * - start to R_end for L, R and LR
  * - start to end for the rest
 */
 
@@ -89,10 +90,10 @@ typedef struct {
 			long int start;
 			long int end;};
 		struct {
-			long int key_start;
-			long int key_end;
-			long int lock_start;
-			long int lock_end;};};
+			long int L_start;
+			long int L_end;
+			long int R_start;
+			long int R_end;};};
 } Token;
 
 typedef struct {

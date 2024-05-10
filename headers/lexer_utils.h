@@ -1,14 +1,11 @@
 #ifndef LEXER_UTILS_H
 #define LEXER_UTILS_H
 
-bool is_eof(char c);
-bool is_significant(char c);
-bool is_alphabetical_A_F(char c);
-bool is_alphabetical(char c);
-bool is_digit(char c);
-bool is_digit_hex(char c);
-bool is_open_delimiter(char c);
-bool is_close_delimiter(char c);
+#include <ctype.h>
+
+bool isXdigit(char c);
+bool is_delimiter_open(char c);
+bool is_delimiter_close(char c);
 bool is_delimiter(char c);
 bool is_command(char c);
 bool is_interpreted(char c);
