@@ -1,6 +1,10 @@
 /*
 
 !/src
+!/headers
+!/binary
+!/linker
+
 !.gitignore
 !/Makefile
 !/README.md
