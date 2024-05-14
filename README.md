@@ -58,6 +58,41 @@ var4 = 2; -- `var4` is set to `2`.
 @fn2 :i32 :`(x :u32) fn1;
 ```
 
+##### Call
+The syntax for calling a macro is different than the one to call a function.
+```
+#inc :u32(x :u32) scope:
+    .ret x + 1;
+.
+
+inc: 41;
+inc 41; -- only possible because `macro` has one parameter.
+inc#(41); -- function style
+
+#add :u32(a :u32, b :u32) scope:
+    .ret a + b;
+.
+
+add: 23, 19;
+add#(23, 19);
+
+@dec :i32(x :i32) scope:
+    .ret x - 1;
+.
+
+dec(43);
+dec@ 43 -- macro style
+dec@: 43;
+
+@sub (a :i32, b :i32) scope:
+    .ret a - b;
+.
+
+dec(51, 19);
+dec@: 51, 19; -- macro style
+.
+```
+
 #### Pointer and alias, references and dereferences
 The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable. The blanks are important here because this symbols are considered as keys in the following declarations.
 ```

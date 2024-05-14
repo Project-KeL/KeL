@@ -3,5 +3,6 @@
 !/src
 !.gitignore
 !/Makefile
+!/README.md
 !/*.c
 !/*.h
