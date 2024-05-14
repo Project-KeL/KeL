@@ -1,7 +1,7 @@
 # KeL
 KeL (for **Keys & Locks**) is intended to be a low-level programming language with a very straightforward syntax.
 
-> [!NOTE]
+> **Note**
 > This project is a work in progress and the master branch is anything but stable at this moment. The syntax may evolve but the main ideas are here.
 
 ## "Hello, world"
