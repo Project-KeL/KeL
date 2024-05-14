@@ -54,7 +54,7 @@ var4 = 2; -- `var4` is set to `2`.
 @fn1 :i32(x :u32) scope:
     .ret x - 1;
 .
--- The type returned by the function can be specified before as another key when `` ` `` is used. `fn2` is set to `fn1`.
+-- The type returned by the function can be specified before as another key when ``` is used. `fn2` is set to `fn1`.
 @fn2 :i32 :`(x :u32) fn1;
 ```
 
@@ -64,7 +64,7 @@ The `&` symbol is used to get the address of a variable and the `|` symbol is us
 @var :u32 1;
 @ptr &:u32 &var; -- `ptr` points to `var`.
 |ptr = 2; -- `ptr` is dereferenced and `var` is set to `2`.
-@der |:u32 |ptr; -- `der` is a dereferenced pointer.
+@als |:u32 |ptr; -- `als` is a dereferenced pointer.
 der = 3; -- `var` is set to `3`.
 ```
 
@@ -76,8 +76,8 @@ Some of these declarations have equivalent types.
 @ptr &:u32 &var; -- pointer
 @ref :u32| var; -- reference
 -- These are equivalent.
-@als |:u32 |ptr; -- alias
-@der :u32& ptr; -- dereference
+@als |:u32 |addr; -- alias
+@der :u32& addr; -- dereference
 ```
 
 `[mut]` is applied to the type pointed to.
