@@ -191,17 +191,14 @@ long int* L_end) {
 		return false;
 
 	long int buffer_end = start + 1;
-	get_next_word(
-		code,
-		&start,
-		&buffer_end);
 	*subtype = TokenSubtype_NO;
-	*L_start = 0;
+	*L_start = start + 1;
 
 	do {
-		if(!isgraph(code[start]))
-			return false;
-
+		get_next_word(
+			code,
+			&start,
+			&buffer_end);
 		TokenSubtype buffer_subtype;
 
 		if(is_valid_QL(
@@ -213,18 +210,10 @@ long int* L_end) {
 			return false;
 
 		*subtype |= buffer_subtype;
-
-		if(*L_start == 0)
-			*L_start = start;
-
 		*L_end = buffer_end;
-		get_next_word(
-			code,
-			&start,
-			&buffer_end);
 	} while(code[buffer_end] != ']');
 
-	*end = buffer_end;
+	*end = buffer_end + 1;
 	return true;
 }
 
@@ -246,8 +235,7 @@ Token* token) {
 		&L_start,
 		&L_end)
 	|| (isgraph(code[buffer_end])
-	 && code[buffer_end] != ':')
-	|| isgraph(code[buffer_end + 1])) {
+	 && code[buffer_end] != ':')) {
 		// better to check this here?
 		if(isgraph(code[buffer_end]))
 			token_error = true;
@@ -255,11 +243,13 @@ Token* token) {
 		return false;
 	}
 
-	*end = buffer_end;
-
 	if(code[buffer_end] == ':')
-		*end += 1;
+		buffer_end += 1;
 
+	if(isgraph(code[buffer_end]))
+		return false;
+
+	*end = buffer_end;
 	create_token_Q(
 		TokenType_QL,
 		subtype,
@@ -310,16 +300,14 @@ long int* R_end) {
 
 	start += 1;
 	long int buffer_end = start + 1;
-	get_next_word(
-		code,
-		&start,
-		&buffer_end);
 	*subtype = TokenSubtype_NO;
+	*R_start = start + 1;
 
 	do {
-		if(isgraph(code[start]))
-			return false;
-
+		get_next_word(
+			code,
+			&start,
+			&buffer_end);
 		TokenSubtype buffer_subtype;
 
 		if(is_valid_QR(
@@ -331,18 +319,10 @@ long int* R_end) {
 			return false;
 
 		*subtype |= buffer_subtype;
-
-		if(*R_start == 0)
-			*R_start = start;
-
 		*R_end = buffer_end;
-		get_next_word(
-			code,
-			&start,
-			&buffer_end);
-	} while(code[buffer_end] != ']');
+	} while(code[buffer_end] != ']'); 
 
-	*end = buffer_end;
+	*end = buffer_end + 1;
 	return true;
 }
 
@@ -547,6 +527,7 @@ Token* token) {
 			return false;
 		}
 
+		start += 1;
 		buffer_end += 1;
 		subtype = TokenSubtype_LITERAL_STRING;
 	} else if(code[start] == '\\') {
@@ -561,7 +542,7 @@ Token* token) {
 		.type = TokenType_LITERAL,
 		.subtype = subtype,
 		.start = start,
-		.end = *end};
+		.end = *end - (subtype == TokenSubtype_LITERAL_STRING ? 1 : 0)};
 	return true;
 }
 

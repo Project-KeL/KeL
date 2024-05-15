@@ -12,6 +12,13 @@ void debug_print_tokens(const Lexer* lexer) {
 		const Token* token = &lexer->tokens[i];
 		const long int token_L_length = token->L_end - token->L_start;
 		const long int token_R_length = token->R_end - token->R_start;
+		long int subtype = token->subtype;
+
+		if(token->type == TokenType_QL)
+			subtype >>= SHIFT_TOKEN_SUBTYPE_QL;
+		else if(token->type == TokenType_QR)
+			subtype >>= SHIFT_TOKEN_SUBTYPE_QR;
+
 		printf(
 			"%d, %d: (\"%.*s\", \"%.*s\") {%" PRIu32 ", %" PRIu32 "}\n",
 			token_L_length,
@@ -21,7 +28,7 @@ void debug_print_tokens(const Lexer* lexer) {
 			token_R_length,
 			&code[token->R_start],
 			token->type,
-			token->subtype);
+			subtype);
 	}
 
 	printf(
