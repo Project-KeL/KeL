@@ -36,7 +36,7 @@ Beside the colon symbol there are two important symbols called _commands_.
 Commands also escape the blank-sensitiveness of the colon depending on their position.
 
 ### Keys
-At this moment, a key is a constant, a variable, a function or symbols relative to pointers.
+At this moment, a key is a constant, a variable, a function, brackets for arrays  or symbols relative to pointers called _leveling symbols_.
 
 #### Constants and variable
 ```
@@ -45,7 +45,12 @@ At this moment, a key is a constant, a variable, a function or symbols relative 
 [mut] @var3 :u32; !-- `var3` is mutable and uninitialized.
 [mut] @var4 :u32 var2; !-- `var4` is initialized with the value of `var2` so `1`.
 @var5 var1; !-- The type is deduced.
-var4 = 2; !-- `var4` is set to `2`.
+```
+
+After its declaration, a variable can be assigned as usual.
+```
+@var :u32 1;
+var = 2;
 ```
 
 #### Functions
@@ -93,7 +98,7 @@ dec@: 51, 19; !-- macro style
 ```
 
 #### Pointers and aliases, references and dereferences
-The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable. The blanks are important here because these symbols are considered as keys in the following declarations.
+The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable; these are the leveling symbols. The blanks are important here because these symbols are considered as keys in the following declarations.
 ```
 @var :u32 1;
 @ptr &:u32 &var; !-- `ptr` points to `var`.
@@ -114,7 +119,7 @@ References and dereferences must be initialized and only with a variable, but po
 @der :u32& addr; !-- dereference
 ```
 
-To say the least, a reference is a pointer that does not need the `&` symbol to get the address when we initialize or when we assigned it. Dereferences are similar, it is a pointer that does not need the `|` symbol. The key precede the lock in the process of the type when the lock does not contain symbols relative to pointers. When the lock contains this kind of symbols, these symbols are processed first, then the key and the rest of the lock.
+To say the least, a reference is a pointer that does not need the `&` symbol to get the address when we initialize or when we assign it. Dereferences are similar, it is a pointer that does not need the `|` symbol. The key precede the lock in the process of the type when the lock does not contain symbols relative to pointers. When the lock contains this kind of symbols, these symbols are processed first, then the key and the rest of the lock.
 ```
 @var :u32;
 @var2 :u32|& var; !-- `var2` is `var` (dereferenced reference).
@@ -130,13 +135,13 @@ In fact, instructions like the third lead to errors. The precedence rule establi
 [mut] @ptr2 &:u32 var; !-- `ptr2` points to `var` and can be assigned.
 ```
 
-To declare constant pointer, aliases, references and dereferences, juste replace `&` by `+` and `|` by `-`.
+To declare constant pointer, aliases, references and dereferences, just replace `&` by `+` and `|` by `-`.
 ```
 @var :u32;
 @ptr +:u32 var; !-- Constant pointer to the constant variable `var`.
 ```
 
-The usage is the same.
+Besides the constness, the usage is the same.
 
 #### Arrays
 ```
