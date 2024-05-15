@@ -11,7 +11,7 @@ kel : $(OBJS)
 	gcc $(LDFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o: %.c
-	gcc $(CPPFLAGS) -o $@ -c -I./headers $<
+	gcc $(CPPFLAGS) -o $@ -c -I./headers -I./binary/headers -I./linker/headers $<
 
 .PHONY: clean
 
