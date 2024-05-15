@@ -169,7 +169,7 @@ static bool if_command_create_token(
 const char* code,
 long int start,
 Token* token) {
-	if(!is_command(code[start]))
+	if(!lexer_is_command(code[start]))
 		return false;
 
 	create_token_special(
@@ -195,7 +195,7 @@ long int* L_end) {
 	*L_start = start + 1;
 
 	do {
-		get_next_word(
+		lexer_get_next_word(
 			code,
 			&start,
 			&buffer_end);
@@ -266,7 +266,7 @@ long int start,
 long int* end,
 Token* token) {
 	if(previous_is_command
-	|| is_valid_name(
+	|| lexer_is_valid_name(
 		code,
 		start,
 		*end)
@@ -304,7 +304,7 @@ long int* R_end) {
 	*R_start = start + 1;
 
 	do {
-		get_next_word(
+		lexer_get_next_word(
 			code,
 			&start,
 			&buffer_end);
@@ -365,15 +365,15 @@ Token* token) {
 		return false;
 
 	long int buffer_end = start + 1;
-	get_next_word(
+	lexer_get_next_word(
 		code,
 		&start,
 		&buffer_end);
 
-	if(is_special(code[*end]))
+	if(lexer_is_special(code[*end]))
 		return false;
 
-	if(is_valid_name(
+	if(lexer_is_valid_name(
 		code,
 		start,
 		buffer_end)
@@ -447,7 +447,7 @@ long int start,
 long int* end,
 Token* token) {
 	if(previous_is_command
-	|| !is_valid_name(
+	|| !lexer_is_valid_name(
 		code,
 		start,
 		*end)
@@ -456,12 +456,12 @@ Token* token) {
 
 	long int R_start = *end + 1;
 	long int R_end = *end + 1;
-	get_next_word(
+	lexer_get_next_word(
 		code,
 		&R_start,
 		&R_end);
 
-	if(is_valid_name(
+	if(lexer_is_valid_name(
 		code,
 		R_start,
 		R_end)
@@ -512,7 +512,7 @@ Token* token) {
 		// a number cannot be followed by '`' and must be followed by a blank or a special symbole
 		if(code[buffer_end - 1] == '`'
 		|| (isgraph(code[buffer_end])
-		 && !is_special(code[buffer_end]))) {
+		 && !lexer_is_special(code[buffer_end]))) {
 			token_error = true;
 			return false;
 		}
@@ -556,12 +556,12 @@ Token* token) {
 		return false;
 
 	long int buffer_end = start + 1;
-	get_next_word(
+	lexer_get_next_word(
 		code,
 		&start,
 		&buffer_end);
 
-	if(is_valid_name(
+	if(lexer_is_valid_name(
 		code,
 		start,
 		buffer_end)
@@ -583,7 +583,7 @@ static bool if_special_create_token(
 const char* code,
 long int start,
 Token* token) {
-	if(!is_special(code[start]))
+	if(!lexer_is_special(code[start]))
 		return false;
 
 	create_token_special(
@@ -599,7 +599,7 @@ const char* code,
 long int start,
 long int end,
 Token* token) {
-	if(is_valid_name(
+	if(lexer_is_valid_name(
 		code,
 		start,
 		end)
@@ -634,12 +634,12 @@ Lexer* restrict lexer) {
 	== false)
 		return false;
 #define TOKENS_CHUNK 4096
-	while(get_next_word(
+	while(lexer_get_next_word(
 		code,
 		&start,
 		&end)
 	== true) {
-		while(skip_comment(
+		while(lexer_skip_comment(
 			code,
 			&start,
 			&end));
@@ -724,14 +724,14 @@ Lexer* restrict lexer) {
 			token)
 		== true) {
 			// OK
-		} else if(is_special(code[start])) {
+		} else if(lexer_is_special(code[start])) {
 			long int buffer_end = end;
 			// right case
 			if(code[start] == ':'
-			&& (is_operator_leveling(code[start + 1])
+			&& (lexer_is_operator_leveling(code[start + 1])
 			 || code[start + 1] == '[')) {
-				while(is_operator_leveling(code[buffer_end])
-				   || is_bracket(code[buffer_end])) buffer_end += 1;
+				while(lexer_is_operator_leveling(code[buffer_end])
+				   || lexer_is_bracket(code[buffer_end])) buffer_end += 1;
 				create_token_colon_word(
 					TokenType_R,
 					start,
@@ -741,10 +741,10 @@ Lexer* restrict lexer) {
 					token);
 				end = buffer_end;
 			// left case
-			} else if(is_operator_leveling(code[start])
+			} else if(lexer_is_operator_leveling(code[start])
 			       || code[start] == '[') {
-				while(is_operator_leveling(code[buffer_end])
-				   || is_bracket(code[buffer_end])) buffer_end += 1;
+				while(lexer_is_operator_leveling(code[buffer_end])
+				   || lexer_is_bracket(code[buffer_end])) buffer_end += 1;
 
 				if(code[buffer_end] != ':')
 					goto SPECIAL;
@@ -777,7 +777,7 @@ SPECIAL:
 			return false;
 		}
 
-		previous_is_command = is_command(code[start]);
+		previous_is_command = lexer_is_command(code[start]);
 		start = end;
 		i += 1;
 	}

@@ -9,36 +9,36 @@ bool isXdigit(char c) {
 		 && c <= 'F');
 }
 
-bool is_delimiter_open(char c) {
+bool lexer_is_delimiter_open(char c) {
 	return c == '('
 	    || c == '['
 	    || c == '{';
 }
 
-bool is_delimiter_close(char c) {
+bool lexer_is_delimiter_close(char c) {
 	return c == ')'
 	    || c == ']'
 	    || c == '}';
 }
 
-bool is_bracket(char c) {
+bool lexer_is_bracket(char c) {
 	return c == '['
 	    || c == ']';
 }
 
-bool is_delimiter(char c) {
-	return is_delimiter_open(c)
-	    || is_delimiter_close(c);
+bool lexer_is_delimiter(char c) {
+	return lexer_is_delimiter_open(c)
+	    || lexer_is_delimiter_close(c);
 }
 
-bool is_command(char c) {
+bool lexer_is_command(char c) {
 	return c == '#'
 	    || c == '@';
 }
 // is interpreted when encountered alone
-bool is_interpreted(char c) {
-	return is_delimiter(c)
-	    || is_command(c)
+bool lexer_is_interpreted(char c) {
+	return lexer_is_delimiter(c)
+	    || lexer_is_command(c)
 	    || c == '!'
 	    || c == '"'
 	    || c == '%'
@@ -62,14 +62,14 @@ bool is_interpreted(char c) {
 	    || c == '~';
 }
 
-bool is_operator_leveling(char c) {
+bool lexer_is_operator_leveling(char c) {
 	return c == '&'
 	    || c == '+'
 	    || c == '-'
 	    || c == '|';
 }
 
-bool is_operator(char c) {
+bool lexer_is_operator(char c) {
 	return c == '%'
 	    || c == '&'
 	    || c == '*'
@@ -81,11 +81,11 @@ bool is_operator(char c) {
 	    || c == '~';
 }
 
-bool is_special(char c) {
-	return is_interpreted(c) || c == ':';
+bool lexer_is_special(char c) {
+	return lexer_is_interpreted(c) || c == ':';
 }
 
-bool delimiter_match(
+bool lexer_delimiter_match(
 char c1,
 char c2) {
 	if(c1 == '('
@@ -101,7 +101,7 @@ char c2) {
 		return false;
 }
 // name of a colon word
-bool is_valid_name(
+bool lexer_is_valid_name(
 const char* restrict string,
 long int start,
 long int end) {
@@ -120,59 +120,59 @@ long int end) {
 	return is_valid;
 }
 
-bool skip_significant_but_not_special(
+bool lexer_skip_glyphs_but_not_special(
 const char* restrict string,
 long int* restrict end) {
 	if(!isgraph(string[*end])
-	|| is_special(string[*end]))
+	|| lexer_is_special(string[*end]))
 		return false;
 
 	do {
 		*end += 1;
 	} while(isgraph(string[*end])
-	     && !is_special(string[*end]));
+	     && !lexer_is_special(string[*end]));
 
 	return true;
 }
 
-void skip_unsignificant_but_not_eof(
+void lexer_skip_controls_and_spaces_but_not_eof(
 const char* restrict string,
 long int* restrict end) {
 	while(string[*end] != '\0'
 	   && !isgraph(string[*end])) *end += 1;
 }
 
-bool get_next_word_immediate(
+bool lexer_get_next_word_immediate(
 const char* restrict string,
 long int* restrict end) {
 	if(string[*end] == '\0')
 		return false;
-	else if(is_special(string[*end])) {
+	else if(lexer_is_special(string[*end])) {
 		*end += 1;
 		return true;
 	} else
-		return skip_significant_but_not_special(
+		return lexer_skip_glyphs_but_not_special(
 			string,
 			end);
 }
 
-bool get_next_word(
+bool lexer_get_next_word(
 const char* restrict string,
 long int* start,
 long int* end) {
 	assert(start != NULL);
 	assert(end != NULL);
-	skip_unsignificant_but_not_eof(
+	lexer_skip_controls_and_spaces_but_not_eof(
 		string,
 		end);
 	*start = *end;
 
-	return get_next_word_immediate(
+	return lexer_get_next_word_immediate(
 		string,
 		end);
 }
 
-bool skip_comment(
+bool lexer_skip_comment(
 const char* code,
 long int* start,
 long int* end) {
@@ -204,7 +204,7 @@ long int* end) {
 	} else
 		return false;
 
-	get_next_word(
+	lexer_get_next_word(
 		code,
 		start,
 		end);

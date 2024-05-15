@@ -36,7 +36,7 @@ Allocator* restrict allocator) {
 			start += 1;
 	}
 
-	while(get_next_word(
+	while(lexer_get_next_word(
 		code,
 		&start,
 		&end)
@@ -48,14 +48,14 @@ Allocator* restrict allocator) {
 		&& !isgraph(code[start + 1])) {
 			return false;
 		// DELIMITER_MATCH
-		} else if(is_delimiter_open(c)) {
+		} else if(lexer_is_delimiter_open(c)) {
 			allocator->last[count_delimiter_open] = c;
 			count_delimiter_open += 1;
-		} else if(is_delimiter_close(c)) {
+		} else if(lexer_is_delimiter_close(c)) {
 			if(count_delimiter_open == 0)
 				return false;
 
-			if(delimiter_match(
+			if(lexer_delimiter_match(
 				allocator->last[count_delimiter_open - 1],
 				c)
 			== false)
@@ -76,7 +76,7 @@ Allocator* restrict allocator) {
 				return false;
 			// COLON_LONELY_RIGHT_ALONE_LEFT
 			if(!isgraph(code[start - 1])
-			&& !is_command(code[start + 1])
+			&& !lexer_is_command(code[start + 1])
 			&& !isalpha(code[start + 1]) // an R begins with a letter
 			&& code[start + 1] != '('
 			&& code[start + 1] != '['

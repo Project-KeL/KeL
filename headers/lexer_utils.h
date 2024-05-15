@@ -4,35 +4,35 @@
 #include <ctype.h>
 
 bool isXdigit(char c);
-bool is_delimiter_open(char c);
-bool is_delimiter_close(char c);
-bool is_bracket(char c);
-bool is_delimiter(char c);
-bool is_command(char c);
-bool is_interpreted(char c);
-bool is_operator_leveling(char c);
-bool is_special(char c);
-bool delimiter_match(
+bool lexer_is_delimiter_open(char c);
+bool lexer_is_delimiter_close(char c);
+bool lexer_is_bracket(char c);
+bool lexer_is_delimiter(char c);
+bool lexer_is_command(char c);
+bool lexer_is_interpreted(char c);
+bool lexer_is_operator_leveling(char c);
+bool lexer_is_special(char c);
+bool lexer_delimiter_match(
 	char c1,
 	char c2);
-bool is_valid_name(
+bool lexer_is_valid_name(
 	const char* restrict string,
 	long int start,
 	long int end);
-bool skip_significant_but_not_special(
+bool lexer_skip_glyphs_but_not_special(
 	const char* restrict string,
 	long int* restrict end);
-void skip_unsignificant_but_not_eof(
+void lexer_skip_controls_and_spaces_but_not_eof(
 	const char* restrict string,
 	long int* restrict end);
-bool get_next_word_immediate(
+bool lexer_get_next_word_immediate(
 	const char* restrict string,
 	long int* restrict end);
-bool get_next_word(
+bool lexer_get_next_word(
 	const char* restrict string,
 	long int* start,
 	long int* end);
-bool skip_comment(
+bool lexer_skip_comment(
 	const char* code,
 	long int* start,
 	long int* end);
