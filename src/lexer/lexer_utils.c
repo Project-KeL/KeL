@@ -176,23 +176,23 @@ bool skip_comment(
 const char* code,
 long int* start,
 long int* end) {
-	if(code[*start] == '-') {
-		if(code[*start + 1] == '\0'
-		|| code[*start + 1] != '-')
+	if(code[*start] == '!') {
+		if(code[*start + 1] != '-'
+		|| code[*start + 2] != '-')
 			return false;
+
+		*end += 2;
 
 		do {
 			*end += 1;
 		} while(code[*end] != '\n'
 			 && code[*end] != '\0');
 	} else if(code[*start] == '|') {
-		if(code[*start + 1] == '\0'
-		|| code[*start + 1] != '-'
-		|| code[*start + 2] == '\0'
+		if(code[*start + 1] != '-'
 		|| code[*start + 2] != '-')
 			return false;
 
-		*end += 1;
+		*end += 2;
 
 		do {
 			*end += 1;
@@ -200,7 +200,7 @@ long int* end) {
 		   || code[*end + 1] != '-'
 		   || code[*end + 2] != '|'); // error checked
 			
-		*end += 3;
+		*end += 2;
 	} else
 		return false;
 

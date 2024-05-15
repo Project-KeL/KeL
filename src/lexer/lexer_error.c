@@ -89,12 +89,12 @@ Allocator* restrict allocator) {
 				return false;
 		// process a comment
 		} else if(!marker_literal_string
-		       && c == '-') {
-			if(code[start + 1] != '\0'
-			|| code[start + 1] != '-')
+		       && c == '!') {
+			if(code[start + 1] != '-'
+			|| code[start + 2] != '-')
 				continue;
 
-			start += 1;
+			start += 2;
 
 			do {
 				start += 1;
@@ -103,9 +103,7 @@ Allocator* restrict allocator) {
 		// COMMENT_MULTILINE_TRAIL_NO
 		} else if(!marker_literal_string
 		       && c == '|') {
-			if(code[start + 1] == '\0'
-			|| code[start + 1] != '-'
-			|| code[start + 2] == '\0'
+			if(code[start + 1] != '-'
 			|| code[start + 2] != '-')
 				continue;
 
@@ -119,6 +117,7 @@ Allocator* restrict allocator) {
 			      && code[start + 1] != '-')
 				 || (code[start + 2] != '\0'
 				  && code[start + 2] != '|'));
+
 			if(code[start] == '\0')
 				return false;
 		}
