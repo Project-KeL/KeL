@@ -3,56 +3,42 @@
 #include "lexer_utils.h"
 #include <stdio.h>
 
-bool is_eof(char c) {
-	return c == '\0';
+bool isXdigit(char c) {
+	return isdigit(c)
+	    || (c >= 'A'
+		 && c <= 'F');
 }
 
-bool is_significant(char c) {
-	return c > 32 && c < 127;
-}
-
-bool is_alphabetical_A_F(char c) {
-	return c > 64 && c < 71;
-}
-
-bool is_alphabetical(char c) {
-	return c > 64 && c < 91
-	    || c > 96 && c < 123;
-}
-
-bool is_digit(char c) {
-	return c > 47 && c < 58;
-}
-
-bool is_digit_hex(char c) {
-	return is_digit(c) || is_alphabetical_A_F(c);	
-}
-
-bool is_open_delimiter(char c) {
+bool lexer_is_delimiter_open(char c) {
 	return c == '('
 	    || c == '['
 	    || c == '{';
 }
 
-bool is_close_delimiter(char c) {
+bool lexer_is_delimiter_close(char c) {
 	return c == ')'
 	    || c == ']'
 	    || c == '}';
 }
 
-bool is_delimiter(char c) {
-	return is_open_delimiter(c)
-	    || is_close_delimiter(c);
+bool lexer_is_bracket(char c) {
+	return c == '['
+	    || c == ']';
 }
 
-bool is_command(char c) {
+bool lexer_is_delimiter(char c) {
+	return lexer_is_delimiter_open(c)
+	    || lexer_is_delimiter_close(c);
+}
+
+bool lexer_is_command(char c) {
 	return c == '#'
 	    || c == '@';
 }
 // is interpreted when encountered alone
-bool is_interpreted(char c) {
-	return is_delimiter(c)
-	    || is_command(c)
+bool lexer_is_interpreted(char c) {
+	return lexer_is_delimiter(c)
+	    || lexer_is_command(c)
 	    || c == '!'
 	    || c == '"'
 	    || c == '%'
@@ -76,7 +62,14 @@ bool is_interpreted(char c) {
 	    || c == '~';
 }
 
-bool is_operator(char c) {
+bool lexer_is_operator_leveling(char c) {
+	return c == '&'
+	    || c == '+'
+	    || c == '-'
+	    || c == '|';
+}
+
+bool lexer_is_operator(char c) {
 	return c == '%'
 	    || c == '&'
 	    || c == '*'
@@ -88,11 +81,11 @@ bool is_operator(char c) {
 	    || c == '~';
 }
 
-bool is_special(char c) {
-	return is_interpreted(c) || c == ':';
+bool lexer_is_special(char c) {
+	return lexer_is_interpreted(c) || c == ':';
 }
 
-bool delimiter_match(
+bool lexer_delimiter_match(
 char c1,
 char c2) {
 	if(c1 == '('
@@ -108,98 +101,98 @@ char c2) {
 		return false;
 }
 // name of a colon word
-bool is_valid_name(
+bool lexer_is_valid_name(
 const char* restrict string,
 long int start,
 long int end) {
 	string = &string[start]; // because start is left untouched
-	bool is_valid = is_alphabetical(string[0]);
+	bool is_valid = isalpha(string[0]);
 
 	for(long int i = 1;
 	i < end - start;
 	i += 1) {
 		const char c = string[i];
 		is_valid = is_valid
-			&& (is_alphabetical(c)
-			 || is_digit(c));
+			&& (isalpha(c)
+			 || isdigit(c));
 	}
 
 	return is_valid;
 }
 
-bool skip_significant_but_not_special(
+bool lexer_skip_glyphs_but_not_special(
 const char* restrict string,
 long int* restrict end) {
-	if(!is_significant(string[*end])
-	|| is_special(string[*end]))
+	if(!isgraph(string[*end])
+	|| lexer_is_special(string[*end]))
 		return false;
 
 	do {
 		*end += 1;
-	} while(is_significant(string[*end])
-	     && !is_special(string[*end]));
+	} while(isgraph(string[*end])
+	     && !lexer_is_special(string[*end]));
 
 	return true;
 }
 
-void skip_unsignificant_but_not_eof(
+void lexer_skip_controls_and_spaces_but_not_eof(
 const char* restrict string,
 long int* restrict end) {
-	while(!is_eof(string[*end])
-	   && !is_significant(string[*end])) *end += 1;
+	while(string[*end] != '\0'
+	   && !isgraph(string[*end])) *end += 1;
 }
 
-bool get_next_word_immediate(
+bool lexer_get_next_word_immediate(
 const char* restrict string,
 long int* restrict end) {
-	if(is_eof(string[*end]))
+	if(string[*end] == '\0')
 		return false;
-	else if(is_special(string[*end])) {
+	else if(lexer_is_special(string[*end])) {
 		*end += 1;
 		return true;
 	} else
-		return skip_significant_but_not_special(
+		return lexer_skip_glyphs_but_not_special(
 			string,
 			end);
 }
 
-bool get_next_word(
+bool lexer_get_next_word(
 const char* restrict string,
 long int* start,
 long int* end) {
 	assert(start != NULL);
 	assert(end != NULL);
-	skip_unsignificant_but_not_eof(
+	lexer_skip_controls_and_spaces_but_not_eof(
 		string,
 		end);
 	*start = *end;
 
-	return get_next_word_immediate(
+	return lexer_get_next_word_immediate(
 		string,
 		end);
 }
 
-bool skip_comment(
+bool lexer_skip_comment(
 const char* code,
 long int* start,
 long int* end) {
-	if(code[*start] == '-') {
-		if(is_eof(code[*start + 1])
-		|| code[*start + 1] != '-')
+	if(code[*start] == '!') {
+		if(code[*start + 1] != '-'
+		|| code[*start + 2] != '-')
 			return false;
+
+		*end += 2;
 
 		do {
 			*end += 1;
 		} while(code[*end] != '\n'
-			 && !is_eof(code[*end]));
+			 && code[*end] != '\0');
 	} else if(code[*start] == '|') {
-		if(is_eof(code[*start + 1])
-		|| code[*start + 1] != '-'
-		|| is_eof(code[*start + 2])
+		if(code[*start + 1] != '-'
 		|| code[*start + 2] != '-')
 			return false;
 
-		*end += 1;
+		*end += 2;
 
 		do {
 			*end += 1;
@@ -207,11 +200,11 @@ long int* end) {
 		   || code[*end + 1] != '-'
 		   || code[*end + 2] != '|'); // error checked
 			
-		*end += 3;
+		*end += 2;
 	} else
 		return false;
 
-	get_next_word(
+	lexer_get_next_word(
 		code,
 		start,
 		end);
