@@ -402,7 +402,7 @@ Token* token) {
 
 	*end = buffer_end;
 	create_token_colon_word(
-		TokenType_L,
+		TokenType_R,
 		start,
 		start,
 		start,
@@ -743,12 +743,47 @@ Lexer* restrict lexer) {
 			token)
 		== true) {
 			// OK
-		} else if(if_special_create_token(
-			code,
-			start,
-			token)
-		== true) {
-			// OK
+		} else if(is_special(code[start])) {
+			long int buffer_end = end;
+			// right case
+			if(code[start] == ':'
+			&& (is_operator_leveling(code[start + 1])
+			 || code[start + 1] == '[')) {
+				while(is_operator_leveling(code[buffer_end])
+				   || is_bracket(code[buffer_end])) buffer_end += 1;
+				create_token_colon_word(
+					TokenType_R,
+					start,
+					start,
+					start + 1, // ignore colon
+					buffer_end,
+					token);
+				end = buffer_end;
+			// left case
+			} else if(is_operator_leveling(code[start])
+			       || code[start] == '[') {
+				while(is_operator_leveling(code[buffer_end])
+				   || is_bracket(code[buffer_end])) buffer_end += 1;
+
+				if(code[buffer_end] != ':')
+					goto SPECIAL;
+
+				create_token_colon_word(
+					TokenType_L,
+					start,
+					buffer_end,
+					buffer_end,
+					buffer_end,
+					token);
+				end = buffer_end;
+			} else {
+SPECIAL:
+				create_token_special(
+					code,
+					start,
+					TokenType_SPECIAL,
+					token);
+			}
 		} else if(if_valid_name_create_token(
 			code,
 			start,

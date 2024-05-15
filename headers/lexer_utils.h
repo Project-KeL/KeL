@@ -6,9 +6,11 @@
 bool isXdigit(char c);
 bool is_delimiter_open(char c);
 bool is_delimiter_close(char c);
+bool is_bracket(char c);
 bool is_delimiter(char c);
 bool is_command(char c);
 bool is_interpreted(char c);
+bool is_operator_leveling(char c);
 bool is_special(char c);
 bool delimiter_match(
 	char c1,

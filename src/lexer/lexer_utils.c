@@ -21,6 +21,11 @@ bool is_delimiter_close(char c) {
 	    || c == '}';
 }
 
+bool is_bracket(char c) {
+	return c == '['
+	    || c == ']';
+}
+
 bool is_delimiter(char c) {
 	return is_delimiter_open(c)
 	    || is_delimiter_close(c);
@@ -55,6 +60,13 @@ bool is_interpreted(char c) {
 	    || c == '`'
 	    || c == '|'
 	    || c == '~';
+}
+
+bool is_operator_leveling(char c) {
+	return c == '&'
+	    || c == '+'
+	    || c == '-'
+	    || c == '|';
 }
 
 bool is_operator(char c) {
@@ -133,7 +145,7 @@ long int* restrict end) {
 bool get_next_word_immediate(
 const char* restrict string,
 long int* restrict end) {
-	if(string[*end] == '0')
+	if(string[*end] == '\0')
 		return false;
 	else if(is_special(string[*end])) {
 		*end += 1;
