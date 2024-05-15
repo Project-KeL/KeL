@@ -27,21 +27,21 @@ A single line comment begins with `--` and a multiline comment is surrounded by 
 ```
 
 ## Keys and locks
-The central symbol in KeL is the colon. The colon is "blank sensitive" to say the characters surrounding the colon (including non-glyph characters) are significant. A word right before a colon is called a _key_ and a word right after a _lock_.
+The central symbol in KeL is the colon. The colon is "blank-sensitive" meaning the characters surrounding the colon (including non-glyph characters) are significant. A word right before a colon is called a _key_ and a word right after a _lock_.
 
 Beside the colon symbol there are two important symbols called _commands_.
-1. `#` referes to declarations or other actions to be executed at compile-time.
-2. `@` is the equivalent for run-time.
+1. `#` refers to declarations or other actions to be executed at compile-time.
+2. `@` is the equivalent at run-time.
 
-Commands also escape the blank sensitiveness of the colon depending on their position.
+Commands also escape the blank-sensitiveness of the colon depending on their position.
 
 ### Keys
 At this moment, a key is a constant, a variable, a function or symbols relative to pointers.
 
 #### Constants and variable
 ```
-@var1:u32 1; -- `var` is declared as a run-time constant 32-bits unsigned integer and is set to `1`.
-@var2 :u32 1; -- The `@` escapes the blank sensitiveness before the colon.
+@var1:u32 1; -- `var` is declared as a run-time constant 32-bit unsigned integer and is set to `1`.
+@var2 :u32 1; -- The `@` escapes the blank-sensitiveness before the colon.
 [mut] @var3 :u32; -- `var3` is mutable and uninitialized.
 [mut] @var4 :u32 var2; -- `var4` is initialized with the value of `var2` so `1`.
 @var5 var1; -- The type is deduced.
@@ -50,11 +50,11 @@ var4 = 2; -- `var4` is set to `2`.
 
 #### Functions
 ```
--- This function returns a compile-time 32-bits signed integer equals `x - 1` with `x` its parameter.
+-- This function returns a compile-time 32-bit signed integer equal `x - 1` with `x` its parameter.
 @fn1 :i32(x :u32) scope:
     .ret x - 1;
 .
--- The type returned by the function can be specified before as another key when ``` is used. `fn2` is set to `fn1`.
+-- The type returned by the function can be specified before as another lock when ``` is used. `fn2` is set to `fn1`.
 @fn2 :i32 :`(x :u32) fn1;
 ```
 
@@ -94,32 +94,51 @@ dec@: 51, 19; -- macro style
 ```
 
 #### Pointer and alias, references and dereferences
-The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable. The blanks are important here because this symbols are considered as keys in the following declarations.
+The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable. The blanks are important here because these symbols are considered as keys in the following declarations.
 ```
 @var :u32 1;
 @ptr &:u32 &var; -- `ptr` points to `var`.
 |ptr = 2; -- `ptr` is dereferenced and `var` is set to `2`.
 @als |:u32 |ptr; -- `als` is a dereferenced pointer.
-der = 3; -- `var` is set to `3`.
+als = 3; -- `var` is set to `3`.
 ```
 
-Some of these declarations have equivalent types.
+References and dereferences must be initialized and only with a variable, but pointers and aliases may be uninitialized. Pointers and references represent the same concept with a different syntax, the same goes for aliases and dereferences.
 ```
 @var :u32;
 @addr &:u32;
--- These are equivalent.
+-- These variables process addresses. Both can be dereferenced.
 @ptr &:u32 &var; -- pointer
-@ref :u32| var; -- reference
--- These are equivalent.
-@als |:u32 |addr; -- alias
+@ref :u32| var; -- reference (to `var`).
+-- These variables process values. Both cannot be dereferenced.
+@als |:u32 |addr; -- alias (from `addr`).
 @der :u32& addr; -- dereference
 ```
+
+To say the least, a reference is a pointer that does not need the `&` symbol to get the address when we initialize or when we assigned it. Dereferences are similar, it is a pointer that does not need the `|` symbol. The key precede the lock in the process of the type when the lock does not contain symbols relative to pointers. When the lock contains this kind of symbols, these symbols are processed first, then the key and the rest of the lock.
+```
+@var :u32;
+@var2 :u32|& var; -- `var2` is `var` (dereferenced reference).
+@var3 |:u32| var; -- error: `var` is referenced but an alias wait for a dereference symbol `|`.
+```
+
+In fact, instructions like the third lead to errors. The precedence rule established before makes sense for arrays.
 
 `[mut]` is applied to the type pointed to.
 ```
 [mut] @var :u32;
-@ptr1 &:u32 var; -- `ptr1` points to a constant.
-[mut] @ptr2 &:u32 var; -- `ptr2` points to a mutable.
+@ptr1 &:u32 var; -- `ptr1` points to a `var` but `var` cannot be assigned.
+[mut] @ptr2 &:u32 var; -- `ptr2` points to `var` and can be assigned.
+```
+
+#### Arrays
+```
+@var1 :u32;
+@var2 :u32;
+@var3 :u32;
+
+@arr []:u32 [var1, var2, var3]; -- Compile-time array of constant 32-bit unsigned integers initialized with the previous variables.
+@ders []:u32|& [var1, var2, var3]; -- The variables are used as dereferenced references.
 ```
 
 #### Cast
@@ -129,4 +148,4 @@ Some of these declarations have equivalent types.
 @signed2 unsigned:i32; -- The type of `signed2` is implicit.
 ```
 
-A function can be overloaded, the counterpart is the type must be deductible.
+A function can be overloaded, the counterpart is the type must be deducible.
