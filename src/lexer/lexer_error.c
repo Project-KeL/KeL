@@ -45,7 +45,6 @@ Allocator* restrict allocator) {
 		const char c = code[start];
 		// LITERAL_ASCII_NO
 		if(c == '\\'
-		&& code[start + 1] != '\0'
 		&& !isgraph(code[start + 1])) {
 			return false;
 		// DELIMITER_MATCH
@@ -73,10 +72,6 @@ Allocator* restrict allocator) {
 				return false;
 			// COLON_LONELY
 			if(!isgraph(code[start - 1])
-			 && !isgraph(code[start + 1]))
-				return false;
-			// COLON_LONELY_RIGHT_SPECIAL_LEFT
-			if(is_special(code[start - 1])
 			 && !isgraph(code[start + 1]))
 				return false;
 			// COLON_LONELY_RIGHT_ALONE_LEFT
