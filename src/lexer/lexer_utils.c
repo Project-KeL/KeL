@@ -69,6 +69,11 @@ bool lexer_is_operator_leveling(char c) {
 	    || c == '|';
 }
 
+bool lexer_is_operator_modifier(char c) {
+	return lexer_is_operator_leveling(c)
+	    || lexer_is_bracket(c);
+}
+
 bool lexer_is_operator(char c) {
 	return c == '%'
 	    || c == '&'

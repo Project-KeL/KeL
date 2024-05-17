@@ -7,7 +7,7 @@ void debug_print_tokens(const Lexer* lexer) {
 	const char* code = lexer->source->content;
 
 	for(long int i = 0;
-	i < lexer->count - 1;
+	i < lexer->count;
 	i += 1) {
 		const Token* token = &lexer->tokens[i];
 		const long int token_L_length = token->L_end - token->L_start;
@@ -33,12 +33,12 @@ void debug_print_tokens(const Lexer* lexer) {
 
 	printf(
 		"\nNumber of tokens: %d",
-		lexer->count - 1);
+		lexer->count);
 }
 
 void debug_print_nodes(const Parser* parser) {
 	for(long int j = 0;
-	j < parser->count - 1;
+	j < parser->count;
 	j += 1) {
 		const Node* node = &parser->nodes[j];
 		printf(
@@ -48,7 +48,7 @@ void debug_print_nodes(const Parser* parser) {
 
 	printf(
 		"\nNumber of nodes: %d",
-		parser->count);
+		parser->count - 1);
 }
 
 #endif

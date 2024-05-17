@@ -34,6 +34,28 @@
 // this variable manages errors which subsequently may no longer be errors
 static bool token_error = false;
 
+static bool allocate_chunk(
+long int minimum,
+Lexer* lexer) {
+#define TOKENS_CHUNK 4096
+	if(lexer->count <= minimum) {
+		const long int reserve = (minimum - lexer->count) / TOKENS_CHUNK + 1;
+		Token* tokens_realloc = realloc(
+			lexer->tokens,
+			reserve * TOKENS_CHUNK * sizeof(Token));
+
+		if(tokens_realloc == NULL)
+			return false;
+		
+		lexer->tokens = tokens_realloc;
+		lexer->count = reserve * TOKENS_CHUNK;
+	}
+	
+	return true;
+#undef TOKENS_CHUNK
+}
+
+
 static void create_token_special(
 const char* restrict code,
 long int start,
@@ -261,11 +283,13 @@ Token* token) {
 
 static bool if_L_create_token(
 bool previous_is_command,
+bool previous_is_modifier,
 const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
 	if(previous_is_command
+	|| previous_is_modifier
 	|| lexer_is_valid_name(
 		code,
 		start,
@@ -357,21 +381,23 @@ Token* token) {
 }
 
 static bool if_R_create_token(
+bool previous_is_modifier,
 const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
-	if(code[start] != ':')
+	if(code[start] != ':'
+	&& !previous_is_modifier)
 		return false;
 
 	long int buffer_end = start + 1;
-	lexer_get_next_word(
-		code,
-		&start,
-		&buffer_end);
 
-	if(lexer_is_special(code[*end]))
-		return false;
+	if(!previous_is_modifier) {
+		lexer_get_next_word(
+			code,
+			&start,
+			&buffer_end);
+	}
 
 	if(lexer_is_valid_name(
 		code,
@@ -380,7 +406,9 @@ Token* token) {
 	== false)
 		return false; // could be an array
 
-	*end = buffer_end;
+	if(!previous_is_modifier)
+		*end = buffer_end;
+
 	create_token_colon_word(
 		TokenType_R,
 		start,
@@ -623,7 +651,8 @@ Lexer* restrict lexer) {
 	lexer->count = 0;
 
 	const char* code = source->content;
-	bool previous_is_command = false; // checked for keys only
+	bool previous_is_command = false;
+	bool previous_is_modifier = false;
 	long int start = 0;
 	long int end = 0;
 	long int i = 0;
@@ -633,7 +662,7 @@ Lexer* restrict lexer) {
 		allocator)
 	== false)
 		return false;
-#define TOKENS_CHUNK 4096
+
 	while(lexer_get_next_word(
 		code,
 		&start,
@@ -644,18 +673,12 @@ Lexer* restrict lexer) {
 			&start,
 			&end));
 		// allocation
-		if(lexer->count <= i) {
-			Token* tokens_realloc = realloc(
-				lexer->tokens,
-				(lexer->count + TOKENS_CHUNK) * sizeof(Token));
-
-			if(tokens_realloc == NULL) {
-				destroy_lexer(lexer);
-				return false;
-			}
-			
-			lexer->tokens = tokens_realloc;
-			lexer->count += TOKENS_CHUNK;
+		if(allocate_chunk(
+			i,
+			lexer)
+		== false) {
+			destroy_lexer(lexer);
+			return false;
 		}
 		// create tokens
 		Token* token = &lexer->tokens[i];
@@ -675,6 +698,7 @@ Lexer* restrict lexer) {
 			// OK
 		} else if(if_L_create_token(
 			previous_is_command,
+			previous_is_modifier,
 			code,
 			start,
 			&end,
@@ -689,12 +713,13 @@ Lexer* restrict lexer) {
 		== true) {
 			// OK
 		} else if(if_R_create_token(
+			previous_is_modifier,
 			code,
 			start,
 			&end,
 			token)
 		== true) {
-			// OK
+			previous_is_modifier = false;
 		} else if(if_QLR_create_token(
 			code,
 			start,
@@ -725,40 +750,82 @@ Lexer* restrict lexer) {
 		== true) {
 			// OK
 		} else if(lexer_is_special(code[start])) {
+			Token* tokens = lexer->tokens;
 			long int buffer_end = end;
 			// right case
 			if(code[start] == ':'
 			&& (lexer_is_operator_leveling(code[start + 1])
 			 || code[start + 1] == '[')) {
-				while(lexer_is_operator_leveling(code[buffer_end])
-				   || lexer_is_bracket(code[buffer_end])) buffer_end += 1;
-				create_token_colon_word(
-					TokenType_R,
-					start,
-					start,
-					start + 1, // ignore colon
-					buffer_end,
-					token);
-				end = buffer_end;
+				// start at the first leveling operator, or open bracket
+				start += 1;
+				buffer_end += 1;
+
+				do {
+					create_token_colon_word(
+						TokenType_R,
+						start,
+						start,
+						start,
+						buffer_end,
+						&tokens[i]);
+					i += 1;
+
+					if(allocate_chunk(
+						i,
+						lexer)
+					== false) {
+						destroy_lexer(lexer);
+						return false;
+					}
+
+					// it must not be EOF (KEY_MODIFIER_EOF)
+					lexer_get_next_word(
+						code,
+						&start,
+						&buffer_end);
+				} while(lexer_is_operator_modifier(code[start]));
+
+				end = start;
+				previous_is_modifier = true;
+				i -= 1; // `i` is incremented at the end of the loop
 			// left case
 			} else if(lexer_is_operator_leveling(code[start])
 			       || code[start] == '[') {
 				while(lexer_is_operator_leveling(code[buffer_end])
 				   || lexer_is_bracket(code[buffer_end])) buffer_end += 1;
 
-				if(code[buffer_end] != ':')
-					goto SPECIAL;
+				if(code[buffer_end] == ':') {
+					end = buffer_end;
+					buffer_end = start + 1;
 
-				create_token_colon_word(
-					TokenType_L,
-					start,
-					buffer_end,
-					buffer_end,
-					buffer_end,
-					token);
-				end = buffer_end;
+					do {
+						create_token_colon_word(
+							TokenType_L,
+							start,
+							buffer_end,
+							buffer_end,
+							buffer_end,
+							&tokens[i]);
+						i += 1;
+
+						if(allocate_chunk(
+							i,
+							lexer)
+						== false) {
+							destroy_lexer(lexer);
+							return false;
+						}
+
+						lexer_get_next_word(
+							code,
+							&start,
+							&buffer_end);
+					} while(start < end);
+
+					previous_is_modifier = true;
+					i -= 1; // `i` is incremented at the end of the loop
+				}
 			} else {
-SPECIAL:
 				create_token_special(
 					code,
 					start,
@@ -778,15 +845,14 @@ SPECIAL:
 		}
 
 		previous_is_command = lexer_is_command(code[start]);
-		start = end;
 		i += 1;
 	}
 
-	lexer->count = i + 1; // null token
+	lexer->count = i;
 	Token* tokens_realloc = realloc(
 		lexer->tokens,
 		(lexer->count + 1) * sizeof(Token));
-#undef TOKENS_CHUNK // no more allocation reminder
+
 	if(tokens_realloc == NULL) {
 		destroy_lexer(lexer);
 		return false;

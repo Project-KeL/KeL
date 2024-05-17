@@ -11,6 +11,7 @@ bool lexer_is_delimiter(char c);
 bool lexer_is_command(char c);
 bool lexer_is_interpreted(char c);
 bool lexer_is_operator_leveling(char c);
+bool lexer_is_operator_modifier(char c);
 bool lexer_is_special(char c);
 bool lexer_delimiter_match(
 	char c1,

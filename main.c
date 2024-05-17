@@ -35,7 +35,7 @@ char** argv) {
 	}
 
 	if(create_binary(
-		"./binary",
+		"./bin",
 		&binary)
 	== false) {
 		error = true;

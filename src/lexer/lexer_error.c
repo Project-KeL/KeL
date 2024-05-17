@@ -115,6 +115,15 @@ Allocator* restrict allocator) {
 
 			if(code[start] == '\0')
 				return false;
+		// KEY_MODIFIER_EOF
+		} else if(lexer_is_special(c)) {
+			while(lexer_is_operator_leveling(code[end])
+			   || lexer_is_bracket(code[end])) {
+				if(code[end] == '\0')
+					return false;
+
+				end += 1;
+			}
 		}
 
 		if(c == '`')
