@@ -55,15 +55,10 @@ Lexer* lexer) {
 #undef TOKENS_CHUNK
 }
 
-
-static void create_token_special(
-const char* restrict code,
-long int start,
-TokenType type,
-Token* restrict token) {
+static TokenSubtype character_to_subtype(char c) {
 	uint32_t subtype;
 
-	switch(code[start]) {
+	switch(c) {
 	case '!': subtype = TokenSubtype_EXCLAMATION_MARK; break;
 	case '"': subtype = TokenSubtype_DQUOTES; break;
 	case '#': subtype = TokenSubtype_HASH; break;
@@ -97,9 +92,18 @@ Token* restrict token) {
 	default: assert(false); // missing case
 	}
 
+	return subtype;
+}
+
+
+static void create_token_special(
+const char* restrict code,
+long int start,
+TokenType type,
+Token* restrict token) {
 	*token = (Token) {
 		.type = type,
-		.subtype = subtype,
+		.subtype = character_to_subtype(code[start]),
 		.start = start,
 		.end = start + 1};
 }
@@ -731,13 +735,13 @@ Lexer* restrict lexer) {
 
 				do {					
 					i += 1;
-					create_token_colon_word(
-						TokenType_R,
-						start,
-						start,
-						start,
-						buffer_end,
-						&tokens[i]);
+					tokens[i] = (Token) {
+						.type = TokenType_R,
+						.subtype = character_to_subtype(code[start]),
+						.L_start = start,
+						.L_end = start,
+						.R_start = start,
+						.R_end = buffer_end};
 					
 					if(allocate_chunk(
 						i,
@@ -796,13 +800,13 @@ Lexer* restrict lexer) {
 				buffer_end += 1;
 
 				do {
-					create_token_colon_word(
-						TokenType_R,
-						start,
-						start,
-						start,
-						buffer_end,
-						&tokens[i]);
+					tokens[i] = (Token) {
+						.type = TokenType_R,
+						.subtype = character_to_subtype(code[start]),
+						.L_start = start,
+						.L_end = start,
+						.R_start = start,
+						.R_end = buffer_end};
 					i += 1;
 
 					if(allocate_chunk(
@@ -843,13 +847,13 @@ Lexer* restrict lexer) {
 					buffer_end = start + 1;
 
 					do {
-						create_token_colon_word(
-							TokenType_L,
-							start,
-							buffer_end,
-							buffer_end,
-							buffer_end,
-							&tokens[i]);
+						tokens[i] = (Token) {
+							.type = TokenType_L,
+							.subtype = character_to_subtype(code[start]),
+							.L_start = start,
+							.L_end = buffer_end,
+							.R_start = buffer_end,
+							.R_end = buffer_end};
 						i += 1;
 
 						if(allocate_chunk(
