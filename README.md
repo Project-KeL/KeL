@@ -175,8 +175,11 @@ The precedence rule to process a type established before makes more sense for ar
 @ders1 []:u32|& [var1, var2, var3]; !-- The variables are used as dereferenced references.
 @ders2 :[]u32|& [var1, var2, var3]; !-- This is equivalent, the lock is `u32`. What matters is what is at the left and at the right of it.
 
-@ptr +:u32 arr; !-- Array types are compatible with right constant level up.
-@ref :u32- arr; !-- Left constant level down too but only the first element of the array will be accessible.
+arr[0] = 1; !-- `var1` is set to `1`.
+
+@ptr &:u32 arr; !-- Array types are compatible with left level up.
+(ptr + 1)| = 2; !-- `var2` is set to `2`.
+@ref :u32| arr; !-- Right level down too but only the first element of the array will be accessible.
 ```
 
 An array is always constant.
