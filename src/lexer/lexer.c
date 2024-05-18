@@ -826,10 +826,19 @@ Lexer* restrict lexer) {
 			// left case
 			} else if(lexer_is_operator_leveling(code[start])
 			       || code[start] == '[') {
-				while(lexer_is_operator_leveling(code[buffer_end])
-				   || lexer_is_bracket(code[buffer_end])) buffer_end += 1;
+				long int buffer_start = start;
+				long int buffer_i = i; // to get the right amount of tokens
 
-				if(code[buffer_end] == ':') {
+				do {
+					lexer_get_next_word(
+						code,
+						&buffer_start,
+						&buffer_end);
+					buffer_i += 1;
+				} while(lexer_is_operator_leveling(code[buffer_start])
+				   || lexer_is_bracket(code[buffer_start]));
+
+				if(code[buffer_start] == ':') {
 					end = buffer_end;
 					buffer_end = start + 1;
 
@@ -855,8 +864,9 @@ Lexer* restrict lexer) {
 							code,
 							&start,
 							&buffer_end);
-					} while(start < end);
+					} while(i < buffer_i);
 
+					end = start;
 					previous_is_modifier = true;
 					i -= 1; // `i` is incremented at the end of the loop
 				}

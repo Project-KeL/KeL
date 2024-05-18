@@ -144,7 +144,7 @@ This is some examples to understand type compatibility. Marker operators cancels
 @thing3 |&&|&:u32| buf3; !-- Level up once more to cancel out the `|`.
 
 @  var4 &&:u32| var2&&;
-@thing4 ||:u32| ||var4; !-- The right side of the `thing4` lock must contain the one of `var4`.
+@thing4 ||:u32| var4||; !-- The right side of the `thing4` lock must contain the one of `var4`.
 ```
 
 If the marker operators were placed before a variable and read left to right, it would require to reverse the operators. Furthermore, blanks can be used while we are not right before or after a colon so it would be ambiguous.
