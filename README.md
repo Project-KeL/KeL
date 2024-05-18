@@ -129,7 +129,7 @@ var2 = 1; !-- `var` is set to `1`.
 var3| = 2; !-- `var` is set to `2`.
 ```
 
-This is some examples to understand type compatibility.
+This is some examples to understand type compatibility. Marker operators cancels out when applied at a variable. For example, `var&&|` is the same as `var&`.
 ```
 @  var1 |&&|&:u32;
 @  buf1 |&&|&    &&|:u32 var1&&|; !-- The marker operators are applied left to right.
@@ -140,13 +140,11 @@ This is some examples to understand type compatibility.
 @thing2    |&&|&:u32&&| buf2;
 
 @  var3     |:u32;
-@  buf3 &&&|&    |:u32 var3&&&&|&| !-- extra level up at start to cancel out the `|`.
+@  buf3 |&&|&    |:u32 var3; !-- Everything cancels out.
 @thing3 |&&|&:u32| |&&|&&var3; !-- Level up once more to cancel out the `|`.
 ```
 
 If the marker operators were placed before a variable and read left to right, it would require to reverse the operators. Furthermore, blanks can be used while we are not right before or after a colon so it would be ambiguous.
-
-Marker operators cancels out when applied at a variable. For example, `var&&|` is the same as `var&`.
 
 `[mut]` is applied to the type pointed to.
 ```
