@@ -36,7 +36,7 @@ Beside the colon symbol there are two important symbols called _commands_.
 Commands also escape the blank-sensitiveness of the colon depending on their position.
 
 ### Keys
-At this moment, a key is a constant, a variable, a function, brackets for arrays  or symbols relative to pointers called _leveling symbols_.
+At this moment, a key is a constant, a variable, a function, brackets for arrays or operators to manipulate addresses called _leveling operators_.
 
 #### Constants and variable
 ```
@@ -98,35 +98,55 @@ dec@: 51, 19; !-- macro style
 ```
 
 #### Pointers and aliases, references and dereferences
-The `&` symbol is used to get the address of a variable and the `|` symbol is used to dereference a variable; these are the leveling symbols. The blanks are important here because these symbols are considered as keys in the following declarations.
+The `&` operator (level up) is used to get the address of a variable and the `|` operator (level down) is used to dereference a variable; these are the leveling symbols. They must be placed after variables. The blanks are important here because these symbols are considered as keys in the following declarations.
 ```
 @var :u32 1;
-@ptr &:u32 &var; !-- `ptr` points to `var`.
-|ptr = 2; !-- `ptr` is dereferenced and `var` is set to `2`.
-@als |:u32 |ptr; !-- `als` is a dereferenced pointer.
+@ptr &:u32 var&; !-- `ptr` points to `var`.
+ptr| = 2; !-- `ptr` is dereferenced and `var` is set to `2`.
+@als |:u32 ptr|; !-- `als` is `var` as a dereferencing of `ptr`.
 als = 3; !-- `var` is set to `3`.
 ```
 
-References and dereferences must be initialized and only with a variable, but pointers and aliases may be uninitialized. Pointers and references represent the same concept with a different syntax, the same goes for aliases and dereferences.
+References and dereferences must be initialized and only with a variable and are binded with it during its lifetime (its scope), but pointers and aliases may be uninitialized. Pointers and references represent the same concept with a different syntax, the same goes for aliases and dereferences.
 ```
 @var :u32;
 @addr &:u32;
 !-- These variables process addresses. Both can be dereferenced.
-@ptr &:u32 &var; !-- pointer
+@ptr &:u32 var&; !-- pointer
 @ref :u32| var; !-- reference (to `var`).
 !-- These variables process values. Both cannot be dereferenced.
-@als |:u32 |addr; !-- alias (from `addr`).
-@der :u32& addr; !-- dereference
+@als |:u32 addr|; !-- alias (of `var`).
+@der :u32& addr; !-- dereference (from `addr`)
 ```
 
-To say the least, a reference is a pointer that does not need the `&` symbol to get the address when we initialize or when we assign it. Dereferences are similar, it is a pointer that does not need the `|` symbol. The key precede the lock in the process of the type when the lock does not contain symbols relative to pointers. When the lock contains this kind of symbols, these symbols are processed first, then the key and the rest of the lock.
+When a key has a type (because the lock represent a type like `u32`), the determination of it follows this order: first, the _marker operators_ (leveling operators and brackets) at the left of the lock are processed, then the leveling operators at the right of the lock and finally, the lock.
 ```
 @var :u32;
 @var2 :u32|& var; !-- `var2` is `var` (dereferenced reference).
-@var3 |:u32| var; !-- error: `var` is referenced but an alias wait for a dereference symbol `|`.
+@var3 |:u32| ptr|; !-- `var3` is processed as an alias of the variable at the address held by `ptr` and reference it.
+@ptr &:u32 var&;
+var2 = 1; !-- `var` is set to `1`.
+var3| = 2; !-- `var` is set to `2`.
 ```
 
-In fact, instructions like the third lead to errors. The precedence rule established before makes sense for arrays.
+This is some examples to understand type compatibility.
+```
+@  var1 |&&|&:u32;
+@  buf1 |&&|&    &&|:u32 var1&&|; !-- The marker operators are applied left to right.
+@thing1 |&&|&:u32&&| buf1;
+
+@  var2         :u32;
+@  buf2    |&&|&    &&|:u32 var2|&&|&&&|;
+@thing2    |&&|&:u32&&| buf2;
+
+@  var3     |:u32;
+@  buf3 &&&|&    |:u32 var3&&&&|&| !-- extra level up at start to cancel out the `|`.
+@thing3 |&&|&:u32| |&&|&&var3; !-- Level up once more to cancel out the `|`.
+```
+
+If the marker operators were placed before a variable and read left to right, it would require to reverse the operators. Furthermore, blanks can be used while we are not right before or after a colon so it would be ambiguous.
+
+Marker operators cancels out when applied at a variable. For example, `var&&|` is the same as `var&`.
 
 `[mut]` is applied to the type pointed to.
 ```
@@ -135,7 +155,7 @@ In fact, instructions like the third lead to errors. The precedence rule establi
 [mut] @ptr2 &:u32 var; !-- `ptr2` points to `var` and can be assigned.
 ```
 
-To declare constant pointer, aliases, references and dereferences, just replace `&` by `+` and `|` by `-`.
+To declare constant pointer, aliases, references and dereferences, just replace `&` by the `+` operator and `|` by the `-` operator.
 ```
 @var :u32;
 @ptr +:u32 var; !-- Constant pointer to the constant variable `var`.
@@ -144,13 +164,36 @@ To declare constant pointer, aliases, references and dereferences, just replace 
 Besides the constness, the usage is the same.
 
 #### Arrays
+
+The precedence rule to process a type established before makes more sense for arrays.
 ```
 @var1 :u32;
 @var2 :u32;
 @var3 :u32;
 
 @arr []:u32 [var1, var2, var3]; !-- Compile-time array of constant 32-bit unsigned integers initialized with the previous variables.
-@ders []:u32|& [var1, var2, var3]; !-- The variables are used as dereferenced references.
+@ders1 []:u32|& [var1, var2, var3]; !-- The variables are used as dereferenced references.
+@ders2 :[]u32|& [var1, var2, var3]; !-- This is equivalent, the lock is `u32`. What matters is what is at the left and at the right of it.
+
+@ptr +:u32 arr; !-- Array types are compatible with right constant level up.
+@ref :u32- arr; !-- Left constant level down too but only the first element of the array will be accessible.
+```
+
+An array is always constant.
+
+#### Freezing
+
+The mutability of a variable can be frozen, but the constness of a variable cannot be undone. Freezing a lock freeze the marker operators following it.
+```
+[mut] @var1 :u32 2;
+:[frz] var1; !-- Freeze the lock. Now var is a constant `u32`.
+
+@var2 &&:u32;
+[frz] var2 +&:u32; !-- Freeze the mutability of the first level.
+
+@buf             &|:u32 var1; !-- `&|var1` cancels out.
+[mut] @var3 &:u32&| buf&;
+[frz]:[frz] var3 +:u32; !-- `var3` now is constant and has the type `+:u32+-`.
 ```
 
 #### Cast

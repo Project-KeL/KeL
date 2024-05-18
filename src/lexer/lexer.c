@@ -848,6 +848,11 @@ Lexer* restrict lexer) {
 		i += 1;
 	}
 
+	if(i == 0) {
+		destroy_lexer(lexer);
+		return false;
+	}
+
 	lexer->count = i;
 	Token* tokens_realloc = realloc(
 		lexer->tokens,
