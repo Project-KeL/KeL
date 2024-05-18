@@ -39,7 +39,7 @@ long int minimum,
 Lexer* lexer) {
 #define TOKENS_CHUNK 4096
 	if(lexer->count <= minimum) {
-		const long int reserve = (minimum - lexer->count) / TOKENS_CHUNK + 1;
+		const long int reserve = minimum / TOKENS_CHUNK + 1;
 		Token* tokens_realloc = realloc(
 			lexer->tokens,
 			reserve * TOKENS_CHUNK * sizeof(Token));
@@ -720,6 +720,41 @@ Lexer* restrict lexer) {
 			token)
 		== true) {
 			previous_is_modifier = false;
+			long int buffer_end = end;
+			lexer_get_next_word(
+				code,
+				&start,
+				&buffer_end);
+
+			if(lexer_is_operator_modifier(code[start])) {
+				Token* tokens = lexer->tokens;
+
+				do {					
+					i += 1;
+					create_token_colon_word(
+						TokenType_R,
+						start,
+						start,
+						start,
+						buffer_end,
+						&tokens[i]);
+					
+					if(allocate_chunk(
+						i,
+						lexer)
+					== false) {
+						destroy_lexer(lexer);
+						return false;
+					}
+
+					lexer_get_next_word(
+						code,
+						&start,
+						&buffer_end);
+				} while(lexer_is_operator_modifier(code[start])); 
+
+				end = start;
+			}
 		} else if(if_QLR_create_token(
 			code,
 			start,
