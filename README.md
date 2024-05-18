@@ -151,14 +151,14 @@ Marker operators cancels out when applied at a variable. For example, `var&&|` i
 `[mut]` is applied to the type pointed to.
 ```
 [mut] @var :u32;
-@ptr1 &:u32 var; !-- `ptr1` points to a `var` but `var` cannot be assigned.
-[mut] @ptr2 &:u32 var; !-- `ptr2` points to `var` and can be assigned.
+@ptr1 &:u32 var&; !-- `ptr1` points to a `var` but `var` cannot be assigned.
+[mut] @ptr2 &:u32 var&; !-- `ptr2` points to `var` and can be assigned.
 ```
 
 To declare constant pointer, aliases, references and dereferences, just replace `&` by the `+` operator and `|` by the `-` operator.
 ```
 @var :u32;
-@ptr +:u32 var; !-- Constant pointer to the constant variable `var`.
+@ptr +:u32 var&; !-- Constant pointer to the constant variable `var`.
 ```
 
 Besides the constness, the usage is the same.
