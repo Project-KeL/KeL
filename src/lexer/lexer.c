@@ -56,43 +56,39 @@ Lexer* lexer) {
 }
 
 static TokenSubtype character_to_subtype(char c) {
-	uint32_t subtype;
-
 	switch(c) {
-	case '!': subtype = TokenSubtype_EXCLAMATION_MARK; break;
-	case '"': subtype = TokenSubtype_DQUOTES; break;
-	case '#': subtype = TokenSubtype_HASH; break;
-	case '%': subtype = TokenSubtype_MODULO; break;
-	case '&': subtype = TokenSubtype_AMPERSAND; break;
-	case '\'': subtype = TokenSubtype_SQUOTE; break;
-	case '(': subtype = TokenSubtype_LPARENTHESIS; break;
-	case ')': subtype = TokenSubtype_RPARENTHESIS; break;
-	case '*': subtype = TokenSubtype_ASTERISK; break;
-	case '+': subtype = TokenSubtype_PLUS; break;
-	case ',': subtype = TokenSubtype_COMMA; break;
-	case '-': subtype = TokenSubtype_MINUS; break;
-	case '.': subtype = TokenSubtype_PERIOD; break;
-	case '/': subtype = TokenSubtype_DIVIDE; break;
-	case ':': subtype = TokenSubtype_COLON; break;
-	case ';': subtype = TokenSubtype_SEMICOLON; break;
-	case '<': subtype = TokenSubtype_LOBRACKET; break;
-	case '=': subtype = TokenSubtype_EQUAL; break;
-	case '>': subtype = TokenSubtype_ROBRACKET; break;
-	case '?': subtype = TokenSubtype_QUESTION_MARK; break;
-	case '@': subtype = TokenSubtype_AT; break;
-	case '[': subtype = TokenSubtype_LBRACKET; break;
-	case ']': subtype = TokenSubtype_RBRACKET; break;
-	case '\\': subtype = TokenSubtype_BACKSLASH; break;
-	case '^': subtype = TokenSubtype_CARET; break;
-	case '`': subtype = TokenSubtype_GRAVE_ACCENT; break;
-	case '{': subtype = TokenSubtype_LCBRACE; break;
-	case '|': subtype = TokenSubtype_PIPE; break;
-	case '}': subtype = TokenSubtype_RCBRACE; break;
-	case '~': subtype = TokenSubtype_TILDE; break;
+	case '!': return TokenSubtype_EXCLAMATION_MARK;
+	case '"': return TokenSubtype_DQUOTES;
+	case '#': return TokenSubtype_HASH;
+	case '%': return TokenSubtype_MODULO;
+	case '&': return TokenSubtype_AMPERSAND;
+	case '\'': return TokenSubtype_SQUOTE;
+	case '(': return TokenSubtype_LPARENTHESIS;
+	case ')': return TokenSubtype_RPARENTHESIS;
+	case '*': return TokenSubtype_ASTERISK;
+	case '+': return TokenSubtype_PLUS;
+	case ',': return TokenSubtype_COMMA;
+	case '-': return TokenSubtype_MINUS;
+	case '.': return TokenSubtype_PERIOD;
+	case '/': return TokenSubtype_DIVIDE;
+	case ':': return TokenSubtype_COLON;
+	case ';': return TokenSubtype_SEMICOLON;
+	case '<': return TokenSubtype_LOBRACKET;
+	case '=': return TokenSubtype_EQUAL;
+	case '>': return TokenSubtype_ROBRACKET;
+	case '?': return TokenSubtype_QUESTION_MARK;
+	case '@': return TokenSubtype_AT;
+	case '[': return TokenSubtype_LBRACKET;
+	case ']': return TokenSubtype_RBRACKET;
+	case '\\': return TokenSubtype_BACKSLASH;
+	case '^': return TokenSubtype_CARET;
+	case '`': return TokenSubtype_GRAVE_ACCENT;
+	case '{': return TokenSubtype_LCBRACE;
+	case '|': return TokenSubtype_PIPE;
+	case '}': return TokenSubtype_RCBRACE;
+	case '~': return TokenSubtype_TILDE;
 	default: assert(false); // missing case
 	}
-
-	return subtype;
 }
 
 
@@ -843,10 +839,13 @@ Lexer* restrict lexer) {
 				   || lexer_is_bracket(code[buffer_start]));
 
 				if(code[buffer_start] == ':') {
-					end = buffer_end;
-					buffer_end = start + 1;
+					buffer_end = start;
 
 					do {
+						lexer_get_next_word(
+							code,
+							&start,
+							&buffer_end);
 						tokens[i] = (Token) {
 							.type = TokenType_L,
 							.subtype = character_to_subtype(code[start]),
@@ -863,14 +862,9 @@ Lexer* restrict lexer) {
 							destroy_lexer(lexer);
 							return false;
 						}
-
-						lexer_get_next_word(
-							code,
-							&start,
-							&buffer_end);
 					} while(i < buffer_i);
 
-					end = start;
+					end = start + 1;
 					previous_is_modifier = true;
 					i -= 1; // `i` is incremented at the end of the loop
 				}

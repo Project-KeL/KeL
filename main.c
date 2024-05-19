@@ -53,9 +53,7 @@ char** argv) {
 		goto ERROR_3;
 	}
 #ifndef NDEBUG
-	printf("\n|- TOKENS -|\n");
 	debug_print_tokens(&lexer);
-	printf("\n");
 #endif
 	if(create_parser(
 		&lexer,
@@ -66,9 +64,7 @@ char** argv) {
 		goto ERROR_4;
 	}
 #ifndef NDEBUG
-	printf("\n|- NODES -|\n");
 	debug_print_nodes(&parser);
-	printf("\n");
 #endif
 	binary_x64(
 		&binary,
