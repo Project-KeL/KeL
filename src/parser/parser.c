@@ -86,7 +86,7 @@ Parser* parser) {
 	return true;
 }
 
-static NodeSubtypeChildKeyType operator_markers_to_subtype_left(TokenSubtype token_subtype) {
+static NodeSubtypeChildKeyType operator_modifiers_to_subtype_left(TokenSubtype token_subtype) {
 	switch(token_subtype) {
 	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyType_AMPERSAND_LEFT;
 	// brackets are always at the left side of the lock
@@ -99,7 +99,7 @@ static NodeSubtypeChildKeyType operator_markers_to_subtype_left(TokenSubtype tok
 	}
 }
 
-static NodeSubtypeChildKeyType operator_markers_to_subtype_right(TokenSubtype token_subtype) {
+static NodeSubtypeChildKeyType operator_modifiers_to_subtype_right(TokenSubtype token_subtype) {
 	switch(token_subtype) {
 	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyType_AMPERSAND_RIGHT;
 	case TokenSubtype_MINUS: return NodeSubtypeChildKeyType_MINUS_RIGHT;
@@ -117,15 +117,15 @@ Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
-	// allocate marker parts of the type
+	// allocate modifier parts of the type
 	{
 		long int count_tokens = 0;
 
 		while(tokens[buffer_i + count_tokens].type == TokenType_L
-		   && parser_is_operator_marker(&tokens[buffer_i + count_tokens])) count_tokens += 1;
+		   && parser_is_operator_modifier(&tokens[buffer_i + count_tokens])) count_tokens += 1;
 
 		while(tokens[buffer_i + count_tokens].type == TokenType_R
-		   && parser_is_operator_marker(&tokens[buffer_i + count_tokens])) count_tokens += 1;
+		   && parser_is_operator_modifier(&tokens[buffer_i + count_tokens])) count_tokens += 1;
 
 		if(!parser_is_lock(&tokens[buffer_i + count_tokens]))
 			return 0;
@@ -148,7 +148,7 @@ Parser* parser) {
 			// `.child2` will hold this expression
 			parser->nodes[buffer_j] = (Node) {
 				.type = NodeType_CHILD,
-				.subtype = operator_markers_to_subtype_left(tokens[buffer_i].subtype),
+				.subtype = operator_modifiers_to_subtype_left(tokens[buffer_i].subtype),
 				.token = &tokens[buffer_i],
 				.child1 = NULL,
 				.child2 = NULL};
@@ -169,30 +169,26 @@ Parser* parser) {
 		.token = &tokens[buffer_i],
 		.child1 = NULL,
 		.child2 = NULL};
-	parser->nodes[buffer_j - 1].child1 = &parser->nodes[buffer_j];
+	parent->child1 = &parser->nodes[buffer_j];
+	parent = &parser->nodes[buffer_j];
 	buffer_i += 1;
-	long int j_lock_node = buffer_j;
+	buffer_j += 1;
 	// right side
-	if(tokens[buffer_i].type == TokenType_R) {
-		do {
-			buffer_i += 1;
-			buffer_j += 1;
-			parser->nodes[buffer_j] = (Node) {
-				.type = NodeType_CHILD,
-				.subtype = operator_markers_to_subtype_right(tokens[buffer_i].subtype),
-				.token = &tokens[buffer_i],
-				.child1 = NULL,
-				.child2 = NULL};
-			parent->child1 = &parser->nodes[buffer_j - 1];
-			parent = &parser->nodes[buffer_j];
-		} while(tokens[buffer_i].type == TokenType_R);
-
-		// set the child of the lock
-		parser->nodes[j_lock_node].child1 = &parser->nodes[j_lock_node - 1];
+	while(tokens[buffer_i].type == TokenType_R) {
+		parser->nodes[buffer_j] = (Node) {
+			.type = NodeType_CHILD,
+			.subtype = operator_modifiers_to_subtype_right(tokens[buffer_i].subtype),
+			.token = &tokens[buffer_i],
+			.child1 = NULL,
+			.child2 = NULL};
+		parent->child1 = &parser->nodes[buffer_j];
+		parent = &parser->nodes[buffer_j];
+		buffer_i += 1;
+		buffer_j += 1;
 	}
-
+	// we read the next token but 
 	*i = buffer_i;
-	*j = buffer_j;
+	*j = buffer_j - 1;
 	return 1;
 }
 

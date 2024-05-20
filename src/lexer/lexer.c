@@ -804,6 +804,11 @@ Lexer* restrict lexer) {
 						.R_start = start,
 						.R_end = buffer_end};
 					i += 1;
+					// it must not be EOF (KEY_MODIFIER_EOF)
+					lexer_get_next_word(
+						code,
+						&start,
+						&buffer_end);
 
 					if(allocate_chunk(
 						i,
@@ -812,12 +817,6 @@ Lexer* restrict lexer) {
 						destroy_lexer(lexer);
 						return false;
 					}
-
-					// it must not be EOF (KEY_MODIFIER_EOF)
-					lexer_get_next_word(
-						code,
-						&start,
-						&buffer_end);
 				} while(lexer_is_operator_modifier(code[start]));
 
 				end = start;
@@ -827,33 +826,29 @@ Lexer* restrict lexer) {
 			} else if(lexer_is_operator_leveling(code[start])
 			       || code[start] == '[') {
 				long int buffer_start = start;
-				long int buffer_i = i; // to get the right amount of tokens
 
-				do {
+				while(lexer_is_operator_modifier(code[buffer_end])) {
 					lexer_get_next_word(
 						code,
 						&buffer_start,
 						&buffer_end);
-					buffer_i += 1;
-				} while(lexer_is_operator_leveling(code[buffer_start])
-				   || lexer_is_bracket(code[buffer_start]));
+				}
 
-				if(code[buffer_start] == ':') {
-					buffer_end = start;
-
+				if(code[buffer_end] == ':'
+				&& lexer_is_operator_modifier(code[buffer_end - 1])) {
 					do {
-						lexer_get_next_word(
-							code,
-							&start,
-							&buffer_end);
 						tokens[i] = (Token) {
 							.type = TokenType_L,
 							.subtype = character_to_subtype(code[start]),
 							.L_start = start,
-							.L_end = buffer_end,
-							.R_start = buffer_end,
-							.R_end = buffer_end};
+							.L_end = end,
+							.R_start = end,
+							.R_end = end};
 						i += 1;
+						lexer_get_next_word(
+							code,
+							&start,
+							&end);
 
 						if(allocate_chunk(
 							i,
@@ -862,10 +857,9 @@ Lexer* restrict lexer) {
 							destroy_lexer(lexer);
 							return false;
 						}
-					} while(i < buffer_i);
+					} while(code[start] != ':');
 
-					end = start + 1;
-					previous_is_modifier = true;
+					end -= 1;
 					i -= 1; // `i` is incremented at the end of the loop
 				}
 			} else {

@@ -52,7 +52,7 @@ bool parser_is_operator_leveling(const Token* restrict token) {
 	    || token->subtype == TokenSubtype_PLUS;
 }
 
-bool parser_is_operator_marker(const Token* restrict token) {
+bool parser_is_operator_modifier(const Token* restrict token) {
 	return parser_is_operator_leveling(token)
 	    || token->subtype == TokenSubtype_LBRACKET
 	    || token->subtype == TokenSubtype_RBRACKET;
