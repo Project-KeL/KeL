@@ -24,8 +24,8 @@ typedef enum: uint32_t {
 #define SHIFT_TOKEN_SUBTYPE_QL 24
 #define SHIFT_TOKEN_SUBTYPE_QR 28
 
-#define MASK_TOKEN_SUBTYPE_QL 0xF0000000
-#define MASK_TOKEN_SUBTYPE_QR 0x0F000000
+#define MASK_TOKEN_SUBTYPE_QL 0x0F000000
+#define MASK_TOKEN_SUBTYPE_QR 0xF0000000
 
 typedef enum: uint32_t {
 #define TOKEN_SUBTYPE(subtype) TokenSubtype_ ## subtype
@@ -66,12 +66,18 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(PIPE),
 	TOKEN_SUBTYPE(TILDE),
 	// L qualifier (last highest byte high 4 bits)
-	TOKEN_SUBTYPE(QL_ENTRY) = 1 << 24,
-	TOKEN_SUBTYPE(QL_INC) = 1 << 25,
-	TOKEN_SUBTYPE(QL_MUT) = 1 << 26,
+#define QL(n) (1 << (SHIFT_TOKEN_SUBTYPE_QL + n))
+	TOKEN_SUBTYPE(QL_NO) = QL(0),
+	TOKEN_SUBTYPE(QL_ENTRY) = QL(1),
+	TOKEN_SUBTYPE(QL_INC) = QL(2),
+	TOKEN_SUBTYPE(QL_MUT) = QL(3),
+#undef QL
 	// lock qualifier (last highest byte low 4 bits)
-	TOKEN_SUBTYPE(QR_DEFAULT) = 1 << 28,
-	TOKEN_SUBTYPE(QR_INC) = 1 << 29,
+#define QR(n) (1 << (SHIFT_TOKEN_SUBTYPE_QR + n))
+	TOKEN_SUBTYPE(QR_NO) = QR(0),
+	TOKEN_SUBTYPE(QR_DEFAULT) = QR(1),
+	TOKEN_SUBTYPE(QR_INC) = QR(2),
+#undef QR
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 

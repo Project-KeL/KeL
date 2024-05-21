@@ -131,6 +131,7 @@ Parser* restrict parser) {
 			destroy_parser(parser);
 			return false;
 		}
+		// unlike `create_lexer` all the incrementations are done
 	}
 
 	if(j == 0) {

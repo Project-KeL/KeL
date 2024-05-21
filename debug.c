@@ -5,7 +5,7 @@
 
 static void print_info_token(
 const char* code,
-const Token* token) {
+const Token* restrict token) {
 	const char* type;
 
 	switch(token->type) {
@@ -63,6 +63,30 @@ const Token* token) {
 	}
 }
 
+static void print_info_node_identification(
+const char* code,
+const Node* node) {
+	if((node->subtype & MASK_NODE_SUBTYPE_COMMAND) == NodeSubtypeKeyQualification_HASH)
+		printf("# ");
+	else
+		printf("@ ");
+
+	printf("DECLARATION <%.*s>",
+		node->token->L_end - node->token->L_start,
+		&code[node->token->L_start]);
+
+	if((node->subtype & NodeSubtypeKeyQualification_ENTRY) != 0)
+		printf(" ENTRY");
+
+	if((node->subtype & NodeSubtypeKeyQualification_INC) != 0)
+		printf(" INC");
+
+	if((node->subtype & NodeSubtypeKeyQualification_MUT) != 0)
+		printf(" MUT");
+
+	printf("\n");
+}
+
 void debug_print_tokens(const Lexer* lexer) {
 	printf("TOKENS:\n");
 
@@ -92,11 +116,12 @@ void debug_print_nodes(const Parser* parser) {
 		if(node->type == NodeType_SCOPE_START) {
 			printf("\tSCOPE START (%td NODES)\n",
 				node->child - node);
-		} else if(node->type == NodeType_DECLARATION) {
-			printf("\tDECLARATION <%.*s>\n",
-				node->token->L_end - node->token->L_start,
-				&code[node->token->L_start]);
+		} else if(node->type == NodeType_IDENTIFICATION) {
 			const Node* child = node->child;
+			printf("\t");
+			print_info_node_identification(
+				code,
+				node);
 
 			do {
 				printf("\t\t");
