@@ -1,7 +1,43 @@
 #include <assert.h>
 #include <stddef.h>
-#include "lexer_utils.h"
 #include <stdio.h>
+#include "lexer_utils.h"
+
+TokenSubtype lexer_character_to_subtype(char c) {
+	switch(c) {
+	case '!': return TokenSubtype_EXCLAMATION_MARK;
+	case '"': return TokenSubtype_DQUOTES;
+	case '#': return TokenSubtype_HASH;
+	case '%': return TokenSubtype_MODULO;
+	case '&': return TokenSubtype_AMPERSAND;
+	case '\'': return TokenSubtype_SQUOTE;
+	case '(': return TokenSubtype_LPARENTHESIS;
+	case ')': return TokenSubtype_RPARENTHESIS;
+	case '*': return TokenSubtype_ASTERISK;
+	case '+': return TokenSubtype_PLUS;
+	case ',': return TokenSubtype_COMMA;
+	case '-': return TokenSubtype_MINUS;
+	case '.': return TokenSubtype_PERIOD;
+	case '/': return TokenSubtype_DIVIDE;
+	case ':': return TokenSubtype_COLON;
+	case ';': return TokenSubtype_SEMICOLON;
+	case '<': return TokenSubtype_LOBRACKET;
+	case '=': return TokenSubtype_EQUAL;
+	case '>': return TokenSubtype_ROBRACKET;
+	case '?': return TokenSubtype_QUESTION_MARK;
+	case '@': return TokenSubtype_AT;
+	case '[': return TokenSubtype_LBRACKET;
+	case ']': return TokenSubtype_RBRACKET;
+	case '\\': return TokenSubtype_BACKSLASH;
+	case '^': return TokenSubtype_CARET;
+	case '`': return TokenSubtype_GRAVE_ACCENT;
+	case '{': return TokenSubtype_LCBRACE;
+	case '|': return TokenSubtype_PIPE;
+	case '}': return TokenSubtype_RCBRACE;
+	case '~': return TokenSubtype_TILDE;
+	default: assert(false); // missing case
+	}
+}
 
 bool isXdigit(char c) {
 	return isdigit(c)

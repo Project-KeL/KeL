@@ -2,7 +2,9 @@
 #define LEXER_UTILS_H
 
 #include <ctype.h>
+#include "lexer_def.h"
 
+TokenSubtype lexer_character_to_subtype(char c);
 bool isXdigit(char c);
 bool lexer_is_delimiter_open(char c);
 bool lexer_is_delimiter_close(char c);

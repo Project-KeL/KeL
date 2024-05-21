@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer.h"
+#include "lexer_allocation.h"
 #include "lexer_error.h"
 #include "lexer_utils.h"
 
@@ -34,64 +34,6 @@
 // this variable manages errors which subsequently may no longer be errors
 static bool token_error = false;
 
-static bool allocate_chunk(
-long int minimum,
-Lexer* lexer) {
-#define TOKENS_CHUNK 4096
-	if(lexer->count <= minimum) {
-		const long int reserve = minimum / TOKENS_CHUNK + 1;
-		Token* tokens_realloc = realloc(
-			lexer->tokens,
-			reserve * TOKENS_CHUNK * sizeof(Token));
-
-		if(tokens_realloc == NULL)
-			return false;
-		
-		lexer->tokens = tokens_realloc;
-		lexer->count = reserve * TOKENS_CHUNK;
-	}
-	
-	return true;
-#undef TOKENS_CHUNK
-}
-
-static TokenSubtype character_to_subtype(char c) {
-	switch(c) {
-	case '!': return TokenSubtype_EXCLAMATION_MARK;
-	case '"': return TokenSubtype_DQUOTES;
-	case '#': return TokenSubtype_HASH;
-	case '%': return TokenSubtype_MODULO;
-	case '&': return TokenSubtype_AMPERSAND;
-	case '\'': return TokenSubtype_SQUOTE;
-	case '(': return TokenSubtype_LPARENTHESIS;
-	case ')': return TokenSubtype_RPARENTHESIS;
-	case '*': return TokenSubtype_ASTERISK;
-	case '+': return TokenSubtype_PLUS;
-	case ',': return TokenSubtype_COMMA;
-	case '-': return TokenSubtype_MINUS;
-	case '.': return TokenSubtype_PERIOD;
-	case '/': return TokenSubtype_DIVIDE;
-	case ':': return TokenSubtype_COLON;
-	case ';': return TokenSubtype_SEMICOLON;
-	case '<': return TokenSubtype_LOBRACKET;
-	case '=': return TokenSubtype_EQUAL;
-	case '>': return TokenSubtype_ROBRACKET;
-	case '?': return TokenSubtype_QUESTION_MARK;
-	case '@': return TokenSubtype_AT;
-	case '[': return TokenSubtype_LBRACKET;
-	case ']': return TokenSubtype_RBRACKET;
-	case '\\': return TokenSubtype_BACKSLASH;
-	case '^': return TokenSubtype_CARET;
-	case '`': return TokenSubtype_GRAVE_ACCENT;
-	case '{': return TokenSubtype_LCBRACE;
-	case '|': return TokenSubtype_PIPE;
-	case '}': return TokenSubtype_RCBRACE;
-	case '~': return TokenSubtype_TILDE;
-	default: assert(false); // missing case
-	}
-}
-
-
 static void create_token_special(
 const char* restrict code,
 long int start,
@@ -99,7 +41,7 @@ TokenType type,
 Token* restrict token) {
 	*token = (Token) {
 		.type = type,
-		.subtype = character_to_subtype(code[start]),
+		.subtype = lexer_character_to_subtype(code[start]),
 		.start = start,
 		.end = start + 1};
 }
@@ -673,7 +615,7 @@ Lexer* restrict lexer) {
 			&start,
 			&end));
 		// allocation
-		if(allocate_chunk(
+		if(lexer_allocate_chunk(
 			i,
 			lexer)
 		== false) {
@@ -733,13 +675,13 @@ Lexer* restrict lexer) {
 					i += 1;
 					tokens[i] = (Token) {
 						.type = TokenType_R,
-						.subtype = character_to_subtype(code[start]),
+						.subtype = lexer_character_to_subtype(code[start]),
 						.L_start = start,
 						.L_end = start,
 						.R_start = start,
 						.R_end = buffer_end};
 					
-					if(allocate_chunk(
+					if(lexer_allocate_chunk(
 						i,
 						lexer)
 					== false) {
@@ -798,7 +740,7 @@ Lexer* restrict lexer) {
 				do {
 					tokens[i] = (Token) {
 						.type = TokenType_R,
-						.subtype = character_to_subtype(code[start]),
+						.subtype = lexer_character_to_subtype(code[start]),
 						.L_start = start,
 						.L_end = start,
 						.R_start = start,
@@ -810,7 +752,7 @@ Lexer* restrict lexer) {
 						&start,
 						&buffer_end);
 
-					if(allocate_chunk(
+					if(lexer_allocate_chunk(
 						i,
 						lexer)
 					== false) {
@@ -839,7 +781,7 @@ Lexer* restrict lexer) {
 					do {
 						tokens[i] = (Token) {
 							.type = TokenType_L,
-							.subtype = character_to_subtype(code[start]),
+							.subtype = lexer_character_to_subtype(code[start]),
 							.L_start = start,
 							.L_end = end,
 							.R_start = end,
@@ -850,7 +792,7 @@ Lexer* restrict lexer) {
 							&start,
 							&end);
 
-						if(allocate_chunk(
+						if(lexer_allocate_chunk(
 							i,
 							lexer)
 						== false) {

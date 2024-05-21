@@ -1,7 +1,8 @@
 #ifndef PARSER_UTILS_H
 #define PARSER_UTILS_H
 
-#include "parser.h"
+#include "lexer_def.h"
+#include "parser_def.h"
 
 bool parser_is_scope(
 	long int i,

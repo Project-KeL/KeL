@@ -90,7 +90,7 @@ void debug_print_nodes(const Parser* parser) {
 		const Node* node = &parser->nodes[j];
 
 		if(node->type == NodeType_SCOPE_START) {
-			printf("\tSCOPE START (+%td)\n",
+			printf("\tSCOPE START (%td NODES)\n",
 				node->child - node);
 		} else if(node->type == NodeType_DECLARATION) {
 			printf("\tDECLARATION <%.*s>\n",
