@@ -1,8 +1,10 @@
 # KeL
 KeL (for **Keys & Locks**) is intended to be a low-level programming language with a compiler customizable enough to support as much binary format as possible and dumb enough to provide as less optimization as possible. However, these concepts are intended to counterbalance to provide a 'user-friendly' experience.
 
-> ℹ️
+> [!NOTE]
 > This project is a work in progress and the master branch is anything but stable at this moment. The syntax may evolve but the main ideas are here.
+>
+> It does not compile sources yet, but you can try `./kel <source_file.kl>` to get debugging informations about tokenization and parsing.
 
 ## "Hello, world"
 ```
