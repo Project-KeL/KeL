@@ -2,19 +2,8 @@
 #include "lexer_error.h"
 #include "lexer_utils.h"
 
-/*
- * QUALIFIER_L_LBRACKET
- * QUALIFIER_L_RBRACKET
- * 1 - a backslash must be followed by a letter or a digit
- * 2 - a lock qualifier cannot be the first token
- * 3 - scan delimiters matching
- * 4 - a colon cannot be followed by EOF
- * 5 - scan lonely colon
- * 6 - array and pointer check 
- * 7 - comments have to be well delimited
- */
-
 #include <stdio.h>
+
 bool lexer_scan_errors(
 const Source* restrict source,
 Allocator* restrict allocator) {

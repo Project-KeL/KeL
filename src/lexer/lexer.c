@@ -9,29 +9,28 @@
 /*
  * L stands for "Left"
  * R stands for "Right"
- * it is refered to the position around a colon
- *
  * Q stands for "Qualifier"
+ * PL stands for "Period Left"
+ * It is related to the position around a colon. Everything is an L by default.
  *
- * checking order:
- * 1 - is_command (important to check the L case)
- * 2 - is_qualifier_L
- * 3 - is_L
- * 4 - is_qualifier_R
- * 5 - is_R
- * 6 - is_qualifier_LR
- * 7 - is_LR
- * 8 - is_period_L
- * 9 - is_literal
- * 10 - is_special
- * 11 - is_valid_name
+ * Checking order:
+ * 1 - is command (sets `previous_is_command`, dependency: L)
+ * 2 - is QL
+ * 3 - is L
+ * 4 - is QR
+ * 5 - is R (sets `previous_is_modifier`, dependencies: L and R)
+ * 6 - is QLR
+ * 7 - is LR
+ * 8 - is PL
+ * 9 - is literal (sets `previous_is_modifier`, dependencies: L and R)
+ * 10 - is special
+ * 11 - is valid_name
  *
- * qualifier cases are checked first to detect the brackets, so it is easier to detect
- * names (for instance, the name of a L or a R).
+ * Qualifier cases are checked first to detect the brackets, so it is easier to detect
+ * names (for instance, the name of an L or a R).
 */
 
-// more errors will be implemented in the dedicated function
-// this variable manages errors which subsequently may no longer be errors
+// more errors will be supported in "lexer_error.c".
 static bool token_error = false;
 
 static void create_token_special(
@@ -93,7 +92,7 @@ TokenSubtype* subtype,
 long int start,
 long int end) {
 	*subtype = TokenSubtype_NO;
-	code = &code[start]; // for strcmp
+	code = &code[start]; // for `strncmp`
 
 	if(strncmp(
 		"entry",
@@ -462,7 +461,7 @@ Token* token) {
 		if(code[start] == '0'
 		&& !isdigit(code[buffer_end])) {
 			switch(code[buffer_end]) {
-				case 'b': break;
+				case 'B': break;
 				case 'o': break;
 				case 'x': break;
 				default: token_error = true; return false; // unknown base
@@ -507,12 +506,12 @@ Token* token) {
 	} else
 		return false;
 
-	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_LITERAL,
 		.subtype = subtype,
 		.start = start,
-		.end = *end - (subtype == TokenSubtype_LITERAL_STRING ? 1 : 0)};
+		.end = buffer_end - (subtype == TokenSubtype_LITERAL_STRING ? 1 : 0)};
+	*end = buffer_end;
 	return true;
 }
 

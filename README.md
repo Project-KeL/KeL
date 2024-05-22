@@ -1,12 +1,12 @@
 # KeL
-KeL (for **Keys & Locks**) is intended to be a low-level programming language with a compiler customizable enough to support as much binary format as possible and dumb enough to provide as less optimization as possible. However, these concepts are intended to counterbalance to provide a 'user-friendly' experience.
+KeL (for **Keys & Locks**) is intended to be a low-level programming language with a compiler customizable enough to support as much binary formats as possible and dumb enough to provide as less optimization as possible. However, these concepts are intended to counterbalance to give a 'user-friendly' experience.
 
 > [!NOTE]
 > This project is a work in progress and the master branch is anything but stable at this moment. The syntax may evolve but the main ideas are here.
 >
 > It does not compile sources yet, but you can try `./kel <source_file.kl>` to get debugging informations about tokenization and parsing.
 
-## "Hello, world"
+## Hello, world!
 ```
 imod sys;
 
@@ -51,6 +51,6 @@ Let's say the target of the compiler is an architecture where we can define 32-b
 
 After the _identification_ of a key (declaration or initialization), it can be reassigned.
 ```
-@var :u32 1;
+[mut] @var :u32 1;
 var = 2;
 ```

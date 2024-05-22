@@ -49,17 +49,16 @@ const Token* restrict token) {
 	} else if(token->type == TokenType_LITERAL) {
 		switch(token->subtype) {
 		case TokenSubtype_LITERAL_NUMBER:
-			printf("NUM %.*s\n",
-				token->L_end - token->L_start,
-				&code[token->L_start]); break;
+			printf("NUM"); break;
 		case TokenSubtype_LITERAL_STRING:
-			printf("STR %.*s\n",
-				token->L_end - token->L_start,
-				&code[token->L_start]); break;
+			printf("STR"); break;
 		case TokenSubtype_LITERAL_ASCII:
-			printf("CHR %c\n",
-				&code[token->L_start]);
+			printf("CHR"); break;
 		}
+
+		printf("\t<%.*s>\n",
+			token->L_end - token->L_start,
+			&code[token->L_start]);
 	}
 }
 

@@ -11,6 +11,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
 	NODE_TYPE(IDENTIFICATION),
+	NODE_TYPE(LITERAL),
 	NODE_TYPE(AFFECTATION),
 	NODE_TYPE(EXPRESSION),
 #undef NODE_TYPE
@@ -71,6 +72,15 @@ typedef enum: uint64_t {
 	NODE_SUBTYPE_CHILD_KEY_TYPE(PLUS_RIGHT),
 #undef NODE_SUBTYPE_CHILD_KEY_TYPE
 } NodeSubtypeChildKeyType;
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_LITERAL(subtype) NodeSubtypeLiteral_ ## subtype
+	NODE_SUBTYPE_LITERAL(NO) = 0,
+	NODE_SUBTYPE_LITERAL(ASCII) = TokenSubtype_LITERAL_ASCII,
+	NODE_SUBTYPE_LITERAL(NUMBER) = TokenSubtype_LITERAL_NUMBER,
+	NODE_SUBTYPE_LITERAL(STRING) = TokenSubtype_LITERAL_STRING,
+#undef NODE_SUBTYPE_LITERAL
+} NodeSubtypeLiteral;
 
 typedef struct Node Node;
 

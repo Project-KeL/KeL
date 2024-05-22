@@ -10,6 +10,10 @@ static NodeSubtypeKeyQualification token_subtype_QL_to_subtype(TokenSubtype subt
 	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 1);
 }
 
+static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
+	return subtype_token;
+}
+
 static NodeSubtypeChildKeyType operator_modifier_to_subtype_left(TokenSubtype subtype_token) {
 	switch(subtype_token) {
 	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyType_AMPERSAND_LEFT;
@@ -41,29 +45,35 @@ Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
+	bool is_scope_parametered = false;
 	// allocate modifier parts of the type
 	{
 		long int count_tokens = 0;
+#define INDEX_I (buffer_i + count_tokens)
+		while(tokens[INDEX_I].type == TokenType_L
+		   && parser_is_operator_modifier(&tokens[INDEX_I])) count_tokens += 1;
 
-		while(tokens[buffer_i + count_tokens].type == TokenType_L
-		   && parser_is_operator_modifier(&tokens[buffer_i + count_tokens])) count_tokens += 1;
+		while(tokens[INDEX_I].type == TokenType_R
+		   && parser_is_operator_modifier(&tokens[INDEX_I])) count_tokens += 1;
 
-		while(tokens[buffer_i + count_tokens].type == TokenType_R
-		   && parser_is_operator_modifier(&tokens[buffer_i + count_tokens])) count_tokens += 1;
-
-		if(!parser_is_lock(&tokens[buffer_i + count_tokens]))
+		if(!parser_is_lock(&tokens[INDEX_I]))
 			return 0;
 
 		count_tokens += 1;
 
-		while(tokens[buffer_i + count_tokens].type == TokenType_R
-		   && parser_is_operator_leveling(&tokens[buffer_i + count_tokens])) count_tokens += 1;
+		if(tokens[INDEX_I].subtype == TokenSubtype_LPARENTHESIS) {
+			is_scope_parametered = true;
+		} else {
+			while(tokens[buffer_i + count_tokens].type == TokenType_R
+			   && parser_is_operator_leveling(&tokens[buffer_i + count_tokens])) count_tokens += 1;
 
-		if(parser_allocate_chunk(
-			buffer_j + count_tokens,
-			parser)
-		== false)
-			return -1;
+			if(parser_allocate_chunk(
+				buffer_j + count_tokens,
+				parser)
+			== false)
+				return -1;
+		}
+#undef INDEX_I
 	}
 	// left side
 	while(!parser_is_lock(&tokens[buffer_i])) {
@@ -116,11 +126,40 @@ Parser* parser) {
 	return 1;
 }
 
+static int if_initialization_create_node(
+long int* i,
+long int* j,
+Node* parent,
+Parser* parser) {
+	// just parse literals for the moment, expressions later
+	const Token* tokens = parser->lexer->tokens;
+	long int buffer_i = *i;
+	long int buffer_j = *j;
+
+	if(tokens[buffer_i].type != TokenType_LITERAL)
+		return 0;
+
+	if(parser_allocate_chunk(
+		buffer_j + 1,
+		parser)
+	== false)
+		return -1;
+
+	parser->nodes[buffer_j] = (Node) {
+		.type = NodeType_LITERAL,
+		.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
+		.token = &tokens[buffer_i]};
+	parent->child1 = &parser->nodes[buffer_j];
+	*i = buffer_i + 1;
+	*j = buffer_j + 1;
+	return 1;
+}
+
 int if_identifier_create_nodes(
 long int* i,
 long int* j,
 Parser* parser) {
-	Token* tokens = parser->lexer->tokens;
+	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
 	NodeSubtypeKeyQualification subtype = NodeSubtypeKeyQualification_NO;
@@ -146,7 +185,7 @@ Parser* parser) {
 	if(parser_allocate_chunk(
 		buffer_j + 1,
 		parser)
-	< 0)
+	== false)
 		return -1;
 
 	parser->nodes[buffer_j] = (Node) {
@@ -165,6 +204,16 @@ Parser* parser) {
 	case -1: return -1;
 	case 0: return 0;
 	case 1: /* fall through */;
+	}
+
+	switch(if_initialization_create_node(
+		&buffer_i,
+		&buffer_j,
+		&parser->nodes[buffer_j - 1],
+		parser)) {
+	case -1: return -1;
+	case 0: /* fall through */; // declaration case
+	case 1: /* fall through */; // initialization case
 	}
 
 	*i = buffer_i;
