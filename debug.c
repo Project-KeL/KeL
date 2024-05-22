@@ -53,7 +53,7 @@ const Token* restrict token) {
 				token->L_end - token->L_start,
 				&code[token->L_start]); break;
 		case TokenSubtype_LITERAL_STRING:
-			printf("STR %s\n",
+			printf("STR %.*s\n",
 				token->L_end - token->L_start,
 				&code[token->L_start]); break;
 		case TokenSubtype_LITERAL_ASCII:
