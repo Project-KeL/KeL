@@ -65,12 +65,19 @@ const Token* restrict token) {
 static void print_info_node_identification(
 const char* code,
 const Node* node) {
-	if((node->subtype & MASK_NODE_SUBTYPE_COMMAND) == NodeSubtypeKeyQualification_HASH)
+	if((node->subtype & MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND)
+	== NodeSubtypeKeyIdentificationBitCommand_HASH)
 		printf("# ");
 	else
 		printf("@ ");
 
-	printf("DECLARATION <%.*s>",
+	if((node->subtype & MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE)
+	== NodeSubtypeKeyIdentificationBitType_DECLARATION)
+		printf("DECLARATION");
+	else
+		printf("INITIALIZATION:");
+
+	printf(" <%.*s>",
 		node->token->L_end - node->token->L_start,
 		&code[node->token->L_start]);
 

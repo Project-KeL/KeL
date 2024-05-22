@@ -7,7 +7,7 @@
 #include "parser_utils.h"
 // WARNING: The following function is also defined as a temporary macro in "parser_def.h"
 static NodeSubtypeKeyQualification token_subtype_QL_to_subtype(TokenSubtype subtype_token) {
-	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 1);
+	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 2);
 }
 
 static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
@@ -173,9 +173,9 @@ Parser* parser) {
 		return 0;
 
 	if(tokens[buffer_i].subtype == TokenSubtype_HASH)
-		subtype |= NodeSubtypeKeyQualification_HASH;
+		subtype |= NodeSubtypeKeyIdentificationBitCommand_HASH;
 	else
-		subtype |= NodeSubtypeKeyQualification_AT;
+		subtype |= NodeSubtypeKeyIdentificationBitCommand_AT;
 
 	buffer_i += 1;
 	// create the beginning of the node
@@ -188,7 +188,7 @@ Parser* parser) {
 	== false)
 		return -1;
 
-	parser->nodes[buffer_j] = (Node) {
+	parser->nodes[buffer_j] = (Node) { // `buffer_j` still equals `*j`
 		.type = NodeType_IDENTIFICATION,
 		.subtype = subtype, // command and qualifiers
 		.token = &tokens[buffer_i]};
@@ -212,8 +212,12 @@ Parser* parser) {
 		&parser->nodes[buffer_j - 1],
 		parser)) {
 	case -1: return -1;
-	case 0: /* fall through */; // declaration case
-	case 1: /* fall through */; // initialization case
+	case 0: // declaration case
+		parser->nodes[*j].subtype |= NodeSubtypeKeyIdentificationBitType_DECLARATION;
+		break;
+	case 1: // initialization case
+		parser->nodes[*j].subtype |= NodeSubtypeKeyIdentificationBitType_INITIALIZATION;
+		break;
 	}
 
 	*i = buffer_i;

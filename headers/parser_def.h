@@ -10,7 +10,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(CHILD),
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
-	NODE_TYPE(IDENTIFICATION),
+	NODE_TYPE(IDENTIFICATION), // `.subtype` holds the command, the type of identification and the qualifiers
 	NODE_TYPE(LITERAL),
 	NODE_TYPE(AFFECTATION),
 	NODE_TYPE(EXPRESSION),
@@ -23,6 +23,10 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE
 } NodeSubtype;
 
+/*
+ * SCOPE
+*/
+
 typedef enum: uint64_t {
 #define NODE_SUBTYPE_SCOPE(type) NodeSubtypeScope_ ## type
 	NODE_SUBTYPE_SCOPE(NO) = 0,
@@ -34,16 +38,35 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE_SCOPE
 } NodeSubtypeScope;
 
+/*
+ * IDENTIFICATION
+*/
+
 // These are flags (the full token subtype is useless so we extract only the qualifier part)
 // The shift let the first bit empty to fetch the command
-#define MASK_NODE_SUBTYPE_COMMAND 0b1
+#define MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND 0b1
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND(subtype) NodeSubtypeKeyIdentificationBitCommand_ ## subtype
+	NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND(HASH) = 0b0,
+	NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND(AT) = 0b1,
+#undef NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND
+} NodeSubtypeKeyIdentificationBitCommand;
+
+#define SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE 1
+#define MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE 0b10
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE(subtype) NodeSubtypeKeyIdentificationBitType_ ## subtype
+	NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE(DECLARATION) = 0b0 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE,
+	NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE(INITIALIZATION) = 0b1 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE,
+#undef NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE
+} NodeSubtypeKeyIdentificationBitType;
 
 typedef enum: uint64_t {
 #define NODE_SUBTYPE_KEY_QUALIFICATION(subtype) NodeSubtypeKeyQualification_ ## subtype
-	NODE_SUBTYPE_KEY_QUALIFICATION(HASH) = 0b0,
-	NODE_SUBTYPE_KEY_QUALIFICATION(AT) = 0b1,
 // WARNING: The following macro is also defined as a static function in "parser_identifier.h"
-#define token_subtype_QL_to_subtype(subtype_token) ((subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 1))
+#define token_subtype_QL_to_subtype(subtype_token) ((subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 2))
 	NODE_SUBTYPE_KEY_QUALIFICATION(NO) = token_subtype_QL_to_subtype(TokenSubtype_QL_NO),
 	NODE_SUBTYPE_KEY_QUALIFICATION(ENTRY) = token_subtype_QL_to_subtype(TokenSubtype_QL_ENTRY),
 	NODE_SUBTYPE_KEY_QUALIFICATION(INC) = token_subtype_QL_to_subtype(TokenSubtype_QL_INC),
