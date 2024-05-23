@@ -42,10 +42,10 @@ Keys can be used as identifiers (like constants and variables). In this configur
 
 Let's say the target of the compiler is an architecture where we can define 32-bit unsigned integers and let's say we had encapsulated this concept in the `u32` lock.
 ```
-@var1:u32 1; !-- `var` is initialized as a run-time constant 32-bit unsigned integer and is set to `1`.
+@var1:u32 1; !-- `var` is set to `1`.
 @var2 :u32 1; !-- The `@` escapes the left blank-sensitiveness.
 [mut] @var3 :u32; !-- `var3` is declared mutable.
-[mut] @var4 :u32 var2; !-- `var4` is initialized with the value of `var2` so `1`.
+[mut] @var4 :u32 var2; !-- `var4` is initialized with the value of `var2`.
 @var5 var1; !-- The type is deduced.
 ```
 
@@ -55,12 +55,17 @@ After the _identification_ of a key (declaration or initialization), it can be r
 var = 2;
 ```
 
-Keys can also be used as _parametered labels_ (calling conventions are part of the compiler 'customizability').
+Keys can also be used as _parametered labels_ (calling conventions are part of the compiler 'customizability'). A label, parametered or not has the type `scope` which is a key and a lock at the same time.
 ```
-@foo1 :u32(:u32); !-- A parametered label returning a `u32` taking a `u32`.
+!-- A parametered label returning a `u32` taking a `u32`.
+@foo1 :u32(:u32);
+#label1 :scope;
+[entry] #main :scope; !-- It is a declaration but not an initialization.
 
-!-- A label (parametered or not) has the type `scope`.
-#label :scope;
+#label2 :scope scope: !-- This is an initialization, but the type is deducible.
+    !-- code
+.
+
 @foo2 :u32(a :u32) scope: 
     .ret a + 1;
 .
