@@ -45,19 +45,6 @@ Token* restrict token) {
 		.end = start + 1};
 }
 
-static void create_token_Q(
-TokenType type,
-TokenSubtype subtype,
-long int start,
-long int end,
-Token* restrict token) {
-	*token = (Token) {
-		.type = type,
-		.subtype = subtype,
-		.start = start,
-		.end = end};
-}
-
 static void create_token_colon_word(
 TokenType type,
 long int L_start,
@@ -213,12 +200,13 @@ Token* token) {
 		return false;
 
 	*end = buffer_end;
-	create_token_Q(
-		TokenType_QL,
-		subtype,
-		L_start,
-		L_end,
-		token);
+	*token = (Token) {
+		.type = TokenType_QL,
+		.subtype = subtype,
+		.L_start = L_start,
+		.L_end = L_end,
+		.R_start = L_end,
+		.R_end = L_end};
 	return true;
 }
 
@@ -312,13 +300,15 @@ Token* token) {
 		return false;
 
 	*end = buffer_end;
-	create_token_Q(
-		TokenType_QR,
-		subtype,
-		R_start,
-		R_end,
-		token);
+	*token = (Token) {
+		.type = TokenType_QR,
+		.subtype = subtype,
+		.L_start = R_start,
+		.L_end = R_start,
+		.R_start = R_start,
+		.R_end = R_end};
 	return true;
+
 }
 
 static bool if_R_create_token(
