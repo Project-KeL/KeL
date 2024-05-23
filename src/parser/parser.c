@@ -108,23 +108,22 @@ Parser* restrict parser) {
 				parser))
 		== 1) {
 			// OK
+		}
+		// check end of scope (period) or end of instruction (semicolon)
+		if(set_error(
+			if_period_create_node(
+				i,
+				j,
+				parser))
+		== 1) {
+			i += 1;
+			j += 1;
+		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
+			i += 1;
+			continue; // no new node
 		} else {
-			// check end of scope (period) or end of instruction (semicolon)
-			if(set_error(
-				if_period_create_node(
-					i,
-					j,
-					parser))
-			== 1) {
-				i += 1;
-				j += 1;
-			} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
-				i += 1;
-				continue; // no new node
-			} else {
-				destroy_parser(parser);
-				return false;
-			}
+			destroy_parser(parser);
+			return false;
 		}
 		// error checking
 		if(error == -1) {

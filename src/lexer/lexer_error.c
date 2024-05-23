@@ -66,7 +66,7 @@ Allocator* restrict allocator) {
 			// COLON_LONELY_RIGHT_ALONE_LEFT
 			if(!isgraph(code[start - 1])
 			&& !lexer_is_command(code[start + 1])
-			&& !isalpha(code[start + 1]) // an R begins with a letter
+			&& !isalpha(code[start + 1]) // a lock begins with a letter
 			&& code[start + 1] != '('
 			&& code[start + 1] != '['
 			&& code[start + 1] != '&')

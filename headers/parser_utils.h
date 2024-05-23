@@ -4,6 +4,9 @@
 #include "lexer_def.h"
 #include "parser_def.h"
 
+bool parser_is_parenthesis(
+	const char* code,
+	const Token* token);
 bool parser_is_scope(
 	long int i,
 	const Lexer* restrict lexer);

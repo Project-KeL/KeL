@@ -22,8 +22,8 @@
  * 6 - is QLR
  * 7 - is LR
  * 8 - is PL
- * 9 - is literal (sets `previous_is_modifier`, dependencies: L and R)
- * 10 - is special
+ * 9 - is literal 
+ * 10 - is special (sets `previous_is_modifier`, dependencies: L and R)
  * 11 - is valid_name
  *
  * Qualifier cases are checked first to detect the brackets, so it is easier to detect

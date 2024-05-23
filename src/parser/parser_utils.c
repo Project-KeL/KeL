@@ -8,6 +8,12 @@
 // look at the commit 147b4b12 to get back the string to uint64_t converter
 //
 
+bool parser_is_parenthesis(
+const char* code,
+const Token* token) {
+	return lexer_is_parenthesis(code[token->L_start]);
+}
+
 bool parser_is_scope(
 long int i,
 const Lexer* restrict lexer) {

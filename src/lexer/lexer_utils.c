@@ -57,6 +57,11 @@ bool lexer_is_delimiter_close(char c) {
 	    || c == '}';
 }
 
+bool lexer_is_parenthesis(char c) {
+	return c == '('
+	    || c == ')';
+}
+
 bool lexer_is_bracket(char c) {
 	return c == '['
 	    || c == ']';
