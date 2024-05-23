@@ -29,7 +29,7 @@ A single line comment begins with `!--` and a multiline comment is surrounded by
 ```
 
 ## Keys and locks
-The central symbol in KeL is the colon. The colon is "blank-sensitive" meaning the characters surrounding the colon (including non-glyph characters) are significant. To simplify, a word right before a colon is called a _key_ and a word right after a _lock_.
+The central symbol in KeL is the colon. The colon is 'blank-sensitive' meaning the characters surrounding the colon (including non-glyph characters) are significant. To simplify, a word right before a colon is called a _key_ and a word right after a _lock_.
 
 Beside the colon symbol there are two important symbols called _commands_.
 1. `#` refers to declarations or other actions to be executed at compile-time.
@@ -43,7 +43,7 @@ Keys can be used as identifiers (like constants and variables). In this configur
 Let's say the target of the compiler is an architecture where we can define 32-bit unsigned integers and let's say we had encapsulated this concept in the `u32` lock.
 ```
 @var1:u32 1; !-- `var` is initialized as a run-time constant 32-bit unsigned integer and is set to `1`.
-@var2 :u32 1; !-- The `@` escapes the blank-sensitiveness before the colon.
+@var2 :u32 1; !-- The `@` escapes the left blank-sensitiveness.
 [mut] @var3 :u32; !-- `var3` is declared mutable.
 [mut] @var4 :u32 var2; !-- `var4` is initialized with the value of `var2` so `1`.
 @var5 var1; !-- The type is deduced.
@@ -53,4 +53,15 @@ After the _identification_ of a key (declaration or initialization), it can be r
 ```
 [mut] @var :u32 1;
 var = 2;
+```
+
+Keys can also be used as _parametered labels_ (calling conventions are part of the compiler 'customizability').
+```
+@foo1 :u32(:u32); !-- A parametered label returning a `u32` taking a `u32`.
+
+!-- A label (parametered or not) has the type `scope`.
+#label :scope;
+@foo2 :u32(a :u32) scope: 
+    .ret a + 1;
+.
 ```
