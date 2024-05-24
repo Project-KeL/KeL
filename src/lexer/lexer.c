@@ -803,7 +803,8 @@ Lexer* restrict lexer) {
 
 					end -= 1;
 					i -= 1; // `i` is incremented at the end of the loop
-				}
+				} else
+					goto TOKEN_SPECIAL;
 			} else if(code[start] == ')'
 			       && count_L_parenthesis_nest == 0) {
 				tokens[i] = (Token) {
@@ -814,6 +815,7 @@ Lexer* restrict lexer) {
 					.R_start = start,
 					.R_end = start + 1};
 			} else {
+TOKEN_SPECIAL:
 				if(code[start] == '(')
 					count_L_parenthesis_nest += 1;
 				else if(code[start] == ')')
