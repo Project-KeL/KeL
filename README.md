@@ -55,9 +55,9 @@ After the _identification_ of a key (declaration or initialization), it can be r
 var = 2;
 ```
 
-Keys can also be used as _parametered labels_ (calling conventions are part of the compiler 'customizability'). A label, parametered or not has the type `scope` which is a key and a lock at the same time.
+Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label, parametered or not has the type `scope` which is a key and a lock at the same time.
 ```
-!-- A parametered label returning a `u32` taking a `u32`.
+!-- A parameterized label returning a `u32` taking a `u32`.
 @foo1 :u32(:u32);
 #label1 :scope;
 [entry] #main :scope; !-- It is a declaration but not an initialization.

@@ -20,20 +20,6 @@ static int set_error(long int value) {
 	return value;
 }
 
-static void create_child_key_type(
-NodeSubtypeChildKeyType subtype,
-long int array_bound,
-long int i,
-const Token* restrict token,
-Node* node) {
-	*node = (Node) {
-		.type = NodeType_CHILD,
-		.subtype = subtype,
-		.value = array_bound,
-		.child1 = NULL,
-		.child2 = NULL};
-}
-
 static bool if_scope_create_node(
 long int i,
 long int j,
@@ -69,7 +55,7 @@ Parser* parser) {
 
 bool create_parser(
 const Lexer* lexer,
-Allocator* restrict allocator,
+Allocator* allocator,
 Parser* restrict parser) {
 	assert(lexer != NULL);
 	assert(lexer->tokens != NULL);
@@ -105,6 +91,7 @@ Parser* restrict parser) {
 			if_identifier_create_nodes(
 				&i,
 				&j,
+				allocator,
 				parser))
 		== 1) {
 			// OK

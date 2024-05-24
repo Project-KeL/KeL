@@ -308,7 +308,6 @@ Token* token) {
 		.R_start = R_start,
 		.R_end = R_end};
 	return true;
-
 }
 
 static bool if_R_create_token(
@@ -584,6 +583,7 @@ Lexer* restrict lexer) {
 	const char* code = source->content;
 	bool previous_is_command = false;
 	bool previous_is_modifier = false;
+	long int count_L_parenthesis_nest = 0; // to get a good match with R parenthesis
 	long int start = 0;
 	long int end = 0;
 	long int i = 0;
@@ -753,6 +753,17 @@ Lexer* restrict lexer) {
 				end = start;
 				previous_is_modifier = true;
 				i -= 1; // `i` is incremented at the end of the loop
+			} else if(code[start] == ':'
+			       && code[buffer_end] == '(') {
+				// it is the only special symbol in this case
+				tokens[i] = (Token) {
+					.type = TokenType_R,
+					.subtype = TokenSubtype_LPARENTHESIS,
+					.L_start = start,
+					.L_end = start,
+					.R_start = start + 1,
+					.R_end = start + 2};
+				end += 1;
 			// left case
 			} else if(lexer_is_operator_leveling(code[start])
 			       || code[start] == '[') {
@@ -766,7 +777,7 @@ Lexer* restrict lexer) {
 				}
 
 				if(code[buffer_end] == ':'
-				&& lexer_is_operator_modifier(code[buffer_end - 1])) {
+				&& lexer_is_operator_modifier(code[start])) {
 					do {
 						tokens[i] = (Token) {
 							.type = TokenType_L,
@@ -793,7 +804,21 @@ Lexer* restrict lexer) {
 					end -= 1;
 					i -= 1; // `i` is incremented at the end of the loop
 				}
+			} else if(code[start] == ')'
+			       && count_L_parenthesis_nest == 0) {
+				tokens[i] = (Token) {
+					.type = TokenType_R,
+					.subtype = TokenSubtype_RPARENTHESIS,
+					.L_start = start,
+					.L_end = start,
+					.R_start = start,
+					.R_end = start + 1};
 			} else {
+				if(code[start] == '(')
+					count_L_parenthesis_nest += 1;
+				else if(code[start] == ')')
+					count_L_parenthesis_nest -= 1;
+
 				create_token_special(
 					code,
 					start,

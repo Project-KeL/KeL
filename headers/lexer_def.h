@@ -21,8 +21,9 @@ typedef enum: uint32_t {
 #undef TOKEN_TYPE
 } TokenType;
 
-#define SHIFT_TOKEN_SUBTYPE_QL 24
-#define SHIFT_TOKEN_SUBTYPE_QR 28
+// in the future, qualifiers will not figure in the subtype (custom qualifiers?)
+#define SHIFT_TOKEN_SUBTYPE_QL 8
+#define SHIFT_TOKEN_SUBTYPE_QR 16
 
 #define MASK_TOKEN_SUBTYPE_QL 0x0F000000
 #define MASK_TOKEN_SUBTYPE_QR 0xF0000000
@@ -65,14 +66,14 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(RCBRACE),
 	TOKEN_SUBTYPE(PIPE),
 	TOKEN_SUBTYPE(TILDE),
-	// L qualifier (last highest byte high 4 bits)
+	// L qualifier (8 bits)
 #define QL(n) (1 << (SHIFT_TOKEN_SUBTYPE_QL + n))
 	TOKEN_SUBTYPE(QL_NO) = QL(0),
 	TOKEN_SUBTYPE(QL_ENTRY) = QL(1),
 	TOKEN_SUBTYPE(QL_INC) = QL(2),
 	TOKEN_SUBTYPE(QL_MUT) = QL(3),
 #undef QL
-	// lock qualifier (last highest byte low 4 bits)
+	// lock qualifier (8 bit)
 #define QR(n) (1 << (SHIFT_TOKEN_SUBTYPE_QR + n))
 	TOKEN_SUBTYPE(QR_NO) = QR(0),
 	TOKEN_SUBTYPE(QR_DEFAULT) = QR(1),

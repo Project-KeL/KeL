@@ -7,121 +7,44 @@
 #include <stdio.h>
 // WARNING: The following function is also defined as a temporary macro in "parser_def.h"
 static NodeSubtypeKeyQualification token_subtype_QL_to_subtype(TokenSubtype subtype_token) {
-	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 2);
+	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 3);
 }
 
 static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
 	return subtype_token;
 }
 
-static NodeSubtypeChildKeyType operator_modifier_to_subtype_left(TokenSubtype subtype_token) {
+static NodeSubtypeChildKeyTypeModifier operator_modifier_to_subtype_left(TokenSubtype subtype_token) {
 	switch(subtype_token) {
-	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyType_AMPERSAND_LEFT;
+	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyTypeModifier_AMPERSAND_LEFT;
 	// brackets are always at the left side of the lock
-	case TokenSubtype_LBRACKET: return NodeSubtypeChildKeyType_ARRAY;
-	case TokenSubtype_RBRACKET: return NodeSubtypeChildKeyType_ARRAY;
-	case TokenSubtype_MINUS: return NodeSubtypeChildKeyType_MINUS_LEFT;
-	case TokenSubtype_PIPE: return NodeSubtypeChildKeyType_PIPE_LEFT;
-	case TokenSubtype_PLUS: return NodeSubtypeChildKeyType_PLUS_LEFT;
+	case TokenSubtype_LBRACKET: return NodeSubtypeChildKeyTypeModifier_ARRAY;
+	case TokenSubtype_RBRACKET: return NodeSubtypeChildKeyTypeModifier_ARRAY;
+	case TokenSubtype_MINUS: return NodeSubtypeChildKeyTypeModifier_MINUS_LEFT;
+	case TokenSubtype_PIPE: return NodeSubtypeChildKeyTypeModifier_PIPE_LEFT;
+	case TokenSubtype_PLUS: return NodeSubtypeChildKeyTypeModifier_PLUS_LEFT;
 	default: assert(false);
 	}
 }
 
-static NodeSubtypeChildKeyType operator_modifier_to_subtype_right(TokenSubtype subtype_token) {
+static NodeSubtypeChildKeyTypeModifier operator_modifier_to_subtype_right(TokenSubtype subtype_token) {
 	switch(subtype_token) {
-	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyType_AMPERSAND_RIGHT;
-	case TokenSubtype_MINUS: return NodeSubtypeChildKeyType_MINUS_RIGHT;
-	case TokenSubtype_PIPE: return NodeSubtypeChildKeyType_PIPE_RIGHT;
-	case TokenSubtype_PLUS: return NodeSubtypeChildKeyType_PLUS_RIGHT;
+	case TokenSubtype_AMPERSAND: return NodeSubtypeChildKeyTypeModifier_AMPERSAND_RIGHT;
+	case TokenSubtype_MINUS: return NodeSubtypeChildKeyTypeModifier_MINUS_RIGHT;
+	case TokenSubtype_PIPE: return NodeSubtypeChildKeyTypeModifier_PIPE_RIGHT;
+	case TokenSubtype_PLUS: return NodeSubtypeChildKeyTypeModifier_PLUS_RIGHT;
 	default: assert(false);
 	}
-}
-
-static int type_allocate(
-long int i,
-long int j,
-Parser* parser) {
-	const char* code = parser->lexer->source->content;
-	const Token* tokens = parser->lexer->tokens;
-	long int count_node = 0; // parenthesis do not create nodes
-	long int count_scope_parametered_nest = 0;
-
-	do {
-SCOPE_PARAMETERED:
-		while(tokens[i].type == TokenType_L
-		   && parser_is_operator_modifier(&tokens[i])) {
-			i += 1;
-			count_node += 1;
-		}
-
-		while(tokens[i].type == TokenType_R
-		   && parser_is_operator_modifier(&tokens[i])) {
-			i += 1;
-			count_node += 1;
-		}
-
-		if(!parser_is_lock(&tokens[i]))
-			return 0;
-
-		i += 1;
-		count_node += 1;
-
-		if(tokens[i].subtype == TokenSubtype_LPARENTHESIS) {
-LPARENTHESIS:
-			i += 1;
-			count_scope_parametered_nest += 1;
-			goto READ_PARAMETER;
-		} else if(tokens[i].subtype == TokenSubtype_COMMA) {
-COMMA:
-			i += 1;
-READ_PARAMETER:
-			if(!parser_is_lock(&tokens[i]))
-				return 0;
-
-			i += 1;
-
-			if(tokens[i].subtype == TokenSubtype_LPARENTHESIS)
-				goto LPARENTHESIS;
-			else if(tokens[i].subtype == TokenSubtype_RPARENTHESIS)
-				goto RPARENTHESIS;
-
-			i += 1;
-			count_node += 1;
-			goto SCOPE_PARAMETERED;
-		} else if(tokens[i].subtype == TokenSubtype_RPARENTHESIS) {
-RPARENTHESIS:
-			do {
-				i += 1;
-				count_scope_parametered_nest -= 1;
-			} while(tokens[i].subtype == TokenSubtype_RPARENTHESIS);
-
-			if(tokens[i].subtype == TokenSubtype_COMMA)
-				goto COMMA;
-		} else {
-			while(tokens[i].type == TokenType_R
-			   && parser_is_operator_leveling(&tokens[i])) {
-				i += 1;
-				count_node += 1;
-			}	
-		}
-	} while(count_scope_parametered_nest != 0);
-
-	if(parser_allocate_chunk(
-		j + count_node,
-		parser)
-	== false)
-		return -1;
-
-	return 1;
 }
 
 static void type_bind_child_token(
+NodeTypeChildKeyType type,
 NodeSubtype subtype,
 const Token* token,
 Node** parent,
 Node* node) {
 	*node = (Node) {
-		.type = NodeType_CHILD,
+		.type = type,
 		.subtype = subtype,
 		.token = token,
 		.child1 = NULL,
@@ -130,102 +53,253 @@ Node* node) {
 	*parent = node;
 }
 
-static int if_type_create_nodes(
+static bool parse_type_lock_left(
 long int* i,
 long int* j,
 Node* parent,
 Parser* parser) {
+	long int buffer_i = *i;
+	long int buffer_j = *j;
+	const Token* tokens = parser->lexer->tokens;
+	Node* nodes = parser->nodes;
+	// L side before lock
+	while(tokens[buffer_i].type == TokenType_L
+	   && parser_is_operator_modifier(&tokens[buffer_i])) {
+			// do not support arrays yet
+			// arrays may contain expression so this case will need to be processed
+			// `.child2` will hold this expression
+			type_bind_child_token(
+				NodeTypeChildKeyType_MODIFIER,
+				operator_modifier_to_subtype_left(tokens[buffer_i].subtype),
+				&tokens[buffer_i],
+				&parent,
+				&nodes[buffer_j]);
+			// just ignore right brackets (for the moment)
+			if(parent->subtype == NodeSubtypeChildKeyTypeModifier_ARRAY)
+				buffer_i += 1;
+
+			buffer_i += 1;
+			buffer_j += 1;
+	}
+	// R side before lock
+	while(tokens[buffer_i].type == TokenType_R
+	   && parser_is_operator_modifier(&tokens[buffer_i])) {
+		type_bind_child_token(
+			NodeTypeChildKeyType_MODIFIER,
+			operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
+			&tokens[buffer_i],
+			&parent,
+			&nodes[buffer_j]);
+
+		if(parent->subtype == NodeSubtypeChildKeyTypeModifier_ARRAY)
+			buffer_i += 1;
+
+		buffer_i += 1;
+		buffer_j += 1;
+	}
+
+	if(tokens[buffer_i].type != TokenType_R)
+		return false;
+
+	*i = buffer_i;
+	*j = buffer_j;
+	return true;
+}
+
+static bool parse_type_lock_right(
+long int* i,
+long int* j,
+Node* parent,
+Parser* parser) {
+	long int buffer_i = *i;
+	long int buffer_j = *j;
+	const Token* tokens = parser->lexer->tokens;
+	Node* nodes = parser->nodes;
+
+	while(tokens[buffer_i].type == TokenType_R
+	   && parser_is_operator_leveling(&tokens[buffer_i])) {
+		type_bind_child_token(
+			NodeTypeChildKeyType_MODIFIER,
+			operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
+			&tokens[buffer_i],
+			&parent,
+			&nodes[buffer_j]);
+		buffer_i += 1;
+		buffer_j += 1;
+	}
+
+	if(parser_is_operator_modifier(&tokens[buffer_i]))
+		return false;
+
+	*i = buffer_i;
+	*j = buffer_j;
+	return true;
+}
+
+static int if_type_create_nodes(
+long int* i,
+long int* j,
+Node* parent,
+Allocator* allocator,
+Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
-	// allocation
-	switch(type_allocate(
-		buffer_i,
-		buffer_j,
-		parser)) {
-	case -1: return -1;
-	case 0: return 0;
-	case 1: /*fall through*/;
-	}
-
-	long int count_scope_parametered_nest = 0;
-
-	do {
-SCOPE_PARAMETERED:
-		// left side
-		while(!parser_is_lock(&tokens[buffer_i])) {
-				// do not support arrays yet
-				// arrays may contain expression so this case will need to be processed
-				// `.child2` will hold this expression
-				type_bind_child_token(
-					operator_modifier_to_subtype_left(tokens[buffer_i].subtype),
-					&tokens[buffer_i],
-					&parent,
-					&parser->nodes[buffer_j]);
-				// just ignore right brackets (for the moment)
-				if(parent->subtype == NodeSubtypeChildKeyType_ARRAY)
-					buffer_i += 1;
-
-				buffer_i += 1;
-				buffer_j += 1;
-		}
-		// lock
-		type_bind_child_token(
-			NodeSubtype_NO,
-			&tokens[buffer_i],
-			&parent,
-			&parser->nodes[buffer_j]);
+	// rough allocation
+	while(tokens[buffer_i].subtype != TokenSubtype_SEMICOLON
+	   && buffer_i < parser->lexer->count) {
 		buffer_i += 1;
 		buffer_j += 1;
-		// right side
-		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
-LPARENTHESIS:
+	}
+
+	if(parser_allocate_chunk(
+		buffer_j,
+		parser)
+	== false)
+		return -1;
+
+	buffer_i = *i;
+	buffer_j = *j;
+	// are there parameters in this scoped type: allocator->address[count_parenthesis_nest]
+	long int count_parenthesis_nest = 0;
+	// nodes = parser->nodes[buffer_j] may be a bad idea because of the labels
+	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
+		goto ONCE;
+
+	do {
+		// lock alone
+TYPE:
+		long int j_lock;
+
+		if(parse_type_lock_left(
+			&buffer_i,
+			&buffer_j,
+			parent,
+			parser)
+		== false)
+			return false;
+
+		if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS) {
+			type_bind_child_token(
+				NodeTypeChildKeyType_LOCK,
+				NodeSubtypeChild_NO,
+				&tokens[buffer_i],
+				&parent,
+				&parser->nodes[buffer_j]);
+			j_lock = buffer_j;
 			buffer_i += 1;
-			count_scope_parametered_nest += 1;
-			goto READ_PARAMETER;
-		} else if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
-COMMA:
-			buffer_i += 1;
-READ_PARAMETER:
-			if(!parser_is_lock(&tokens[buffer_i]))
-				goto SCOPE_PARAMETERED;
+			buffer_j += 1;
+			allocator->address[count_parenthesis_nest] = 1;
+
+			if(parse_type_lock_right(
+				&buffer_i,
+				&buffer_j,
+				parent,
+				parser)
+			== false)
+				return 0;
+
+			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
+			&& count_parenthesis_nest == 0)
+				break;
+		}
+		// lock not alone (good luck)	
+		while(parser_is_R_left_parenthesis(&tokens[buffer_i + 1])) {
+R_LPARENTHESIS:
+			if(!parser_is_key(&tokens[buffer_i]))
+				return false;
 
 			type_bind_child_token(
-				NodeSubtype_NO,
+				NodeTypeChildKeyType_LOCK,
+				NodeSubtypeChildKeyTypeScoped_PARAMETER,
 				&tokens[buffer_i],
 				&parent,
 				&parser->nodes[buffer_j]);
 			buffer_i += 1;
 			buffer_j += 1;
+ONCE:
+			type_bind_child_token(
+				NodeTypeChildKeyType_LOCK,
+				NodeSubtypeChildKeyTypeScoped_RETURN_NONE,
+				NULL,
+				&parent,
+				&parser->nodes[buffer_j]);
+			j_lock = buffer_j;
+			buffer_i += 1;
+			buffer_j += 1;
+			allocator->address[count_parenthesis_nest] = 1;
+			count_parenthesis_nest += 1;
+			allocator->address[count_parenthesis_nest] = 0;
+		}
+		// :(:()) is not valid
+		if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
+			return 0;
 
-			if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS)
-				goto LPARENTHESIS;
-			if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
+		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
+			parser->nodes[j_lock].subtype = NodeSubtypeChildKeyTypeScoped_RETURN_LOCK;
+LPARENTHESIS:
+			buffer_i += 1;
+			count_parenthesis_nest += 1;
+			allocator->address[count_parenthesis_nest] = 0;
+			goto READ_PARAMETER;
+		} else if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
+COMMA:
+			buffer_i += 1;
+READ_PARAMETER:
+			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS
+			&& tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
 				goto RPARENTHESIS;
 
-			buffer_i += 1;
-			goto SCOPE_PARAMETERED;
-		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
-RPARENTHESIS:
-			do {
-				buffer_i += 1;
-				count_scope_parametered_nest -= 1;
-			} while(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS);
+			allocator->address[count_parenthesis_nest] = 1;
 
-			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
-				goto COMMA;
-		} else {
-			while(tokens[buffer_i].type == TokenType_R) {
+			if(parser_is_key(&tokens[buffer_i])) {
 				type_bind_child_token(
-					operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
+					NodeTypeChildKeyType_LOCK,
+					NodeSubtypeChildKeyTypeScoped_PARAMETER,
 					&tokens[buffer_i],
 					&parent,
 					&parser->nodes[buffer_j]);
 				buffer_i += 1;
 				buffer_j += 1;
+				goto TYPE;
+			} else {
+				// a lock must succeed a key
+				return 0;
 			}
+		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
+RPARENTHESIS:
+			if(allocator->address[count_parenthesis_nest] == 0) {
+				type_bind_child_token(
+					NodeTypeChildKeyType_LOCK,
+					NodeSubtypeChildKeyTypeScoped_PARAMETER_NONE,
+					NULL,
+					&parent,
+					&parser->nodes[buffer_j]);
+				buffer_j += 1;
+			}
+
+			do {
+				buffer_i += 1;
+				count_parenthesis_nest -= 1;
+			} while(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS);
+
+			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
+				goto COMMA;
+		} else if(parser_is_key(&tokens[buffer_i])) {
+			type_bind_child_token(
+				NodeTypeChildKeyType_LOCK,
+				NodeSubtypeChildKeyTypeScoped_PARAMETER,
+				&tokens[buffer_i],
+				&parent,
+				&parser->nodes[buffer_j]);
+			buffer_i += 1;
+			buffer_j += 1;
+			printf("HERE: %d\n", buffer_i);
+			goto TYPE;
+		} else {
+			return 0;
 		}
-	} while(count_scope_parametered_nest != 0);
+	} while(count_parenthesis_nest != 0);
 
 	*i = buffer_i;
 	*j = buffer_j;
@@ -264,6 +338,7 @@ Parser* parser) {
 int if_identifier_create_nodes(
 long int* i,
 long int* j,
+Allocator* allocator,
 Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
@@ -296,7 +371,7 @@ Parser* parser) {
 
 	parser->nodes[buffer_j] = (Node) { // `buffer_j` still equals `*j`
 		.type = NodeType_IDENTIFICATION,
-		.subtype = subtype, // command and qualifiers
+		.subtype = subtype, // command, qualifiers and scoped
 		.token = &tokens[buffer_i]};
 	buffer_i += 1;
 	buffer_j += 1;
@@ -305,6 +380,7 @@ Parser* parser) {
 		&buffer_i,
 		&buffer_j,
 		&parser->nodes[buffer_j - 1],
+		allocator,
 		parser)
 	) {
 	case -1: return -1;

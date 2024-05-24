@@ -8,7 +8,7 @@
 
 bool create_parser(
 	const Lexer* lexer,
-	Allocator* restrict allocator,
+	Allocator* allocator,
 	Parser* restrict parser);
 void destroy_parser(Parser* restrict parser);
 

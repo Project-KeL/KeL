@@ -57,21 +57,21 @@ const Token* restrict token) {
 		}
 
 		printf("\t<%.*s>\n",
-			token->L_end - token->L_start,
-			&code[token->L_start]);
+			token->end - token->start,
+			&code[token->start]);
 	}
 }
 
-static void print_info_node_identification(
+static void print_info_node_key_identification(
 const char* code,
 const Node* node) {
-	if((node->subtype & MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_COMMAND)
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_COMMAND)
 	== NodeSubtypeKeyIdentificationBitCommand_HASH)
 		printf("# ");
 	else
 		printf("@ ");
 
-	if((node->subtype & MASK_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE)
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_TYPE)
 	== NodeSubtypeKeyIdentificationBitType_DECLARATION)
 		printf("DECLARATION");
 	else
@@ -91,6 +91,37 @@ const Node* node) {
 		printf(" MUT");
 
 	printf("\n");
+}
+
+static void print_info_node_key_type(
+const char* code,
+const Node* node) {
+	const Token* token = node->token;
+
+	if(node->type == NodeTypeChildKeyType_LOCK) {
+		switch(node->subtype) {
+			case NodeSubtypeChild_NO:
+				printf("LOCK <%.*s>\n",
+					token->R_end - token->R_start,
+					&code[token->R_start]); break;
+			case NodeSubtypeChildKeyTypeScoped_RETURN_NONE:
+				printf("RETURN NONE\n"); break;
+			case NodeSubtypeChildKeyTypeScoped_RETURN_LOCK:
+				printf("RETURN LOCK <%.*s>\n",
+					token->R_end - token->R_start,
+					&code[token->R_start]); break;
+			case NodeSubtypeChildKeyTypeScoped_PARAMETER_NONE:
+				printf("PARAMETER NONE\n"); break;
+			case NodeSubtypeChildKeyTypeScoped_PARAMETER:
+				printf("PARAMETER <%.*s>\n",
+					token->L_end - token->L_start,
+					&code[token->L_start]); break;
+			case NodeSubtypeChildKeyTypeScoped_PARAMETER_LOCK:
+				printf("PARAMETER LOCK <%.*s>\n",
+					token->R_end - token->R_start,
+					&code[token->R_start]); break;
+		}
+	}
 }
 
 void debug_print_tokens(const Lexer* lexer) {
@@ -125,15 +156,15 @@ void debug_print_nodes(const Parser* parser) {
 		} else if(node->type == NodeType_IDENTIFICATION) {
 			const Node* child = node->child;
 			printf("\t");
-			print_info_node_identification(
+			print_info_node_key_identification(
 				code,
 				node);
 
 			do {
 				printf("\t\t");
-				print_info_token(
+				print_info_node_key_type(
 					code,
-					child->token);
+					child);
 				child = child->child1;
 				j += 1;
 			} while(child != NULL);
