@@ -241,6 +241,10 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
 			parser->nodes[j_lock].subtype = NodeSubtypeChildKeyTypeScoped_RETURN_LOCK;
 LPARENTHESIS:
+			// case like `:(())`
+			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
+				return 0;
+
 			buffer_i += 1;
 			count_parenthesis_nest += 1;
 			allocator->address[count_parenthesis_nest] = 0;
