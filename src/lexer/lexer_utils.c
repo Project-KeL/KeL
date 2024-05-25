@@ -160,7 +160,8 @@ long int end) {
 		const char c = string[i];
 		is_valid = is_valid
 			&& (isalpha(c)
-			 || isdigit(c));
+			 || isdigit(c)
+		     || c == '_');
 	}
 
 	return is_valid;
