@@ -234,7 +234,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 			count_parenthesis_nest += 1;
 			allocator->address[count_parenthesis_nest] = 0;
 		}
-		// :(fn :()) is valid but :(:()) is not
+		// `:(lab :())` is valid but `:(:())` is not
 		if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
 			return 0;
 
@@ -301,6 +301,22 @@ RPARENTHESIS:
 
 			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
 				goto COMMA;
+		} else if(parser_is_key(&tokens[buffer_i])) {
+				// case `:(a :b)`
+				if(count_parenthesis_nest > 1) {
+					buffer_i += 1;
+					goto TYPE;
+				}
+
+				type_bind_child_token(
+					NodeTypeChildKeyType_LOCK,
+					NodeSubtypeChildKeyTypeScoped_PARAMETER,
+					&tokens[buffer_i],
+					&parent,
+					&parser->nodes[buffer_j]);
+				buffer_i += 1;
+				buffer_j += 1;
+				goto TYPE;
 		} else {
 			return 0;
 		}
