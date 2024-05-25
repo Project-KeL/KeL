@@ -164,7 +164,7 @@ Parser* parser) {
 	long int count_parenthesis_nest = 0;
 	// nodes = parser->nodes[buffer_j] may be a bad idea because of the labels
 	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
-		goto ONCE;
+		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 	do {
 		// lock alone
@@ -203,9 +203,12 @@ TYPE:
 			&& count_parenthesis_nest == 0)
 				break;
 		}
-		// lock not alone (good luck)	
-		while(parser_is_R_left_parenthesis(&tokens[buffer_i + 1])) {
+		// lock not alone (good luck)
+		while(parser_is_R_left_parenthesis(&tokens[buffer_i])) {
 R_LPARENTHESIS:
+			if(count_parenthesis_nest > 1)
+				goto R_LPARENTHESIS_SKIP_PARAMETER;
+
 			if(!parser_is_key(&tokens[buffer_i]))
 				return false;
 
@@ -217,7 +220,7 @@ R_LPARENTHESIS:
 				&parser->nodes[buffer_j]);
 			buffer_i += 1;
 			buffer_j += 1;
-ONCE:
+R_LPARENTHESIS_SKIP_PARAMETER:
 			type_bind_child_token(
 				NodeTypeChildKeyType_LOCK,
 				NodeSubtypeChildKeyTypeScoped_RETURN_NONE,
@@ -231,7 +234,7 @@ ONCE:
 			count_parenthesis_nest += 1;
 			allocator->address[count_parenthesis_nest] = 0;
 		}
-		// :(:()) is not valid
+		// :(fn :()) is valid but :(:()) is not
 		if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
 			return 0;
 
@@ -241,6 +244,10 @@ LPARENTHESIS:
 			buffer_i += 1;
 			count_parenthesis_nest += 1;
 			allocator->address[count_parenthesis_nest] = 0;
+
+			if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
+				goto R_LPARENTHESIS;
+
 			goto READ_PARAMETER;
 		} else if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
 COMMA:
@@ -253,6 +260,12 @@ READ_PARAMETER:
 			allocator->address[count_parenthesis_nest] = 1;
 
 			if(parser_is_key(&tokens[buffer_i])) {
+				// ignore parameter if nested
+				if(count_parenthesis_nest > 1) {
+					buffer_i += 1;
+					goto TYPE;
+				}
+
 				type_bind_child_token(
 					NodeTypeChildKeyType_LOCK,
 					NodeSubtypeChildKeyTypeScoped_PARAMETER,
@@ -262,8 +275,11 @@ READ_PARAMETER:
 				buffer_i += 1;
 				buffer_j += 1;
 				goto TYPE;
+			} else if(count_parenthesis_nest > 1
+			       && parser_is_lock(&tokens[buffer_i])) {
+				goto TYPE;
 			} else {
-				// a lock must succeed a key
+				// a lock must succeed a key if there is more than one nesting level
 				return 0;
 			}
 		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
@@ -285,17 +301,6 @@ RPARENTHESIS:
 
 			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
 				goto COMMA;
-		} else if(parser_is_key(&tokens[buffer_i])) {
-			type_bind_child_token(
-				NodeTypeChildKeyType_LOCK,
-				NodeSubtypeChildKeyTypeScoped_PARAMETER,
-				&tokens[buffer_i],
-				&parent,
-				&parser->nodes[buffer_j]);
-			buffer_i += 1;
-			buffer_j += 1;
-			printf("HERE: %d\n", buffer_i);
-			goto TYPE;
 		} else {
 			return 0;
 		}
