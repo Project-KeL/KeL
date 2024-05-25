@@ -206,7 +206,10 @@ TYPE:
 		// lock not alone (good luck)
 		while(parser_is_R_left_parenthesis(&tokens[buffer_i])) {
 R_LPARENTHESIS:
-			if(count_parenthesis_nest > 1)
+			if(count_parenthesis_nest > 1
+			// case `:(a :())`
+			|| (count_parenthesis_nest == 1
+			 && !parser_is_parenthesis(&tokens[buffer_i - 1])))
 				goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 			if(!parser_is_key(&tokens[buffer_i]))
@@ -234,9 +237,6 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 			count_parenthesis_nest += 1;
 			allocator->address[count_parenthesis_nest] = 0;
 		}
-		// `:(lab :())` is valid but `:(:())` is not
-		if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
-			return 0;
 
 		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
 			parser->nodes[j_lock].subtype = NodeSubtypeChildKeyTypeScoped_RETURN_LOCK;
@@ -317,6 +317,8 @@ RPARENTHESIS:
 				buffer_i += 1;
 				buffer_j += 1;
 				goto TYPE;
+		} else if(parser_is_lock(&tokens[buffer_i])) {
+			goto TYPE;
 		} else {
 			return 0;
 		}
