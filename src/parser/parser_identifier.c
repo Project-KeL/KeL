@@ -143,6 +143,7 @@ Node* parent,
 Allocator* allocator,
 Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
+	Node* nodes = parser->nodes;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
 	// rough allocation
@@ -160,9 +161,9 @@ Parser* parser) {
 
 	buffer_i = *i;
 	buffer_j = *j;
-	// are there parameters in this scoped type: allocator->address[count_parenthesis_nest]
+	// if the current scope at least one parameter `allocator->address[count_parenthesis_nest]` is set to `1`
 	long int count_parenthesis_nest = 0;
-	// nodes = parser->nodes[buffer_j] may be a bad idea because of the labels
+
 	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
@@ -185,7 +186,7 @@ TYPE:
 				NodeSubtypeChild_NO,
 				&tokens[buffer_i],
 				&parent,
-				&parser->nodes[buffer_j]);
+				&nodes[buffer_j]);
 			j_lock = buffer_j;
 			buffer_i += 1;
 			buffer_j += 1;
@@ -207,7 +208,7 @@ TYPE:
 		while(parser_is_R_left_parenthesis(&tokens[buffer_i])) {
 R_LPARENTHESIS:
 			if(count_parenthesis_nest > 1
-			// case `:(a :())`
+			// handle R left parenthesis at the first nesting level like in `:(a :())`
 			|| (count_parenthesis_nest == 1
 			 && !parser_is_parenthesis(&tokens[buffer_i - 1])))
 				goto R_LPARENTHESIS_SKIP_PARAMETER;
@@ -220,7 +221,7 @@ R_LPARENTHESIS:
 				NodeSubtypeChildKeyTypeScoped_PARAMETER,
 				&tokens[buffer_i],
 				&parent,
-				&parser->nodes[buffer_j]);
+				&nodes[buffer_j]);
 			buffer_i += 1;
 			buffer_j += 1;
 R_LPARENTHESIS_SKIP_PARAMETER:
@@ -229,7 +230,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 				NodeSubtypeChildKeyTypeScoped_RETURN_NONE,
 				NULL,
 				&parent,
-				&parser->nodes[buffer_j]);
+				&nodes[buffer_j]);
 			j_lock = buffer_j;
 			buffer_i += 1;
 			buffer_j += 1;
@@ -239,9 +240,9 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 		}
 
 		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
-			parser->nodes[j_lock].subtype = NodeSubtypeChildKeyTypeScoped_RETURN_LOCK;
+			nodes[j_lock].subtype = NodeSubtypeChildKeyTypeScoped_RETURN_LOCK;
 LPARENTHESIS:
-			// case like `:(())`
+			// handle nested empty parenthesis like in `:(())`
 			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
 				return 0;
 
@@ -264,7 +265,7 @@ READ_PARAMETER:
 			allocator->address[count_parenthesis_nest] = 1;
 
 			if(parser_is_key(&tokens[buffer_i])) {
-				// ignore parameter if nested
+				// ignore parameter after the first nesting level
 				if(count_parenthesis_nest > 1) {
 					buffer_i += 1;
 					goto TYPE;
@@ -275,7 +276,7 @@ READ_PARAMETER:
 					NodeSubtypeChildKeyTypeScoped_PARAMETER,
 					&tokens[buffer_i],
 					&parent,
-					&parser->nodes[buffer_j]);
+					&nodes[buffer_j]);
 				buffer_i += 1;
 				buffer_j += 1;
 				goto TYPE;
@@ -283,7 +284,7 @@ READ_PARAMETER:
 			       && parser_is_lock(&tokens[buffer_i])) {
 				goto TYPE;
 			} else {
-				// a lock must succeed a key if there is more than one nesting level
+				// a lock must succeed a key at the first nesting level
 				return 0;
 			}
 		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
@@ -294,7 +295,7 @@ RPARENTHESIS:
 					NodeSubtypeChildKeyTypeScoped_PARAMETER_NONE,
 					NULL,
 					&parent,
-					&parser->nodes[buffer_j]);
+					&nodes[buffer_j]);
 				buffer_j += 1;
 			}
 
@@ -306,18 +307,18 @@ RPARENTHESIS:
 			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
 				goto COMMA;
 		} else if(parser_is_key(&tokens[buffer_i])) {
-				// case `:(a :b)`
+				// keep ignoring parameter after the first nesting level
 				if(count_parenthesis_nest > 1) {
 					buffer_i += 1;
 					goto TYPE;
 				}
-
+				// a parameter after an R left parenthesis like in `:(a :b)`
 				type_bind_child_token(
 					NodeTypeChildKeyType_LOCK,
 					NodeSubtypeChildKeyTypeScoped_PARAMETER,
 					&tokens[buffer_i],
 					&parent,
-					&parser->nodes[buffer_j]);
+					&nodes[buffer_j]);
 				buffer_i += 1;
 				buffer_j += 1;
 				goto TYPE;

@@ -7,7 +7,7 @@ SRCS = $(call wildcard_recursive, ., *.c)
 VPATH = $(dir $(SRCS))
 OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(notdir $(SRCS)))
 
-kel : $(OBJS)
+kel: $(OBJS)
 	gcc $(LDFLAGS) -o $@ $^
 
 $(OBJDIR)/%.o: %.c

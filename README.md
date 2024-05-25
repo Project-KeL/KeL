@@ -71,4 +71,14 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 #lab2 :scope scope: !-- `#lab2 scope:` would be right
     !-- code
 .
+
+!-- `b` takes no parameter and returns a `u32`.
+!-- `c` takes a parameterized label taking a `u32` returning nothing and returns a `u32`.
+@lab3 :(a :u32, b :u32(), c :u32(:(:u32)));
+!-- `c` can be rewrote `c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
 ```
+
+- [x] Parse types (stable?).
+- [x] Parse initialization with a literal.
+- [ ] Parse parameterized labels initialization.
+- [ ] Parse arrays and pointers.
