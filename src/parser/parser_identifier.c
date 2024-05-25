@@ -161,7 +161,7 @@ Parser* parser) {
 
 	buffer_i = *i;
 	buffer_j = *j;
-	// if the current scope at least one parameter `allocator->address[count_parenthesis_nest]` is set to `1`
+	// if the current scope has at least one parameter `allocator->address[count_parenthesis_nest]` is set to `1`
 	long int count_parenthesis_nest = 0;
 
 	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))

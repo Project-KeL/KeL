@@ -228,7 +228,7 @@ long int* end) {
 		|| code[*start + 2] != '-')
 			return false;
 
-		*end += 2;
+		*end += 1;
 
 		do {
 			*end += 1;
@@ -239,7 +239,7 @@ long int* end) {
 		|| code[*start + 2] != '-')
 			return false;
 
-		*end += 2;
+		*end += 1;
 
 		do {
 			*end += 1;

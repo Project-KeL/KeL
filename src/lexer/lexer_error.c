@@ -78,12 +78,12 @@ Allocator* restrict allocator) {
 			|| code[start + 2] != '-')
 				continue;
 
-			start += 2;
+			end += 1;
 
 			do {
-				start += 1;
-			} while(code[start] != '\n'
-			     && code[start] != '\0');
+				end += 1;
+			} while(code[end] != '\n'
+			     && code[end] != '\0');
 		// COMMENT_MULTILINE_TRAIL_NO
 		} else if(!marker_literal_string
 		       && c == '|') {
@@ -91,19 +91,21 @@ Allocator* restrict allocator) {
 			|| code[start + 2] != '-')
 				continue;
 
-			start += 2;
+			end += 1;
 
 			do {
-				start += 1;
-			} while(code[start] != '\0'
-			     && code[start] != '-'
-			     || (code[start + 1] != '\0'
-			      && code[start + 1] != '-')
-				 || (code[start + 2] != '\0'
-				  && code[start + 2] != '|'));
+				end += 1;
+			} while(code[end] != '\0'
+			     && code[end] != '-'
+			     || (code[end + 1] != '\0'
+			      && code[end + 1] != '-')
+				 || (code[end + 2] != '\0'
+				  && code[end + 2] != '|'));
 
-			if(code[start] == '\0')
+			if(code[end] == '\0')
 				return false;
+
+			end += 2;
 		// KEY_MODIFIER_EOF
 		} else if(lexer_is_special(c)) {
 			while(lexer_is_operator_leveling(code[end])

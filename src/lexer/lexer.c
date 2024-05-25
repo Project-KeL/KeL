@@ -603,6 +603,9 @@ Lexer* restrict lexer) {
 			code,
 			&start,
 			&end));
+
+		if(code[end] == '\0')
+			break;
 		// allocation
 		if(lexer_allocate_chunk(
 			i,
