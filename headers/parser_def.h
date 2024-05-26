@@ -80,18 +80,6 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE_IDENTIFICATION
 } NodeSubtypeIdentificationBitScoped;
 
-typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeQualification_ ## subtype
-// WARNING: The following macro is also defined as a static function in "parser_identifier.h" but all this mess will be removed later
-#define token_subtype_QL_to_subtype(subtype_token) ((subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 3))
-	NODE_SUBTYPE(NO) = token_subtype_QL_to_subtype(TokenSubtype_QL_NO),
-	NODE_SUBTYPE(ENTRY) = token_subtype_QL_to_subtype(TokenSubtype_QL_ENTRY),
-	NODE_SUBTYPE(INC) = token_subtype_QL_to_subtype(TokenSubtype_QL_INC),
-	NODE_SUBTYPE(MUT) = token_subtype_QL_to_subtype(TokenSubtype_QL_MUT),
-#undef token_subtype_QL_to_subtype
-#undef NODE_SUBTYPE
-} NodeSubtypeQualification;
-
 /*
  * `LEFT` and `RIGHT` is relative to the lock
  * if an array has a bound, it is set in `.value`
@@ -140,8 +128,8 @@ typedef enum: uint64_t {
 typedef enum: uint64_t {
 #define NODE_SUBTYPE(subtype) NodeSubtypeLiteral_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
-	NODE_SUBTYPE(ASCII) = TokenSubtype_LITERAL_ASCII,
 	NODE_SUBTYPE(NUMBER) = TokenSubtype_LITERAL_NUMBER,
+	NODE_SUBTYPE(CHARACTER) = TokenSubtype_LITERAL_CHARACTER,
 	NODE_SUBTYPE(STRING) = TokenSubtype_LITERAL_STRING,
 #undef NODE_SUBTYPE_LITERAL
 } NodeSubtypeLiteral;

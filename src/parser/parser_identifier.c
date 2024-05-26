@@ -5,10 +5,6 @@
 #include "parser_identifier.h"
 #include "parser_utils.h"
 #include <stdio.h>
-// WARNING: The following function is also defined as a temporary macro in "parser_def.h"
-static NodeSubtypeQualification token_subtype_QL_to_subtype(TokenSubtype subtype_token) {
-	return (subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 3);
-}
 
 static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
 	return subtype_token;
@@ -371,12 +367,7 @@ Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
-	NodeSubtypeQualification subtype = NodeSubtypeQualification_NO;
-	// QL parsing
-	if(tokens[buffer_i].type == TokenType_QL) {
-		subtype = token_subtype_QL_to_subtype(tokens[buffer_i].subtype);
-		buffer_i += 1;
-	}
+	NodeSubtype subtype;
 	// command parsing
 	if(tokens[buffer_i].type != TokenType_COMMAND)
 		return 0;
@@ -399,7 +390,7 @@ Parser* parser) {
 
 	parser->nodes[buffer_j] = (Node) { // `buffer_j` still equals `*j`
 		.type = NodeType_IDENTIFICATION,
-		.subtype = subtype, // command, qualifiers and scoped
+		.subtype = subtype, // command and type of identification
 		.token = &tokens[buffer_i]};
 	buffer_i += 1;
 	buffer_j += 1;

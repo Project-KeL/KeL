@@ -9,6 +9,7 @@ const Token* restrict token) {
 	const char* type;
 
 	switch(token->type) {
+	case TokenType_COLON_LONELY: type = "COL"; break;
 	case TokenType_COMMAND: type = "COM"; break;
 	case TokenType_SPECIAL: type = "SPE"; break;
 	case TokenType_QL: type = "QL "; break;
@@ -25,7 +26,8 @@ const Token* restrict token) {
 	printf("%s \t ",
 		type);
 
-	if(token->type == TokenType_COMMAND
+	if(token->type == TokenType_COLON_LONELY
+	|| token->type == TokenType_COMMAND
 	|| token->type == TokenType_SPECIAL
 	|| token->type == TokenType_QL
 	|| token->type == TokenType_L
@@ -52,7 +54,7 @@ const Token* restrict token) {
 			printf("NUM"); break;
 		case TokenSubtype_LITERAL_STRING:
 			printf("STR"); break;
-		case TokenSubtype_LITERAL_ASCII:
+		case TokenSubtype_LITERAL_CHARACTER:
 			printf("CHR"); break;
 		}
 
@@ -65,32 +67,21 @@ const Token* restrict token) {
 static void print_info_node_key_identification(
 const char* code,
 const Node* node) {
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_COMMAND)
-	== NodeSubtypeKeyIdentificationBitCommand_HASH)
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
+	== NodeSubtypeIdentificationBitCommand_HASH)
 		printf("# ");
 	else
 		printf("@ ");
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_TYPE)
-	== NodeSubtypeKeyIdentificationBitType_DECLARATION)
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
+	== NodeSubtypeIdentificationBitType_DECLARATION)
 		printf("DECLARATION");
 	else
 		printf("INITIALIZATION:");
 
-	printf(" <%.*s>",
+	printf(" <%.*s>\n",
 		node->token->L_end - node->token->L_start,
 		&code[node->token->L_start]);
-
-	if((node->subtype & NodeSubtypeKeyQualification_ENTRY) != 0)
-		printf(" ENTRY");
-
-	if((node->subtype & NodeSubtypeKeyQualification_INC) != 0)
-		printf(" INC");
-
-	if((node->subtype & NodeSubtypeKeyQualification_MUT) != 0)
-		printf(" MUT");
-
-	printf("\n");
 }
 
 static void print_info_node_key_type(
@@ -98,25 +89,25 @@ const char* code,
 const Node* node) {
 	const Token* token = node->token;
 
-	if(node->type == NodeTypeChildKeyType_LOCK) {
+	if(node->type == NodeTypeChildType_LOCK) {
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
 				printf("LOCK <%.*s>\n",
 					token->R_end - token->R_start,
 					&code[token->R_start]); break;
-			case NodeSubtypeChildKeyTypeScoped_RETURN_NONE:
+			case NodeSubtypeChildTypeScoped_RETURN_NONE:
 				printf("RETURN NONE\n"); break;
-			case NodeSubtypeChildKeyTypeScoped_RETURN_LOCK:
+			case NodeSubtypeChildTypeScoped_RETURN_LOCK:
 				printf("RETURN LOCK <%.*s>\n",
 					token->R_end - token->R_start,
 					&code[token->R_start]); break;
-			case NodeSubtypeChildKeyTypeScoped_PARAMETER_NONE:
+			case NodeSubtypeChildTypeScoped_PARAMETER_NONE:
 				printf("PARAMETER NONE\n"); break;
-			case NodeSubtypeChildKeyTypeScoped_PARAMETER:
+			case NodeSubtypeChildTypeScoped_PARAMETER:
 				printf("PARAMETER <%.*s>\n",
 					token->L_end - token->L_start,
 					&code[token->L_start]); break;
-			case NodeSubtypeChildKeyTypeScoped_PARAMETER_LOCK:
+			case NodeSubtypeChildTypeScoped_PARAMETER_LOCK:
 				printf("PARAMETER LOCK <%.*s>\n",
 					token->R_end - token->R_start,
 					&code[token->R_start]); break;

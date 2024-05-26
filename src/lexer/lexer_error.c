@@ -18,8 +18,7 @@ Allocator* restrict allocator) {
 	long int end = 0;
 	// lonely colon: avoid to test start != 0 in the loop
 	if(source->content[start] == ':') {
-		if(!isgraph(source->content[start + 1])
-		|| source->content[start + 1] == '[')
+		if(!isgraph(source->content[start + 1]))
 			return false;
 		else
 			start += 1;
@@ -59,17 +58,28 @@ Allocator* restrict allocator) {
 			// COLON_RIGHT_COLON
 			if(code[start + 1] == ':')
 				return false;
-			// COLON_LONELY
-			if(!isgraph(code[start - 1])
-			 && !isgraph(code[start + 1]))
+			// COLON_VALID_SPECIAL_LEFT
+			if(lexer_is_special(code[start - 1])
+			&& code[start - 1] != '#'
+			&& code[start - 1] != '&'
+			&& code[start - 1] != ')'
+			&& code[start - 1] != '+'
+			&& code[start - 1] != '-'
+			&& code[start - 1] != '@'
+			&& code[start - 1] != ']'
+			&& code[start - 1] != '|')
 				return false;
-			// COLON_LONELY_RIGHT_ALONE_LEFT
-			if(!isgraph(code[start - 1])
-			&& !lexer_is_command(code[start + 1])
-			&& !isalpha(code[start + 1]) // a lock begins with a letter
+			// COLON_VALID_SPECIAL_RIGHT
+			if(lexer_is_special(code[start + 1])
+			&& code[start + 1] != '#'
+			&& code[start + 1] != '&'
 			&& code[start + 1] != '('
+			&& code[start + 1] != '+'
+			&& code[start + 1] != '-'
+			&& code[start + 1] != '@'
 			&& code[start + 1] != '['
-			&& code[start + 1] != '&')
+			&& code[start + 1] != '`'
+			&& code[start + 1] != '|')
 				return false;
 		// process a comment
 		} else if(!marker_literal_string

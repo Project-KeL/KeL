@@ -19,7 +19,7 @@
  * 3 - is L
  * 4 - is QR
  * 5 - is R (sets `previous_is_modifier`, dependencies: L and R)
- *     1 - Consomes all following R modifier operators.
+ *     1 - Consumes all following R modifier operators.
  * 6 - is QLR
  * 7 - is LR
  * 8 - is PL
@@ -30,7 +30,8 @@
  *      3 - R grave accent
  *      4 - Consumes all following L modifier operators
  *      5 - R right parenthesis
- *      6 - Other special symbols
+ *      6 - Lonely colon
+ *      7 - Other special symbols
  * 11 - is valid_name
  *
  * Qualifier cases are checked first to detect the brackets, so it is easier to detect
@@ -80,48 +81,6 @@ Token* token) {
 		.end = end};
 }
 
-static bool is_valid_QL(
-const char* code,
-TokenSubtype* subtype,
-long int start,
-long int end) {
-	*subtype = TokenSubtype_NO;
-	code = &code[start]; // for `strncmp`
-
-	if(strncmp(
-		"entry",
-		code,
-		end - start)
-	== 0)
-		*subtype = TokenSubtype_QL_ENTRY;
-	else if(strncmp(
-		"mut",
-		code,
-		end - start)
-	== 0)
-		*subtype = TokenSubtype_QL_MUT;
-
-	return *subtype != TokenSubtype_NO;
-}
-
-static bool is_valid_QR(
-const char* code,
-TokenSubtype* subtype,
-long int start,
-long int end) {
-	*subtype = TokenSubtype_NO;
-	code = &code[start];
-
-	if(strncmp(
-		"default",
-		code,
-		end - start)
-	== 0)
-		*subtype = TokenSubtype_QR_DEFAULT;
-
-	return *subtype != TokenSubtype_NO;
-}
-
 static bool if_command_create_token(
 const char* code,
 long int start,
@@ -139,7 +98,6 @@ Token* token) {
 
 static bool get_QL(
 const char* restrict code,
-TokenSubtype* subtype,
 long int start,
 long int* end,
 long int* L_start,
@@ -148,7 +106,6 @@ long int* L_end) {
 		return false;
 
 	long int buffer_end = start + 1;
-	*subtype = TokenSubtype_NO;
 	*L_start = start + 1;
 
 	do {
@@ -156,20 +113,9 @@ long int* L_end) {
 			code,
 			&start,
 			&buffer_end);
-		TokenSubtype buffer_subtype;
-
-		if(is_valid_QL(
-			code,
-			&buffer_subtype,
-			start,
-			buffer_end)
-		== false)
-			return false;
-
-		*subtype |= buffer_subtype;
-		*L_end = buffer_end;
 	} while(code[buffer_end] != ']');
 
+	*L_end = buffer_end;
 	*end = buffer_end + 1;
 	return true;
 }
@@ -179,14 +125,12 @@ const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
-	TokenSubtype subtype;
 	long int buffer_end = *end;
 	long int L_start;
 	long int L_end;
 
 	if(!get_QL(
 		code,
-		&subtype,
 		start,
 		&buffer_end,
 		&L_start,
@@ -200,7 +144,9 @@ Token* token) {
 		return false;
 	}
 
-	if(code[buffer_end] == ':')
+	if(code[buffer_end] == ':'
+	// QR possibility
+	&& !isgraph(code[buffer_end + 1]))
 		buffer_end += 1;
 
 	if(isgraph(code[buffer_end]))
@@ -209,7 +155,7 @@ Token* token) {
 	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_QL,
-		.subtype = subtype,
+		.subtype = TokenSubtype_NO,
 		.L_start = L_start,
 		.L_end = L_end,
 		.R_start = L_end,
@@ -226,6 +172,7 @@ long int* end,
 Token* token) {
 	if(previous_is_command
 	|| previous_is_modifier
+	|| code[start - 1] == ':'
 	|| lexer_is_valid_name(
 		code,
 		start,
@@ -241,7 +188,9 @@ Token* token) {
 		*end,
 		token);
 	
-	if(code[*end] == ':')
+	if(code[*end] == ':'
+	// R possibility
+	&& !isgraph(code[*end + 1]))
 		*end += 1;
 
 	return true;
@@ -249,7 +198,6 @@ Token* token) {
 
 static bool get_QR(
 const char* restrict code,
-TokenSubtype* subtype,
 long int start,
 long int* end,
 long int* R_start,
@@ -260,7 +208,6 @@ long int* R_end) {
 
 	start += 1;
 	long int buffer_end = start + 1;
-	*subtype = TokenSubtype_NO;
 	*R_start = start + 1;
 
 	do {
@@ -269,19 +216,9 @@ long int* R_end) {
 			&start,
 			&buffer_end);
 		TokenSubtype buffer_subtype;
-
-		if(is_valid_QR(
-			code,
-			&buffer_subtype,
-			start,
-			buffer_end)
-		== false)
-			return false;
-
-		*subtype |= buffer_subtype;
-		*R_end = buffer_end;
 	} while(code[buffer_end] != ']'); 
 
+	*R_end = buffer_end;
 	*end = buffer_end + 1;
 	return true;
 }
@@ -298,7 +235,6 @@ Token* token) {
 
 	if(!get_QR(
 		code,
-		&subtype,
 		start,
 		&buffer_end,
 		&R_start,
@@ -309,7 +245,7 @@ Token* token) {
 	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_QR,
-		.subtype = subtype,
+		.subtype = TokenSubtype_NO,
 		.L_start = R_start,
 		.L_end = R_start,
 		.R_start = R_start,
@@ -323,8 +259,9 @@ const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
-	if(code[start] != ':'
-	&& !previous_is_modifier)
+	if((code[start] != ':'
+	 && !previous_is_modifier)
+	|| (!isalpha(code[start + 1])))
 		return false;
 
 	long int buffer_end = start + 1;
@@ -361,8 +298,6 @@ const char* restrict code,
 long int start,
 long int* end,
 Token* token) {
-	TokenSubtype subtype1;
-	TokenSubtype subtype2;
 	long int buffer_end = *end;
 	long int L_start;
 	long int L_end;
@@ -371,7 +306,6 @@ Token* token) {
 	
 	if(get_QL(
 		code,
-		&subtype1,
 		start,
 		&buffer_end,
 		&L_start,
@@ -383,7 +317,6 @@ Token* token) {
 
 	if(get_QR(
 		code,
-		&subtype2,
 		start,
 		&buffer_end,
 		&R_start,
@@ -397,7 +330,7 @@ Token* token) {
 	*end = buffer_end;
 	*token = (Token) {
 		.type = TokenType_QLR,
-		.subtype = subtype1 | subtype2,
+		.subtype = TokenSubtype_NO,
 		.L_start = L_start,
 		.L_end = L_end,
 		.R_start = R_start,
@@ -483,6 +416,18 @@ Token* token) {
 		}
 
 		subtype = TokenSubtype_LITERAL_NUMBER;
+	} else if(code[start] == '\'') {
+		while(code[buffer_end] != '\0'
+		   && code[buffer_end] != '\'') buffer_end += 1;
+
+		if(code[buffer_end] != '\'') {
+			token_error = true;
+			return false;
+		}
+
+		start += 1;
+		buffer_end += 1;
+		subtype = TokenSubtype_LITERAL_CHARACTER;
 	} else if(code[start] == '`') {
 		while(code[buffer_end] != '\0'
 		   && code[buffer_end] != '`') buffer_end += 1;
@@ -495,18 +440,15 @@ Token* token) {
 		start += 1;
 		buffer_end += 1;
 		subtype = TokenSubtype_LITERAL_STRING;
-	} else if(code[start] == '\\') {
-		start += 1;
-		buffer_end += 1;
-		subtype = TokenSubtype_LITERAL_ASCII;
-	} else
+	} else {
 		return false;
+	}
 
 	*token = (Token) {
 		.type = TokenType_LITERAL,
 		.subtype = subtype,
 		.start = start,
-		.end = buffer_end - (subtype == TokenSubtype_LITERAL_STRING ? 1 : 0)};
+		.end = buffer_end - (subtype != TokenSubtype_LITERAL_NUMBER ? 1 : 0)};
 	*end = buffer_end;
 	return true;
 }
@@ -600,7 +542,39 @@ Lexer* restrict lexer) {
 		allocator)
 	== false)
 		return false;
+	// to prevent to check code[start - 1] != ':' in the L case
+	if(code[start] == ':') {
+		// allocation
+		if(lexer_allocate_chunk(
+			i,
+			lexer)
+		== false) {
+			destroy_lexer(lexer);
+			return false;
+		}
+		// only valid cases
+		if(if_QR_create_token(
+			code,
+			start,
+			&end,
+			&lexer->tokens[0])
+		== true) {
+			// OK
+		} else if(if_R_create_token(
+			false,
+			code,
+			start,
+			&end,
+			&lexer->tokens[0])
+		== true) {
+			goto R; // there is work to be done
+		} else {
+			return false;
+		}
 
+		i += 1;
+	}
+	// main loop
 	while(lexer_get_next_word(
 		code,
 		&start,
@@ -660,6 +634,7 @@ Lexer* restrict lexer) {
 			&end,
 			token)
 		== true) {
+R:
 			previous_is_modifier = false;
 			long int buffer_end = end;
 			lexer_get_next_word(
@@ -730,8 +705,8 @@ Lexer* restrict lexer) {
 			long int buffer_end = end;
 			// right case
 			if(code[start] == ':'
-			&& (lexer_is_operator_leveling(code[start + 1])
-			 || code[start + 1] == '[')) {
+			&& (lexer_is_operator_leveling(code[buffer_end])
+			 || code[buffer_end] == '[')) {
 				// start at the first leveling operator, or open bracket
 				start += 1;
 				buffer_end += 1;
@@ -836,16 +811,25 @@ Lexer* restrict lexer) {
 					.R_end = start + 1};
 			} else {
 TOKEN_SPECIAL:
+				// to process R parenthesis
 				if(code[start] == '(')
 					count_L_parenthesis_nest += 1;
 				else if(code[start] == ')')
 					count_L_parenthesis_nest -= 1;
-
-				create_token_special(
-					code,
-					start,
-					TokenType_SPECIAL,
-					token);
+				
+				if(code[start] == ':') {
+					create_token_special(
+						code,
+						start,
+						TokenType_COLON_LONELY,
+						token);
+				} else {
+					create_token_special(
+						code,
+						start,
+						TokenType_SPECIAL,
+						token);
+				}
 			}
 		} else if(if_valid_name_create_token(
 			code,

@@ -7,6 +7,7 @@
 typedef enum: uint32_t {
 #define TOKEN_TYPE(type) TokenType_ ## type
 	TOKEN_TYPE(NO) = 0,
+	TOKEN_TYPE(COLON_LONELY),
 	TOKEN_TYPE(COMMAND),
 	TOKEN_TYPE(SPECIAL),
 	TOKEN_TYPE(QL),
@@ -33,8 +34,8 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(NO) = 0,
 	// litteral
 	TOKEN_SUBTYPE(LITERAL_NUMBER), // the base is the highest byte
+	TOKEN_SUBTYPE(LITERAL_CHARACTER),
 	TOKEN_SUBTYPE(LITERAL_STRING),
-	TOKEN_SUBTYPE(LITERAL_ASCII),
 	// special
 	TOKEN_SUBTYPE(EXCLAMATION_MARK),
 	TOKEN_SUBTYPE(DQUOTES),
@@ -66,19 +67,6 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(RCBRACE),
 	TOKEN_SUBTYPE(PIPE),
 	TOKEN_SUBTYPE(TILDE),
-	// L qualifier (8 bits)
-#define QL(n) (1 << (SHIFT_TOKEN_SUBTYPE_QL + n))
-	TOKEN_SUBTYPE(QL_NO) = QL(0),
-	TOKEN_SUBTYPE(QL_ENTRY) = QL(1),
-	TOKEN_SUBTYPE(QL_INC) = QL(2),
-	TOKEN_SUBTYPE(QL_MUT) = QL(3),
-#undef QL
-	// lock qualifier (8 bit)
-#define QR(n) (1 << (SHIFT_TOKEN_SUBTYPE_QR + n))
-	TOKEN_SUBTYPE(QR_NO) = QR(0),
-	TOKEN_SUBTYPE(QR_DEFAULT) = QR(1),
-	TOKEN_SUBTYPE(QR_INC) = QR(2),
-#undef QR
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 
