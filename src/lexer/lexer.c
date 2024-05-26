@@ -543,8 +543,9 @@ Lexer* restrict lexer) {
 	== false)
 		return false;
 
-	// to prevent to check code[start - 1] != ':' in the L case
-	if(code[start] == ':') {
+	// to prevent errors when checking code[start - 1] != ':'
+	// no tokens are created to avoid inconditional jumping (variables are declared in the loop)
+	if(code[0] == ':') {
 		// allocation
 		if(lexer_allocate_chunk(
 			i,
@@ -568,12 +569,12 @@ Lexer* restrict lexer) {
 			&end,
 			&lexer->tokens[0])
 		== true) {
-			goto R; // there is work to be done
+			// OK
+		} else if(lexer_is_special(code[1])) {
+			// OK
 		} else {
 			return false;
 		}
-
-		i += 1;
 	}
 	// main loop
 	while(lexer_get_next_word(
@@ -702,6 +703,7 @@ R:
 		== true) {
 			// OK
 		} else if(lexer_is_special(code[start])) {
+SPECIAL:
 			Token* tokens = lexer->tokens;
 			long int buffer_end = end;
 			// right case
