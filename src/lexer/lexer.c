@@ -542,6 +542,7 @@ Lexer* restrict lexer) {
 		allocator)
 	== false)
 		return false;
+
 	// to prevent to check code[start - 1] != ':' in the L case
 	if(code[start] == ':') {
 		// allocation

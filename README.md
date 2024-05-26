@@ -42,10 +42,10 @@ Keys can be used as identifiers (like constants and variables). In this configur
 
 Let's say the target of the compiler is an architecture where we can define 32-bit unsigned integers and let's say we had encapsulated this concept in the `u32` lock.
 ```
-@var1:u32 1; !-- `var` is set to `1`.
-@var2 :u32 1; !-- The `@` escapes the left blank-sensitiveness.
-[mut] @var3 :u32; !-- `var3` is declared mutable.
-[mut] @var4 :u32 var2; !-- `var4` is initialized with the value of `var2`.
+@var1:u32 1; !-- var is set to 1.
+@var2 :u32 1; !-- The @ escapes the left blank-sensitiveness.
+[mut] @var3 :u32; !-- var3 is declared mutable.
+[mut] @var4 :u32 var2; !-- var4 is initialized with the value of var2.
 @var5 var1; !-- The type is deduced.
 ```
 
@@ -65,7 +65,7 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 
 !-- This is a declaration of an entry point.
 [entry] #main :scope;
-!-- Because `main` is not initialized, the execution continues here.
+!-- Because main is not initialized, the execution continues here.
 
 !-- This is an initialization but the type is deducible.
 #lab2 :scope scope: !-- #lab2 scope: would be right
@@ -75,7 +75,7 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 !-- b takes no parameter and returns a u32.
 !-- c takes a parameterized label taking a u32 returning nothing and returns a u32.
 @lab3 :(a :u32, b :u32(), c :u32(:(:u32)));
-!-- c can be rewrote `c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
+!-- c can be rewrote c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
 
 !-- lab4 returns a u32 (alternative syntax).
 #lab4 :`(a :u32) :u32

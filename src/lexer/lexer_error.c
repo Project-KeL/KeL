@@ -62,6 +62,7 @@ Allocator* restrict allocator) {
 			if(lexer_is_special(code[start - 1])
 			&& code[start - 1] != '#'
 			&& code[start - 1] != '&'
+			&& code[start - 1] != '(' // parameterized labels
 			&& code[start - 1] != ')'
 			&& code[start - 1] != '+'
 			&& code[start - 1] != '-'
