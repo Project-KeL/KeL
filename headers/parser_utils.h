@@ -8,6 +8,7 @@ bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);
 bool parser_is_L_left_parenthesis(const Token* token);
 bool parser_is_L_right_parenthesis(const Token* token);
+bool parser_is_R_grave_accent(const Token* token);
 bool parser_is_R_left_parenthesis(const Token* token);
 bool parser_is_R_right_parenthesis(const Token* token);
 bool parser_is_operator_leveling(const Token* restrict token);

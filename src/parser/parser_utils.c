@@ -28,6 +28,11 @@ bool parser_is_L_right_parenthesis(const Token* token) {
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
+bool parser_is_R_grave_accent(const Token* token) {
+	return token->type == TokenType_R
+	    && token->subtype == TokenSubtype_GRAVE_ACCENT;
+}
+
 bool parser_is_R_left_parenthesis(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_LPARENTHESIS;

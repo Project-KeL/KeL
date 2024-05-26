@@ -51,46 +51,46 @@ typedef enum: uint64_t {
 
 // These are flags (the full token subtype is useless so we extract only the qualifier part)
 // The shift let the first bit empty to fetch the command
-#define MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_COMMAND 0b1
+#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND 0b1
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_KEY_IDENTIFICATION(subtype) NodeSubtypeKeyIdentificationBitCommand_ ## subtype
-	NODE_SUBTYPE_KEY_IDENTIFICATION(HASH) = 0b0,
-	NODE_SUBTYPE_KEY_IDENTIFICATION(AT) = 0b1,
-#undef NODE_SUBTYPE_KEY_IDENTIFICATION
-} NodeSubtypeKeyIdentificationBitCommand;
+#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitCommand_ ## subtype
+	NODE_SUBTYPE_IDENTIFICATION(HASH) = 0b0,
+	NODE_SUBTYPE_IDENTIFICATION(AT) = 0b1,
+#undef NODE_SUBTYPE_IDENTIFICATION
+} NodeSubtypeIdentificationBitCommand;
 
-#define SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE 1
-#define MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_TYPE (1 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE)
-
-typedef enum: uint64_t {
-#define NODE_SUBTYPE_KEY_IDENTIFICATION(subtype) NodeSubtypeKeyIdentificationBitType_ ## subtype
-	NODE_SUBTYPE_KEY_IDENTIFICATION(DECLARATION) = 0b0 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE,
-	NODE_SUBTYPE_KEY_IDENTIFICATION(INITIALIZATION) = 0b1 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_TYPE,
-#undef NODE_SUBTYPE_KEY_IDENTIFICATION
-} NodeSubtypeKeyIdentificationBitType;
-
-#define SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_SCOPE 2
-#define MASK_BIT_NODE_SUBTYPE_KEY_IDENTIFICATION_SCOPE (1 << SHIFT_NODE_SUBTYPE_KEY_IDENTIFICATION_BIT_SCOPE)
+#define SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_TYPE 1
+#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE (1 << SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_TYPE)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_KEY_IDENTIFICATION(subtype) NodeSubtypeKeyIdentificationBitScoped_ ## subtype
-	NODE_SUBTYPE_KEY_IDENTIFICATION(FALSE) = 0,
-	NODE_SUBTYPE_KEY_IDENTIFICATION(TRUE) = 1,
-#undef NODE_SUBTYPE_KEY_IDENTIFICATION
-} NodeSubtypeKeyIdentificationBitScoped;
+#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitType_ ## subtype
+	NODE_SUBTYPE_IDENTIFICATION(DECLARATION) = 0b0 << SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_TYPE,
+	NODE_SUBTYPE_IDENTIFICATION(INITIALIZATION) = 0b1 << SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_TYPE,
+#undef NODE_SUBTYPE_IDENTIFICATION
+} NodeSubtypeIdentificationBitType;
+
+#define SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_SCOPE 2
+#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPE (1 << SHIFT_NODE_SUBTYPE_IDENTIFICATION_BIT_SCOPE)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_KEY(subtype) NodeSubtypeKeyQualification_ ## subtype
+#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitScoped_ ## subtype
+	NODE_SUBTYPE_IDENTIFICATION(FALSE) = 0,
+	NODE_SUBTYPE_IDENTIFICATION(TRUE) = 1,
+#undef NODE_SUBTYPE_IDENTIFICATION
+} NodeSubtypeIdentificationBitScoped;
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeQualification_ ## subtype
 // WARNING: The following macro is also defined as a static function in "parser_identifier.h" but all this mess will be removed later
 #define token_subtype_QL_to_subtype(subtype_token) ((subtype_token & MASK_TOKEN_SUBTYPE_QL) >> (SHIFT_TOKEN_SUBTYPE_QL - 3))
-	NODE_SUBTYPE_KEY(NO) = token_subtype_QL_to_subtype(TokenSubtype_QL_NO),
-	NODE_SUBTYPE_KEY(ENTRY) = token_subtype_QL_to_subtype(TokenSubtype_QL_ENTRY),
-	NODE_SUBTYPE_KEY(INC) = token_subtype_QL_to_subtype(TokenSubtype_QL_INC),
-	NODE_SUBTYPE_KEY(MUT) = token_subtype_QL_to_subtype(TokenSubtype_QL_MUT),
+	NODE_SUBTYPE(NO) = token_subtype_QL_to_subtype(TokenSubtype_QL_NO),
+	NODE_SUBTYPE(ENTRY) = token_subtype_QL_to_subtype(TokenSubtype_QL_ENTRY),
+	NODE_SUBTYPE(INC) = token_subtype_QL_to_subtype(TokenSubtype_QL_INC),
+	NODE_SUBTYPE(MUT) = token_subtype_QL_to_subtype(TokenSubtype_QL_MUT),
 #undef token_subtype_QL_to_subtype
-#undef NODE_SUBTYPE_KEY
-} NodeSubtypeKeyQualification;
+#undef NODE_SUBTYPE
+} NodeSubtypeQualification;
 
 /*
  * `LEFT` and `RIGHT` is relative to the lock
@@ -98,39 +98,40 @@ typedef enum: uint64_t {
 */
 
 typedef enum: uint64_t {
-#define NODE_TYPE_CHILD_KEY_TYPE(type) NodeTypeChildKeyType_ ## type
-	NODE_TYPE_CHILD_KEY_TYPE(NO) = 0,
-	NODE_TYPE_CHILD_KEY_TYPE(MODIFIER),
-	NODE_TYPE_CHILD_KEY_TYPE(LOCK),
-#undef NODE_TYPE_CHILD_KEY_TYPE
-} NodeTypeChildKeyType;
+#define NODE_TYPE_CHILD_TYPE(type) NodeTypeChildType_ ## type
+	NODE_TYPE_CHILD_TYPE(NO) = 0,
+	NODE_TYPE_CHILD_TYPE(MODIFIER),
+	NODE_TYPE_CHILD_TYPE(LOCK),
+#undef NODE_TYPE_CHILD_TYPE
+} NodeTypeChildType;
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_CHILD_KEY_TYPE(subtype) NodeSubtypeChildKeyTypeModifier_ ## subtype
-	NODE_SUBTYPE_CHILD_KEY_TYPE(NO) = 0,
-	NODE_SUBTYPE_CHILD_KEY_TYPE(AMPERSAND_LEFT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(AMPERSAND_RIGHT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(ARRAY), // brackets are always before the lock
-	NODE_SUBTYPE_CHILD_KEY_TYPE(ARRAY_BOUND),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(MINUS_LEFT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(MINUS_RIGHT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PIPE_LEFT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PIPE_RIGHT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PLUS_LEFT),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PLUS_RIGHT),
-#undef NODE_SUBTYPE_CHILD_KEY_TYPE
-} NodeSubtypeChildKeyTypeModifier;
+#define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeModifier_ ## subtype
+	NODE_SUBTYPE_CHILD_TYPE(NO) = 0,
+	NODE_SUBTYPE_CHILD_TYPE(AMPERSAND_LEFT),
+	NODE_SUBTYPE_CHILD_TYPE(AMPERSAND_RIGHT),
+	NODE_SUBTYPE_CHILD_TYPE(ARRAY), // brackets are always before the lock
+	NODE_SUBTYPE_CHILD_TYPE(ARRAY_BOUND),
+	NODE_SUBTYPE_CHILD_TYPE(MINUS_LEFT),
+	NODE_SUBTYPE_CHILD_TYPE(MINUS_RIGHT),
+	NODE_SUBTYPE_CHILD_TYPE(PIPE_LEFT),
+	NODE_SUBTYPE_CHILD_TYPE(PIPE_RIGHT),
+	NODE_SUBTYPE_CHILD_TYPE(PLUS_LEFT),
+	NODE_SUBTYPE_CHILD_TYPE(PLUS_RIGHT),
+#undef NODE_SUBTYPE_CHILD_TYPE
+} NodeSubtypeChildTypeModifier;
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_CHILD_KEY_TYPE(subtype) NodeSubtypeChildKeyTypeScoped_ ## subtype
-	NODE_SUBTYPE_CHILD_KEY_TYPE(RETURN_NONE) = 1,
-	NODE_SUBTYPE_CHILD_KEY_TYPE(RETURN_LOCK),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PARAMETER_NONE),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PARAMETER),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PARAMETER_LOCK),
-	NODE_SUBTYPE_CHILD_KEY_TYPE(PARAMETER_RETURN_LOCK),
-#undef NODE_SUBTYPE_CHILD_KEY_TYPE
-} NodeSubtypeChildKeyTypeLock;
+#define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_LOCK),
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_START),
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_END),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_NONE),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_LOCK),
+#undef NODE_SUBTYPE_CHILD_TYPE
+} NodeSubtypeChildTypeLock;
 
 /*
  * LITERAL

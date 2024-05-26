@@ -19,11 +19,18 @@
  * 3 - is L
  * 4 - is QR
  * 5 - is R (sets `previous_is_modifier`, dependencies: L and R)
+ *     1 - Consomes all following R modifier operators.
  * 6 - is QLR
  * 7 - is LR
  * 8 - is PL
  * 9 - is literal 
  * 10 - is special (sets `previous_is_modifier`, dependencies: L and R)
+ *      1 - Consumes all following R modifier operators
+ *      2 - R left parenthesis
+ *      3 - R grave accent
+ *      4 - Consumes all following L modifier operators
+ *      5 - R right parenthesis
+ *      6 - Other special symbols
  * 11 - is valid_name
  *
  * Qualifier cases are checked first to detect the brackets, so it is easier to detect
@@ -762,6 +769,16 @@ Lexer* restrict lexer) {
 				tokens[i] = (Token) {
 					.type = TokenType_R,
 					.subtype = TokenSubtype_LPARENTHESIS,
+					.L_start = start,
+					.L_end = start,
+					.R_start = start + 1,
+					.R_end = start + 2};
+				end += 1;
+			} else if(code[start] == ':'
+			       && code[buffer_end] == '`') {
+				tokens[i] = (Token) {
+					.type = TokenType_R,
+					.subtype = TokenSubtype_GRAVE_ACCENT,
 					.L_start = start,
 					.L_end = start,
 					.R_start = start + 1,
