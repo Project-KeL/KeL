@@ -57,7 +57,7 @@ var = 2;
 
 Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label has the type `scope` which is a key and a lock at the same time, and parameterized labels can be initialized with a scope.
 ```
-!-- Declaration of a parameterized label returning a `u32` taking a `u32`.
+!-- Declaration of a parameterized label returning a u32 taking a u32.
 @lab_x :u32(x :u32);
 
 !-- A label.
@@ -68,17 +68,24 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 !-- Because `main` is not initialized, the execution continues here.
 
 !-- This is an initialization but the type is deducible.
-#lab2 :scope scope: !-- `#lab2 scope:` would be right
+#lab2 :scope scope: !-- #lab2 scope: would be right
     !-- code
 .
 
-!-- `b` takes no parameter and returns a `u32`.
-!-- `c` takes a parameterized label taking a `u32` returning nothing and returns a `u32`.
+!-- b takes no parameter and returns a u32.
+!-- c takes a parameterized label taking a u32 returning nothing and returns a u32.
 @lab3 :(a :u32, b :u32(), c :u32(:(:u32)));
-!-- `c` can be rewrote `c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
+!-- c can be rewrote `c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
+
+!-- lab4 returns a u32 (alternative syntax).
+#lab4 :`(a :u32) :u32
+
+!-- lab5 returns a parameterized label returning a u32 taking a u32.
+#lab5 :`(a :u32, b :u32) :u32(a :u32);
 ```
 
 - [x] Parse types (stable?).
-- [x] Parse initialization with a literal.
+- [ ] Parse types with the R grave accent syntax.
+- [x] Parse initialization with a literal (to be improved).
 - [ ] Parse parameterized labels initialization.
 - [ ] Parse arrays and pointers.
