@@ -15,15 +15,8 @@ Allocator* restrict allocator) {
 	bool marker_literal_string = false;
 	size_t count_delimiter_open = 0;
 	long int start = 0;
-	long int end = 0;
-	// lonely colon: avoid to test start != 0 in the loop
-	if(source->content[start] == ':') {
-		if(!isgraph(source->content[start + 1]))
-			return false;
-		else
-			start += 1;
-	}
-
+	long int end = 1;
+	// a source begins with a null character so that checking code[start - 1] is valid	
 	while(lexer_get_next_word(
 		code,
 		&start,

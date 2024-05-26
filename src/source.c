@@ -38,7 +38,7 @@ Source* restrict source) {
 		goto CLOSE;
 	}
 	// get source as a string
-	source->content = malloc(source->length * sizeof(char) + 1);
+	source->content = malloc(source->length * sizeof(char) + 2);
 
 	if(source->content == NULL) {
 		printf("Allocation error.\n");
@@ -46,8 +46,9 @@ Source* restrict source) {
 		goto CLOSE;
 	}
 
+	source->content[0] = '\0'; // will prevent errors with indexes
 	if(fread(
-		source->content,
+		source->content + 1,
 		1,
 		source->length,
 		source_file)

@@ -534,7 +534,7 @@ Lexer* restrict lexer) {
 	bool previous_is_modifier = false;
 	long int count_L_parenthesis_nest = 0; // to get a good match with R parenthesis
 	long int start = 0;
-	long int end = 0;
+	long int end = 1;
 	long int i = 0;
 
 	if(lexer_scan_errors(
@@ -542,40 +542,6 @@ Lexer* restrict lexer) {
 		allocator)
 	== false)
 		return false;
-
-	// to prevent errors when checking code[start - 1] != ':'
-	// no tokens are created to avoid inconditional jumping (variables are declared in the loop)
-	if(code[0] == ':') {
-		// allocation
-		if(lexer_allocate_chunk(
-			i,
-			lexer)
-		== false) {
-			destroy_lexer(lexer);
-			return false;
-		}
-		// only valid cases
-		if(if_QR_create_token(
-			code,
-			start,
-			&end,
-			&lexer->tokens[0])
-		== true) {
-			// OK
-		} else if(if_R_create_token(
-			false,
-			code,
-			start,
-			&end,
-			&lexer->tokens[0])
-		== true) {
-			// OK
-		} else if(lexer_is_special(code[1])) {
-			// OK
-		} else {
-			return false;
-		}
-	}
 	// main loop
 	while(lexer_get_next_word(
 		code,
@@ -636,7 +602,6 @@ Lexer* restrict lexer) {
 			&end,
 			token)
 		== true) {
-R:
 			previous_is_modifier = false;
 			long int buffer_end = end;
 			lexer_get_next_word(
@@ -703,7 +668,6 @@ R:
 		== true) {
 			// OK
 		} else if(lexer_is_special(code[start])) {
-SPECIAL:
 			Token* tokens = lexer->tokens;
 			long int buffer_end = end;
 			// right case
