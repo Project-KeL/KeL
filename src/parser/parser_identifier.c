@@ -56,7 +56,7 @@ Parser* parser) {
 	parser->nodes[j] = (Node) { // `buffer_j` still equals `*j`
 		.type = NodeType_IDENTIFICATION,
 		.subtype = subtype, // command and type of identification
-		.token = &tokens[i]};
+		.token = &tokens[i + 1]};
 	return 1;
 }
 

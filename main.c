@@ -26,6 +26,8 @@ char** argv) {
 		goto ERROR_0;
 	}
 
+	printf("%s\n", source.content + 1);
+
 	if(create_allocator(
 		(size_t) source.length,
 		&allocator)
@@ -79,6 +81,5 @@ ERROR_2:
 ERROR_1:
 	destroy_source(&source);
 ERROR_0:
-	if(error) return EXIT_FAILURE;
-	return EXIT_SUCCESS;
+	return error ? EXIT_FAILURE : EXIT_SUCCESS;
 }
