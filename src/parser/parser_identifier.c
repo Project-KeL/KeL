@@ -396,6 +396,7 @@ Parser* parser) {
 	long int buffer_j = *j;
 	NodeSubtype subtype;
 	// command parsing
+
 	switch(if_command_create_node(
 		buffer_i,
 		buffer_j,
@@ -407,7 +408,7 @@ Parser* parser) {
 		buffer_j += 1;
 		/* fall through */
 	}
-	// create the beginning of the node
+
 	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
 		return 0;
 

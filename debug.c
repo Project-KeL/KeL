@@ -41,8 +41,17 @@ const Token* restrict token) {
 		printf("%.*s\n",
 			token->R_end - token->R_start,
 			&code[token->R_start]);
-	} else if(token->type == TokenType_QLR
-	       || token->type == TokenType_LR) {
+	} else if(token->type == TokenType_QLR) {
+		if(token->subtype == TokenType_QL) {
+			printf("%.*s\n",
+				token->L_end - token->L_start,
+				&code[token->L_start]);
+		} else {
+			printf("%.*s\n",
+				token->R_end - token->R_start,
+				&code[token->R_start]);
+		}
+	} else if(token->type == TokenType_LR) {
 		printf("%.*s, %.*s\n",
 			token->L_end - token->L_start,
 			&code[token->L_start],
@@ -118,7 +127,7 @@ const Node* node) {
 void debug_print_tokens(const Lexer* lexer) {
 	printf("TOKENS:\n");
 
-	for(long int i = 0;
+	for(long int i = 1;
 	i < lexer->count;
 	i += 1) {
 		printf("\t");
@@ -129,14 +138,14 @@ void debug_print_tokens(const Lexer* lexer) {
 
 	printf(
 		"\nNumber of tokens: %d.\n",
-		lexer->count);
+		lexer->count - 1);
 }
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	printf("NODES:\n");
 
-	for(long int j = 0;
+	for(long int j = 1;
 	j < parser->count;
 	j += 1) {
 		const Node* node = &parser->nodes[j];
@@ -171,7 +180,7 @@ void debug_print_nodes(const Parser* parser) {
 
 	printf(
 		"\nNumber of nodes: %d.\n",
-		parser->count);
+		parser->count - 1);
 }
 
 #endif

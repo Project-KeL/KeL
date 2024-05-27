@@ -10,14 +10,23 @@
 // i is the current token to be processed
 // j is the current node to be created
 
-static long int error = 0;
+static int error = 0;
 
-static int set_error(long int value) {
-	if(value == -1)
+static int set_error(int value) {
+	if(value == -1) {
+		error = -1;
 		return -1;
+	}
 
-	error = value;
 	return value;
+}
+
+static void create_node_null(Node* node) {
+	*node = (Node) {
+		.type = NodeType_NO,
+		.subtype = NodeSubtype_NO,
+		.token = NULL,
+		.child = NULL};
 }
 
 static bool if_scope_create_node(
@@ -64,11 +73,19 @@ Parser* restrict parser) {
 	parser->count = 0;
 	const char* code = lexer->source->content;
 	const Token* tokens = lexer->tokens;
-	long int i = 0;
-	long int j = 0;
+	long int i = 1;
+	long int j = 1;
 
 	if(!parser_scan_errors(lexer))
 		return false;
+
+	if(parser_allocate_chunk(
+		1,
+		parser)
+	== false)
+		return false;
+
+	create_node_null(&parser->nodes[0]);
 
 	while(i < lexer->count) {
 		// allocation
@@ -120,7 +137,7 @@ Parser* restrict parser) {
 		// unlike `create_lexer` all the incrementations are done
 	}
 
-	if(j == 0) {
+	if(j == 1) {
 		destroy_parser(parser);
 		return false;
 	}
@@ -128,7 +145,7 @@ Parser* restrict parser) {
 	parser->count = j;
 	Node* nodes_realloc = realloc(
 		parser->nodes,
-		(parser->count + 1) * sizeof(Node));
+		(j + 1) * sizeof(Node));
 
 	if(nodes_realloc == NULL) {
 		destroy_parser(parser);
@@ -136,7 +153,7 @@ Parser* restrict parser) {
 	}
 
 	parser->nodes = nodes_realloc;
-	parser->nodes[parser->count] = (Node) {.type = NodeType_NO};
+	create_node_null(&parser->nodes[j]);
 	return true;
 }
 

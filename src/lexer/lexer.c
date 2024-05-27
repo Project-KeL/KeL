@@ -14,17 +14,17 @@
  * It is related to the position around a colon. Everything is an L by default.
  *
  * Checking order:
- * 1 - is command (sets `previous_is_command`, dependency: L)
+ * 1 - is command
  * 2 - is QL
  * 3 - is L
  * 4 - is QR
- * 5 - is R (sets `previous_is_modifier`, dependencies: L and R)
+ * 5 - is R
  *     1 - Consumes all following R modifier operators.
  * 6 - is QLR
  * 7 - is LR
  * 8 - is PL
  * 9 - is literal 
- * 10 - is special (sets `previous_is_modifier`, dependencies: L and R)
+ * 10 - is special
  *      1 - Consumes all following R modifier operators
  *      2 - R left parenthesis
  *      3 - R grave accent
@@ -32,14 +32,31 @@
  *      5 - R right parenthesis
  *      6 - Lonely colon
  *      7 - Other special symbols
- * 11 - is valid_name
+ * 11 - is valid name
  *
  * Qualifier cases are checked first to detect the brackets, so it is easier to detect
  * names (for instance, the name of an L or a R).
 */
 
 // more errors will be supported in "lexer_error.c".
-static bool token_error = false;
+static int error = 0;
+
+static int set_error(int value) {
+	if(value == -1) {
+		error = -1;
+		return -1;
+	}
+
+	return value;
+}
+
+static void create_token_null(Token* token) {
+	*token = (Token) {
+		.type = TokenType_NO,
+		.subtype = TokenSubtype_NO,
+		.start = 0,
+		.end = 0};
+}
 
 static void create_token_special(
 const char* restrict code,
@@ -96,83 +113,97 @@ Token* token) {
 	return true;
 }
 
-static bool get_QL(
-const char* restrict code,
-long int start,
-long int* end,
-long int* L_start,
-long int* L_end) {
-	if(code[start] != '[')
-		return false;
-
-	long int buffer_end = start + 1;
-	*L_start = start + 1;
+static int get_QL(
+TokenType type,
+TokenSubtype subtype,
+long int* restrict start,
+long int* restrict end,
+long int* restrict i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
 
 	do {
+		if(lexer_allocate_chunk(
+			*i + 1,
+			lexer)
+		== false)
+			return -1;
+
 		lexer_get_next_word(
 			code,
-			&start,
-			&buffer_end);
-	} while(code[buffer_end] != ']');
+			start,
+			end);
+		tokens[*i] = (Token) {
+			.type = type,
+			.subtype = subtype,
+			.L_start = *start,
+			.L_end = *end,
+			.R_start = *end,
+			.R_end = *end};
+		*i += 1;
+	} while(code[*end] != ']');
 
-	*L_end = buffer_end;
-	*end = buffer_end + 1;
-	return true;
+	return 1;
 }
 
-static bool if_QL_create_token(
-const char* restrict code,
-long int start,
-long int* end,
-Token* token) {
+static int if_QL_create_token(
+long int* restrict start,
+long int* restrict end,
+long int* restrict i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
+	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int L_start;
-	long int L_end;
+	long int buffer_i = *i;
 
-	if(!get_QL(
-		code,
-		start,
+	if(isgraph(code[buffer_start - 1])
+	|| code[buffer_start] != '[')
+		return 0;
+
+	switch(get_QL(
+		TokenType_QL,
+		TokenSubtype_NO,
+		&buffer_start,
 		&buffer_end,
-		&L_start,
-		&L_end)
-	|| (isgraph(code[buffer_end])
-	 && code[buffer_end] != ':')) {
-		// better to check this here?
-		if(isgraph(code[buffer_end]))
-			token_error = true;
-
-		return false;
+		&buffer_i,
+		lexer)) {
+	case -1: return -1;
+	case 1: /* fall through */
 	}
+
+	buffer_end += 1;
 
 	if(code[buffer_end] == ':'
 	// QR possibility
 	&& !isgraph(code[buffer_end + 1]))
 		buffer_end += 1;
 
-	if(isgraph(code[buffer_end]))
-		return false;
+	if(isgraph(code[buffer_end])) // performance?
+		return 0;
 
+	*start = buffer_start;
 	*end = buffer_end;
-	*token = (Token) {
-		.type = TokenType_QL,
-		.subtype = TokenSubtype_NO,
-		.L_start = L_start,
-		.L_end = L_end,
-		.R_start = L_end,
-		.R_end = L_end};
-	return true;
+	*i = buffer_i - 1;
+	return 1;
 }
 
 static bool if_L_create_token(
-bool previous_is_command,
-bool previous_is_modifier,
-const char* restrict code,
 long int start,
 long int* end,
-Token* token) {
+long int i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
+	const bool previous_is_command = tokens[i - 1].type == TokenType_COMMAND;
+	const bool previous_is_operator_modifier = lexer_is_operator_modifier(code[tokens[i - 1].L_start]);
+
 	if(previous_is_command
-	|| previous_is_modifier
+	|| previous_is_operator_modifier
 	|| code[start - 1] == ':'
+	|| (code[*end] == ':'
+	 && isalpha(code[*end + 1]))
 	|| lexer_is_valid_name(
 		code,
 		start,
@@ -186,7 +217,7 @@ Token* token) {
 		*end,
 		*end,
 		*end,
-		token);
+		&tokens[i]);
 	
 	if(code[*end] == ':'
 	// R possibility
@@ -196,77 +227,95 @@ Token* token) {
 	return true;
 }
 
-static bool get_QR(
-const char* restrict code,
-long int start,
-long int* end,
-long int* R_start,
-long int* R_end) {
-	if(code[start] != ':'
-	|| code[start + 1] != '[')
-		return false;
-
-	start += 1;
-	long int buffer_end = start + 1;
-	*R_start = start + 1;
+static int get_QR(
+TokenType type,
+TokenSubtype subtype,
+long int* restrict start,
+long int* restrict end,
+long int* restrict i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
 
 	do {
+		if(lexer_allocate_chunk(
+			*i + 1,
+			lexer)
+		== false)
+			return -1;
+
 		lexer_get_next_word(
 			code,
-			&start,
-			&buffer_end);
-		TokenSubtype buffer_subtype;
-	} while(code[buffer_end] != ']'); 
+			start,
+			end);
+		tokens[*i] = (Token) {
+			.type = type,
+			.subtype = subtype,
+			.L_start = *start,
+			.L_end = *start,
+			.R_start = *start,
+			.R_end = *end};
+		*i += 1;
+	} while(code[*end] != ']');
 
-	*R_end = buffer_end;
-	*end = buffer_end + 1;
-	return true;
+	return 1;
 }
 
-static bool if_QR_create_token(
-const char* restrict code,
-long int start,
-long int* end,
-Token* token) {
-	TokenSubtype subtype;
+static int if_QR_create_token(
+long int* restrict start,
+long int* restrict end,
+long int* restrict i,
+Lexer* restrict lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
+	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int R_start;
-	long int R_end;
+	long int buffer_i = *i;
 
-	if(!get_QR(
-		code,
-		start,
+	if(code[buffer_start] != ':'
+	|| code[buffer_start + 1] != '[')
+		return 0;
+
+	buffer_end += 1;
+
+	switch(get_QR(
+		TokenType_QR,
+		TokenSubtype_NO,
+		&buffer_start,
 		&buffer_end,
-		&R_start,
-		&R_end)
-	|| isgraph(code[buffer_end]))
-		return false;
+		&buffer_i,
+		lexer)) {
+	case -1: return -1;
+	case 1: /* fall through */;
+	}
 
+	buffer_end += 1;
+
+	if(isgraph(code[buffer_end])) // performance?
+		return 0;
+
+	*start = buffer_start;
 	*end = buffer_end;
-	*token = (Token) {
-		.type = TokenType_QR,
-		.subtype = TokenSubtype_NO,
-		.L_start = R_start,
-		.L_end = R_start,
-		.R_start = R_start,
-		.R_end = R_end};
-	return true;
+	*i = buffer_i - 1;
+	return 1;
 }
 
 static bool if_R_create_token(
-bool previous_is_modifier,
-const char* restrict code,
 long int start,
 long int* end,
-Token* token) {
+long int i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	long int buffer_end = start + 1;
+	Token* tokens = lexer->tokens;
+	const bool previous_is_operator_modifier = lexer_is_operator_modifier(code[tokens[i - 1].L_start]);
+
 	if((code[start] != ':'
-	 && !previous_is_modifier)
-	|| (!isalpha(code[start + 1])))
+	 && !previous_is_operator_modifier)
+	|| !isalpha(code[start + 1]))
 		return false;
 
-	long int buffer_end = start + 1;
-
-	if(!previous_is_modifier) {
+	if(!previous_is_operator_modifier) {
 		lexer_get_next_word(
 			code,
 			&start,
@@ -280,7 +329,7 @@ Token* token) {
 	== false)
 		return false; // could be an array
 
-	if(!previous_is_modifier)
+	if(!previous_is_operator_modifier)
 		*end = buffer_end;
 
 	create_token_colon_word(
@@ -289,62 +338,74 @@ Token* token) {
 		start,
 		start,
 		*end,
-		token);
+		&tokens[i]);
 	return true;
 }
 
 static bool if_QLR_create_token(
-const char* restrict code,
-long int start,
-long int* end,
-Token* token) {
+long int* restrict start,
+long int* restrict end,
+long int* restrict i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int L_start;
-	long int L_end;
-	long int R_start;
-	long int R_end;
-	
-	if(get_QL(
-		code,
-		start,
+	long int buffer_i = *i;
+
+	if(isgraph(code[buffer_start - 1])
+	|| code[buffer_start] != '[')
+		return 0;
+
+	switch(get_QL(
+		TokenType_QLR,
+		TokenType_QL,
+		&buffer_start,
 		&buffer_end,
-		&L_start,
-		&L_end)
-	== false)
+		&buffer_i,
+		lexer)) {
+	case -1: return -1;
+	case 1: /* fall through */;
+	}
+
+	buffer_end += 1;
+
+	if(code[buffer_end] != ':'
+	&& code[buffer_end + 1] != '[')
 		return false;
 
-	start = buffer_end;
+	buffer_end += 2;
 
-	if(get_QR(
-		code,
-		start,
+	switch(get_QR(
+		TokenType_QLR,
+		TokenType_QR,
+		&buffer_start,
 		&buffer_end,
-		&R_start,
-		&R_end)
-	== false)
-		return false;
+		&buffer_i,
+		lexer)) {
+	case -1: return -1;
+	case 1: /* fall through */
+	}
 
-	if(isgraph(code[buffer_end]))
-		return false;
+	buffer_end += 1;
 
+	if(isgraph(code[buffer_end])) // performance?
+		return 0;
+
+	*start = buffer_start;
 	*end = buffer_end;
-	*token = (Token) {
-		.type = TokenType_QLR,
-		.subtype = TokenSubtype_NO,
-		.L_start = L_start,
-		.L_end = L_end,
-		.R_start = R_start,
-		.R_end = R_end};
-	return true;
+	*i = buffer_i - 1;
+	return 1;
 }
 
 static bool if_LR_create_token(
-bool previous_is_command,
-const char* restrict code,
 long int start,
 long int* end,
-Token* token) {
-	if(previous_is_command
+long int i,
+Lexer* lexer) {
+	const char* code = lexer->source->content;
+	Token* tokens = lexer->tokens;
+
+	if(tokens[i - 1].type == TokenType_COMMAND
 	|| !lexer_is_valid_name(
 		code,
 		start,
@@ -372,7 +433,7 @@ Token* token) {
 		*end,
 		R_start,
 		R_end,
-		token);
+		&tokens[i]);
 	*end = R_end;
 	return true;
 }
@@ -393,13 +454,13 @@ Token* token) {
 				case 'B': break;
 				case 'o': break;
 				case 'x': break;
-				default: token_error = true; return false; // unknown base
+				default: set_error(-1); return false; // unknown base
 			}
 
 			buffer_end += 1;
 
 			if(!isXdigit(code[buffer_end])) {
-				token_error = true;
+				set_error(-1);
 				return false;
 			}
 		}
@@ -411,7 +472,7 @@ Token* token) {
 		if(code[buffer_end - 1] == '`'
 		|| (isgraph(code[buffer_end])
 		 && !lexer_is_special(code[buffer_end]))) {
-			token_error = true;
+			set_error(-1);
 			return false;
 		}
 
@@ -421,7 +482,7 @@ Token* token) {
 		   && code[buffer_end] != '\'') buffer_end += 1;
 
 		if(code[buffer_end] != '\'') {
-			token_error = true;
+			set_error(-1);
 			return false;
 		}
 
@@ -433,7 +494,7 @@ Token* token) {
 		   && code[buffer_end] != '`') buffer_end += 1;
 
 		if(code[buffer_end] != '`') {
-			token_error = true;
+			set_error(-1);
 			return false;
 		}
 
@@ -528,21 +589,26 @@ Lexer* restrict lexer) {
 	lexer->source = source;
 	lexer->tokens = NULL;
 	lexer->count = 0;
-
 	const char* code = source->content;
-	bool previous_is_command = false;
-	bool previous_is_modifier = false;
 	long int count_L_parenthesis_nest = 0; // to get a good match with R parenthesis
 	long int start = 0;
 	long int end = 1;
-	long int i = 0;
+	long int i = 1;
 
 	if(lexer_scan_errors(
 		source,
 		allocator)
 	== false)
 		return false;
-	// main loop
+
+	if(lexer_allocate_chunk(
+		1,
+		lexer)
+	== false)
+		return false;
+
+	create_token_null(&lexer->tokens[0]);
+
 	while(lexer_get_next_word(
 		code,
 		&start,
@@ -571,38 +637,36 @@ Lexer* restrict lexer) {
 			start,
 			token)
 		== true) {
-			previous_is_command = true;
-		} else if(if_QL_create_token(
-			code,
-			start,
-			&end,
-			token)
-		== true) {
+			// OK
+		} else if(set_error(
+			if_QL_create_token(
+				&start,
+				&end,
+				&i,
+				lexer))
+		== 1) {
 			// OK
 		} else if(if_L_create_token(
-			previous_is_command,
-			previous_is_modifier,
-			code,
 			start,
 			&end,
-			token)
+			i,
+			lexer)
 		== true)  {
 			// OK
-		} else if(if_QR_create_token(
-			code,
-			start,
-			&end,
-			token)
-		== true) {
+		} else if(set_error(
+			if_QR_create_token(
+				&start,
+				&end,
+				&i,
+				lexer))
+		== 1) {
 			// OK
 		} else if(if_R_create_token(
-			previous_is_modifier,
-			code,
 			start,
 			&end,
-			token)
+			i,
+			lexer)
 		== true) {
-			previous_is_modifier = false;
 			long int buffer_end = end;
 			lexer_get_next_word(
 				code,
@@ -638,19 +702,19 @@ Lexer* restrict lexer) {
 
 				end = start;
 			}
-		} else if(if_QLR_create_token(
-			code,
-			start,
-			&end,
-			token)
-		== true) {
+		} else if(set_error(
+			if_QLR_create_token(
+				&start,
+				&end,
+				&i,
+				lexer))
+		== 1) {
 			// OK
 		} else if(if_LR_create_token(
-			previous_is_command,
-			code,
 			start,
 			&end,
-			token)
+			i,
+			lexer)
 		== true) {
 			// OK
 		} else if(if_PL_create_token(
@@ -703,7 +767,6 @@ Lexer* restrict lexer) {
 				} while(lexer_is_operator_modifier(code[start]));
 
 				end = start;
-				previous_is_modifier = true;
 				i -= 1; // `i` is incremented at the end of the loop
 			} else if(code[start] == ':'
 			       && code[buffer_end] == '(') {
@@ -810,11 +873,15 @@ TOKEN_SPECIAL:
 			return false;
 		}
 
-		previous_is_command = lexer_is_command(code[start]);
+		if(error == -1) {
+			destroy_lexer(lexer);
+			return false;
+		}
+
 		i += 1;
 	}
 
-	if(i == 0) {
+	if(i == 1) {
 		destroy_lexer(lexer);
 		return false;
 	}
@@ -822,7 +889,7 @@ TOKEN_SPECIAL:
 	lexer->count = i;
 	Token* tokens_realloc = realloc(
 		lexer->tokens,
-		(lexer->count + 1) * sizeof(Token));
+		(i + 1) * sizeof(Token));
 
 	if(tokens_realloc == NULL) {
 		destroy_lexer(lexer);
@@ -830,9 +897,7 @@ TOKEN_SPECIAL:
 	}
 
 	lexer->tokens = tokens_realloc;
-	lexer->tokens[i] = (Token) {
-		.type = TokenType_NO,
-		.subtype = TokenSubtype_NO};
+	create_token_null(&lexer->tokens[i]);
 	return true;
 }
 
