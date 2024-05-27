@@ -70,7 +70,7 @@ ERROR:
 		return false;
 	}
 
-	source->content[source->length] = '\0';
+	source->content[source->length + 1] = '\0';
 	return true;
 }
 

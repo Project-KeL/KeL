@@ -23,11 +23,15 @@ typedef enum: uint64_t {
 } NodeSubtype;
 
 typedef enum: uint64_t {
-	NodeTypeChild_NO = 0,
+#define NODE_TYPE_CHILD(type) NodeTypeChild_ ## type
+	NODE_TYPE_CHILD(NO) = 0,
+#undef NODE_TYPE_CHILD_TYPE
 } NodeTypeChild;
 
 typedef enum: uint64_t {
-	NodeSubtypeChild_NO = 0,
+#define NODE_SUBTYPE_CHILD(subtype) NodeSubtypeChild_ ## subtype
+	NODE_SUBTYPE_CHILD(NO) = 0,
+#undef NODE_SUBTYPE_CHILD
 } NodeSubtypeChild;
 
 /*
