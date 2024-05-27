@@ -400,16 +400,18 @@ Parser* parser) {
 		buffer_i,
 		buffer_j,
 		parser)) {
-		case -1: return -1;
-		case 0: return 0;
-		case 1:
-			buffer_i += 1;
-			buffer_j += 1;
-			/* fall through */
+	case -1: return -1;
+	case 0: return 0;
+	case 1:
+		buffer_i += 1;
+		buffer_j += 1;
+		/* fall through */
 	}
 	// create the beginning of the node
 	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
 		return 0;
+
+	buffer_i += 1;
 
 	// add the type as child nodes in `.child1`
 	switch(if_type_create_nodes(
