@@ -31,7 +31,7 @@ A single line comment begins with `!--` and a multiline comment is surrounded by
 ## Keys and locks
 The central symbol in KeL is the colon. The colon is 'blank-sensitive' meaning the characters surrounding the colon (including non-glyph characters) are significant. To simplify, a word right before a colon is called a _key_ and a word right after a _lock_.
 
-Beside the colon symbol there are two important symbols called _commands_.
+There are two other important symbols called _commands_.
 1. `#` refers to declarations or other actions to be executed at compile-time.
 2. `@` is the equivalent at run-time.
 

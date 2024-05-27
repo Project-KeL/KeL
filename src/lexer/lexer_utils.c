@@ -247,7 +247,7 @@ long int* end) {
 		   || code[*end + 1] != '-'
 		   || code[*end + 2] != '|'); // error checked
 			
-		*end += 2;
+		*end += 3;
 	} else
 		return false;
 
