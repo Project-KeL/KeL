@@ -93,12 +93,23 @@ const Node* node) {
 		&code[node->token->L_start]);
 }
 
-static void print_info_node_key_type(
+static void print_info_node_type(
 const char* code,
 const Node* node) {
 	const Token* token = node->token;
 
-	if(node->type == NodeTypeChildType_LOCK) {
+	switch(node->type) {
+	case NodeType_QUALIFIER:
+		if(node->subtype == TokenType_QL) {
+			printf("QL <%.*s>\n",
+				token->L_end - token->L_start,
+				&code[token->L_start]);
+		} else {
+			printf("QR <%.*s>\n",
+				token->R_end - token->R_start,
+				&code[token->R_start]);
+		} break;
+	case NodeTypeChildType_LOCK:
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
 				printf("LOCK <%.*s>\n",
@@ -120,7 +131,7 @@ const Node* node) {
 				printf("PARAMETER LOCK <%.*s>\n",
 					token->R_end - token->R_start,
 					&code[token->R_start]); break;
-		}
+		} break;
 	}
 }
 
@@ -162,7 +173,7 @@ void debug_print_nodes(const Parser* parser) {
 
 			do {
 				printf("\t\t");
-				print_info_node_key_type(
+				print_info_node_type(
 					code,
 					child);
 				child = child->child1;

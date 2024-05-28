@@ -6,6 +6,12 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
+static NodeSubtypeIdentificationBitCommand token_subtype_command_to_subtype(TokenSubtype subtype_token) {
+	return subtype_token == TokenSubtype_HASH ?
+		NodeSubtypeIdentificationBitCommand_HASH
+		: NodeSubtypeIdentificationBitCommand_AT;
+}
+
 static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
 	return subtype_token;
 }
@@ -31,33 +37,6 @@ static NodeSubtypeChildTypeModifier operator_modifier_to_subtype_right(TokenSubt
 	case TokenSubtype_PLUS: return NodeSubtypeChildTypeModifier_PLUS_RIGHT;
 	default: assert(false);
 	}
-}
-
-static int if_command_create_node(
-int i,
-int j,
-Parser* parser) {
-	const Token* tokens = parser->lexer->tokens;
-	NodeSubtypeIdentificationBitCommand subtype;
-
-	if(tokens[i].subtype == TokenSubtype_HASH)
-		subtype |= NodeSubtypeIdentificationBitCommand_HASH;
-	else if(tokens[i].subtype == TokenSubtype_AT)
-		subtype |= NodeSubtypeIdentificationBitCommand_AT;
-	else
-		return 0;
-
-	if(parser_allocate_chunk(
-		j + 1,
-		parser)
-	== false)
-		return -1;
-
-	parser->nodes[j] = (Node) { // `buffer_j` still equals `*j`
-		.type = NodeType_IDENTIFICATION,
-		.subtype = subtype, // command and type of identification
-		.token = &tokens[i + 1]};
-	return 1;
 }
 
 static void type_bind_child_token(
@@ -394,26 +373,51 @@ Parser* parser) {
 	const Token* tokens = parser->lexer->tokens;
 	long int buffer_i = *i;
 	long int buffer_j = *j;
-	NodeSubtype subtype;
-	// command parsing
+	Node* nodes = parser->nodes;
+	NodeSubtype subtype = NodeSubtype_NO;
+	long int i_qualifier = buffer_j;
 
-	switch(if_command_create_node(
-		buffer_i,
-		buffer_j,
-		parser)) {
-	case -1: return -1;
-	case 0: return 0;
-	case 1:
-		buffer_i += 1;
-		buffer_j += 1;
-		/* fall through */
-	}
+	while(parser_is_qualifier(&tokens[buffer_i])) buffer_i += 1;
+
+	if(tokens[buffer_i].type != TokenType_COMMAND)
+		return 0;
+
+	subtype |= token_subtype_command_to_subtype(tokens[buffer_i].subtype);
+	buffer_i += 1;
 
 	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
 		return 0;
 
-	buffer_i += 1;
+	if(parser_allocate_chunk(
+		buffer_j + 1,
+		parser)
+	== false)
+		return -1;
 
+	nodes[buffer_j] = (Node) {
+		.type = NodeType_IDENTIFICATION,
+		.subtype = subtype,
+		.token = &tokens[buffer_i],
+		.child = NULL};
+	buffer_i += 1;
+	buffer_j += 1;
+
+	while(parser_is_qualifier(&tokens[i_qualifier])) {
+		if(parser_allocate_chunk(
+			buffer_j + 1,
+			parser)
+		== false)
+			return -1;
+
+		nodes[buffer_j] = (Node) {
+			.type = NodeType_QUALIFIER,
+			.subtype = tokens[i_qualifier].subtype,
+			.token = &tokens[i_qualifier],
+			.child = NULL};
+		nodes[buffer_j - 1].child1 = &nodes[buffer_j];
+		i_qualifier += 1;
+		buffer_j += 1;
+	}
 	// add the type as child nodes in `.child1`
 	switch(if_type_create_nodes(
 		&buffer_i,

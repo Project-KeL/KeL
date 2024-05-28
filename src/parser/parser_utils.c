@@ -6,7 +6,6 @@
 #include "parser_utils.h"
 
 // look at the commit 147b4b12 to get back the string to uint64_t converter
-//
 
 bool parser_is_parenthesis(const Token* token) {
 	return token->subtype == TokenSubtype_LPARENTHESIS
@@ -41,6 +40,12 @@ bool parser_is_R_left_parenthesis(const Token* token) {
 bool parser_is_R_right_parenthesis(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
+}
+
+bool parser_is_qualifier(const Token* token) {
+	return token->type == TokenType_QL
+	    || token->type == TokenType_QR
+	    || token->type == TokenType_QLR;
 }
 
 bool parser_is_operator_leveling(const Token* restrict token) {

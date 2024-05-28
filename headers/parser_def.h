@@ -9,6 +9,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(NO) = 0,
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
+	NODE_TYPE(QUALIFIER),
 	NODE_TYPE(IDENTIFICATION), // `.subtype` holds the command, the type of identification and the qualifiers
 	NODE_TYPE(LITERAL),
 	NODE_TYPE(AFFECTATION),

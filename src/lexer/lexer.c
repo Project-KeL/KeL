@@ -164,7 +164,7 @@ Lexer* lexer) {
 
 	switch(get_QL(
 		TokenType_QL,
-		TokenSubtype_NO,
+		TokenType_QL,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -280,7 +280,7 @@ Lexer* restrict lexer) {
 
 	switch(get_QR(
 		TokenType_QR,
-		TokenSubtype_NO,
+		TokenType_QR,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
