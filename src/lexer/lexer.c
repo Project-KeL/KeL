@@ -42,11 +42,10 @@
 static int error = 0;
 
 static int set_error(int value) {
-	if(value == -1) {
-		error = -1;
+	if(error == -1)
 		return -1;
-	}
 
+	error = value;
 	return value;
 }
 
