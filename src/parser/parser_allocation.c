@@ -1,9 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "parser_allocation.h"
 
 bool parser_allocate_chunk(
 long int minimum,
-Parser* restrict parser) {
+Parser* parser) {
 #define NODES_CHUNK 4096
 	if(parser->count <= minimum) {
 		const long int reserve = minimum / NODES_CHUNK + 1;

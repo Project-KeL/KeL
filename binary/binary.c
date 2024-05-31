@@ -32,6 +32,7 @@ bool destroy_binary(Binary* binary) {
 
 	binary->path = NULL;
 	binary->file = NULL;
+	return true;
 }
 
 bool binary_append_byte(
@@ -145,7 +146,7 @@ const Parser* restrict parser) {
 	for(long int i = 0;
 	i < parser->count - 1;
 	++i) {
-		const Node* node = &parser->nodes[i];
+		// const Node* node = &parser->nodes[i];
 /*
 		if(node->type == NodeType_CORE_B) {
 			APPEND_BYTE(node->value);
@@ -153,6 +154,7 @@ const Parser* restrict parser) {
 	}
 
 	binary_x64_elf_terminate(binary);
+	return true;
 }
 
 #undef APPEND_WORD

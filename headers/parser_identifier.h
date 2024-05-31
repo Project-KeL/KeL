@@ -7,7 +7,7 @@
 int if_identifier_create_nodes(
 	long int* i,
 	long int* j,
-	Allocator* allocator,
+	MemoryArea* memArea,
 	Parser* parser);
 
 #endif

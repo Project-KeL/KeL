@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "lexer_allocation.h"
 
 bool lexer_allocate_chunk(

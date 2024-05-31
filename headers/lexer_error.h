@@ -6,6 +6,6 @@
 
 bool lexer_scan_errors(
 	const Source* restrict source,
-	Allocator* allocator);
+	MemoryArea* restrict memArea);
 
 #endif

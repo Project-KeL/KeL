@@ -63,14 +63,14 @@ Parser* parser) {
 
 bool create_parser(
 const Lexer* lexer,
-Allocator* allocator,
+MemoryArea* memArea,
 Parser* restrict parser) {
 	assert(lexer != NULL);
 	assert(lexer->tokens != NULL);
+
 	parser->lexer = lexer;
 	parser->nodes = NULL;
 	parser->count = 0;
-	const char* code = lexer->source->content;
 	const Token* tokens = lexer->tokens;
 	long int i = 1;
 	long int j = 1;
@@ -89,12 +89,10 @@ Parser* restrict parser) {
 	while(i < lexer->count) {
 		// allocation
 		if(parser_allocate_chunk(
-			i,
+			j + 1,
 			parser)
-		== false) {
-			destroy_parser(parser);
-			return false;
-		}
+		== false)
+			goto DESTROY;
 		// create nodes
 		if(if_scope_create_node(
 			i,
@@ -107,7 +105,7 @@ Parser* restrict parser) {
 			if_identifier_create_nodes(
 				&i,
 				&j,
-				allocator,
+				memArea,
 				parser))
 		== 1) {
 			// OK
@@ -123,23 +121,16 @@ Parser* restrict parser) {
 			j += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
-			continue; // no new node
-		} else {
-			destroy_parser(parser);
-			return false;
-		}
+		} else
+			goto DESTROY;
 		// error checking
-		if(error == -1) {
-			destroy_parser(parser);
-			return false;
-		}
+		if(error == -1)
+			goto DESTROY;
 		// unlike `create_lexer` all the incrementations are done
 	}
 
-	if(j == 1) {
-		destroy_parser(parser);
-		return false;
-	}
+	if(j == 1)
+		goto DESTROY;
 
 	parser->count = j;
 	Node* nodes_realloc = realloc(
@@ -147,6 +138,7 @@ Parser* restrict parser) {
 		(j + 1) * sizeof(Node));
 
 	if(nodes_realloc == NULL) {
+DESTROY:
 		destroy_parser(parser);
 		return false;
 	}

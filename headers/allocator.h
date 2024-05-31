@@ -5,24 +5,45 @@
 #include <stdlib.h>
 
 typedef struct {
-	uint8_t* address;
-	uint8_t* last;
+	void* addr;
 	size_t size;
-} Allocator;
+	size_t size_type;
+} MemoryArea;
 
-bool create_allocator(
+bool create_memory_area(
 	size_t size,
-	Allocator* restrict allocator);
-void destroy_allocator(Allocator* restrict allocator);
-bool allocator_fit(
-	Allocator* restrict allocator,
-	size_t size);
-bool allocator_push(
-	Allocator* restrict allocator,
-	size_t count);
-bool allocator_pop(
-	Allocator* restrict allocator,
-	size_t count);
-void allocator_pop_all(Allocator* restrict allocator);
+	size_t size_type,
+	MemoryArea* restrict memArea);
+bool memory_area_realloc(
+	size_t size,
+	MemoryArea* restrict memArea);
+void destroy_memory_area(MemoryArea* restrict memArea);
+
+typedef struct MemoryChainLink MemoryChainLink;
+
+struct MemoryChainLink {
+	MemoryArea memArea;
+	MemoryChainLink* next;
+};
+
+typedef struct {
+	MemoryChainLink* first;
+	size_t count;
+	MemoryChainLink* current;
+	MemoryChainLink* last;
+} MemoryChain;
+
+bool create_memory_chain(
+	size_t size,
+	size_t size_type,
+	MemoryChain* restrict memChain);
+bool memory_chain_add_area(
+	size_t size,
+	size_t size_type,
+	MemoryChain* restrict memChain);
+MemoryArea* memory_chain_get(MemoryChain* restrict memChain);
+void memory_chain_next(MemoryChain* restrict memChain);
+void memory_chain_rewind(MemoryChain* restrict memChain) ;
+void destroy_memory_chain(MemoryChain* restrict memChain);
 
 #endif

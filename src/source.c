@@ -52,7 +52,7 @@ Source* restrict source) {
 		1,
 		source->length,
 		source_file)
-	!= source->length) {
+	!= (size_t) source->length) {
 		printf("Cannot read the source at \"");
 		printf(path);
 		printf("\".\n");
@@ -70,7 +70,7 @@ ERROR:
 		return false;
 	}
 
-	source->content[source->length + 1] = '\0';
+	source->content[(size_t) source->length + 1] = '\0';
 	return true;
 }
 

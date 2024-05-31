@@ -6,12 +6,11 @@
 
 bool lexer_scan_errors(
 const Source* restrict source,
-Allocator* restrict allocator) {
-	assert(
-		allocator_fit(
-			allocator,
-			source->length)); // at least the size of the source (matching parenthesis)
+MemoryArea* restrict memArea) {
+	assert(memArea->size >= (size_t) source->length); // at least the size of the source (matching parenthesis)
+
 	const char* code = source->content;
+	char* const memory = memArea->addr;
 	bool marker_literal_string = false;
 	size_t count_delimiter_open = 0;
 	long int start = 0;
@@ -30,14 +29,14 @@ Allocator* restrict allocator) {
 			return false;
 		// DELIMITER_MATCH
 		} else if(lexer_is_delimiter_open(c)) {
-			allocator->last[count_delimiter_open] = c;
+			memory[count_delimiter_open] = c;
 			count_delimiter_open += 1;
 		} else if(lexer_is_delimiter_close(c)) {
 			if(count_delimiter_open == 0)
 				return false;
 
 			if(lexer_delimiter_match(
-				allocator->last[count_delimiter_open - 1],
+				memory[count_delimiter_open - 1],
 				c)
 			== false)
 				return false;
@@ -99,8 +98,8 @@ Allocator* restrict allocator) {
 
 			do {
 				end += 1;
-			} while(code[end] != '\0'
-			     && code[end] != '-'
+			} while((code[end] != '\0'
+			     && code[end] != '-')
 			     || (code[end + 1] != '\0'
 			      && code[end + 1] != '-')
 				 || (code[end + 2] != '\0'

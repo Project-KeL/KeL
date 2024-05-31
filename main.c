@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include "debug.h"
 #include "kel.h"
@@ -13,7 +14,7 @@ char** argv) {
 
 	bool error = false;
 	Source source;
-	Allocator allocator;
+	MemoryArea memArea;
 	Binary binary;
 	Lexer lexer;
 	Parser parser;
@@ -28,9 +29,10 @@ char** argv) {
 
 	printf("%s\n", source.content + 1);
 
-	if(create_allocator(
-		(size_t) source.length,
-		&allocator)
+	if(create_memory_area(
+		source.length,
+		sizeof(uint8_t),
+		&memArea)
 	== false) {
 		error = true;
 		goto ERROR_1;
@@ -48,7 +50,7 @@ char** argv) {
 
 	if(create_lexer(
 		&source,
-		&allocator,
+		&memArea,
 		&lexer)
 	== false) {
 		error = true;
@@ -59,7 +61,7 @@ char** argv) {
 #endif
 	if(create_parser(
 		&lexer,
-		&allocator,
+		&memArea,
 		&parser)
 	== false) {
 		error = true;
@@ -77,7 +79,7 @@ ERROR_4:
 ERROR_3:
 	destroy_binary(&binary);
 ERROR_2:
-	destroy_allocator(&allocator);
+	destroy_memory_area(&memArea);
 ERROR_1:
 	destroy_source(&source);
 ERROR_0:

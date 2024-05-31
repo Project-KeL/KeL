@@ -7,7 +7,7 @@
 
 bool create_lexer(
 	const Source* source,
-	Allocator* restrict allocator,
+	MemoryArea* restrict allocator,
 	Lexer* restrict lexer);
 void destroy_lexer(
 	Lexer* restrict lexer);

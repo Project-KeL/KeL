@@ -2,6 +2,7 @@
 #define LEXER_DEF
 
 #include <stdint.h>
+#include "allocator.h"
 #include "source.h"
 
 typedef enum: uint32_t {
@@ -92,6 +93,7 @@ typedef struct {
 
 typedef struct {
 	const Source* source;
+	MemoryArea* memArea;
 	Token* tokens;
 	long int count;
 } Lexer;

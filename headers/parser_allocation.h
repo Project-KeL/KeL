@@ -5,6 +5,6 @@
 
 bool parser_allocate_chunk(
 	long int minimum,
-	Parser* restrict parser);
+	Parser* parser);
 
 #endif

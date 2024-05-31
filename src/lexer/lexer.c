@@ -85,18 +85,6 @@ Token* restrict token) {
 		.R_end = R_end};
 }
 
-static void create_token_literal(
-TokenSubtype subtype,
-long int start,
-long int end,
-Token* token) {
-	*token = (Token) {
-		.type = TokenType_LITERAL,
-		.subtype = subtype,
-		.start = start,
-		.end = end};
-}
-
 static bool if_command_create_token(
 const char* code,
 long int start,
@@ -158,12 +146,13 @@ Lexer* lexer) {
 	long int buffer_i = *i;
 
 	if(isgraph(code[buffer_start - 1])
-	|| code[buffer_start] != '[')
+	|| code[buffer_start] != '['
+	|| tokens[buffer_start - 1].subtype == TokenType_QR)
 		return 0;
 
 	switch(get_QL(
 		TokenType_QL,
-		TokenType_QL,
+		(TokenSubtype) TokenType_QL,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -266,7 +255,6 @@ long int* restrict end,
 long int* restrict i,
 Lexer* restrict lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
 	long int buffer_i = *i;
@@ -279,7 +267,7 @@ Lexer* restrict lexer) {
 
 	switch(get_QR(
 		TokenType_QR,
-		TokenType_QR,
+		(TokenSubtype) TokenType_QR,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -357,7 +345,7 @@ Lexer* lexer) {
 
 	switch(get_QL(
 		TokenType_QLR,
-		TokenType_QL,
+		(TokenSubtype) TokenType_QL,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -376,7 +364,7 @@ Lexer* lexer) {
 
 	switch(get_QR(
 		TokenType_QLR,
-		TokenType_QR,
+		(TokenSubtype) TokenType_QR,
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -546,21 +534,6 @@ Token* token) {
 	return true;
 }
 
-static bool if_special_create_token(
-const char* code,
-long int start,
-Token* token) {
-	if(!lexer_is_special(code[start]))
-		return false;
-
-	create_token_special(
-		code,
-		start,
-		TokenType_SPECIAL,
-		token);
-	return true;
-}
-
 static bool if_valid_name_create_token(
 const char* code,
 long int start,
@@ -583,7 +556,7 @@ Token* token) {
 
 bool create_lexer(
 const Source* source,
-Allocator* restrict allocator,
+MemoryArea* restrict memArea,
 Lexer* restrict lexer) {
 	lexer->source = source;
 	lexer->tokens = NULL;
@@ -596,7 +569,7 @@ Lexer* restrict lexer) {
 
 	if(lexer_scan_errors(
 		source,
-		allocator)
+		memArea)
 	== false)
 		return false;
 
@@ -622,12 +595,10 @@ Lexer* restrict lexer) {
 			break;
 		// allocation
 		if(lexer_allocate_chunk(
-			i,
+			i + 1,
 			lexer)
-		== false) {
-			destroy_lexer(lexer);
-			return false;
-		}
+		== false)
+			goto DESTROY;
 		// create tokens
 		Token* token = &lexer->tokens[i];
 
@@ -686,12 +657,10 @@ Lexer* restrict lexer) {
 						.R_end = buffer_end};
 					
 					if(lexer_allocate_chunk(
-						i,
+						i + 1,
 						lexer)
-					== false) {
-						destroy_lexer(lexer);
-						return false;
-					}
+					== false)
+						goto DESTROY;
 
 					lexer_get_next_word(
 						code,
@@ -757,12 +726,10 @@ Lexer* restrict lexer) {
 						&buffer_end);
 
 					if(lexer_allocate_chunk(
-						i,
+						i + 1,
 						lexer)
-					== false) {
-						destroy_lexer(lexer);
-						return false;
-					}
+					== false)
+						goto DESTROY;
 				} while(lexer_is_operator_modifier(code[start]));
 
 				end = start;
@@ -817,12 +784,10 @@ Lexer* restrict lexer) {
 							&end);
 
 						if(lexer_allocate_chunk(
-							i,
+							i + 1,
 							lexer)
-						== false) {
-							destroy_lexer(lexer);
-							return false;
-						}
+						== false)
+							goto DESTROY;
 					} while(code[start] != ':');
 
 					end -= 1;
@@ -867,23 +832,17 @@ TOKEN_SPECIAL:
 			token)
 		== true) {
 			// OK
-		} else {
-			destroy_lexer(lexer);
-			return false;
-		}
+		} else
+			goto DESTROY;
 
-		if(error == -1) {
-			destroy_lexer(lexer);
-			return false;
-		}
+		if(error == -1)
+			goto DESTROY;
 
 		i += 1;
 	}
 
-	if(i == 1) {
-		destroy_lexer(lexer);
-		return false;
-	}
+	if(i == 1)
+		goto DESTROY;
 
 	lexer->count = i;
 	Token* tokens_realloc = realloc(
@@ -891,6 +850,7 @@ TOKEN_SPECIAL:
 		(i + 1) * sizeof(Token));
 
 	if(tokens_realloc == NULL) {
+DESTROY:
 		destroy_lexer(lexer);
 		return false;
 	}
