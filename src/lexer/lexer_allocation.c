@@ -2,23 +2,39 @@
 #include <stdio.h>
 #include "lexer_allocation.h"
 
-bool lexer_allocate_chunk(
-long int minimum,
-Lexer* lexer) {
-#define TOKENS_CHUNK 4096
-	if(lexer->count <= minimum) {
-		const long int reserve = minimum / TOKENS_CHUNK + 1;
-		Token* tokens_realloc = realloc(
-			lexer->tokens,
-			reserve * TOKENS_CHUNK * sizeof(Token));
+#define CHUNK 4096
+bool lexer_create_allocator(Lexer* lexer) {
+	if(create_memory_area(
+		CHUNK,
+		sizeof(Token),
+		&lexer->tokens)
+	== false)
+		return false;
 
-		if(tokens_realloc == NULL)
-			return false;
-		
-		lexer->tokens = tokens_realloc;
-		lexer->count = reserve * TOKENS_CHUNK;
-	}
-	
 	return true;
-#undef TOKENS_CHUNK
 }
+
+bool lexer_allocate_chunk(
+size_t minimum,
+Lexer* lexer) {
+	if(lexer->tokens.count <= minimum) {
+		const bool error = memory_area_realloc(
+			(minimum / CHUNK + 1) * CHUNK,
+			&lexer->tokens);
+		return error;
+	}
+
+	return true;
+}
+
+bool lexer_allocator_shrink(Lexer* lexer) {
+	const bool error = memory_area_realloc(
+		lexer->tokens.count + 1, // null token
+		&lexer->tokens);
+	return error;
+}
+
+void lexer_destroy_allocator(Lexer* lexer) {
+	destroy_memory_area(&lexer->tokens);
+}
+#undef CHUNK

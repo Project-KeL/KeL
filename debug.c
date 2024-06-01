@@ -138,25 +138,25 @@ const Node* node) {
 void debug_print_tokens(const Lexer* lexer) {
 	printf("TOKENS:\n");
 
-	for(long int i = 1;
-	i < lexer->count;
+	for(size_t i = 1;
+	i < lexer->tokens.count - 1;
 	i += 1) {
 		printf("\t");
 		print_info_token(
 			lexer->source->content,
-			&lexer->tokens[i]);
+			&((Token*) lexer->tokens.addr)[i]);
 	}
 
 	printf(
 		"\nNumber of tokens: %ld.\n",
-		lexer->count - 1);
+		lexer->tokens.count - 2);
 }
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	printf("NODES:\n");
 
-	for(long int j = 1;
+	for(size_t j = 1;
 	j < parser->count;
 	j += 1) {
 		const Node* node = &parser->nodes[j];

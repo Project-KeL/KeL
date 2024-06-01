@@ -159,7 +159,7 @@ struct Node {
 typedef struct {
 	const Lexer* lexer;
 	Node* nodes;
-	long int count;
+	size_t count;
 } Parser;
 
 #endif

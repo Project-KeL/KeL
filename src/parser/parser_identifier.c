@@ -56,13 +56,13 @@ Node* node) {
 }
 
 static bool parse_type_lock_left(
-long int* i,
-long int* j,
+size_t* i,
+size_t* j,
 Node* parent,
 Parser* parser) {
-	long int buffer_i = *i;
-	long int buffer_j = *j;
-	const Token* tokens = parser->lexer->tokens;
+	size_t buffer_i = *i;
+	size_t buffer_j = *j;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	Node* nodes = parser->nodes;
 	// L side before lock
 	while(tokens[buffer_i].type == TokenType_L
@@ -109,13 +109,13 @@ Parser* parser) {
 }
 
 static bool parse_type_lock_right(
-long int* i,
-long int* j,
+size_t* i,
+size_t* j,
 Node* parent,
 Parser* parser) {
-	long int buffer_i = *i;
-	long int buffer_j = *j;
-	const Token* tokens = parser->lexer->tokens;
+	size_t buffer_i = *i;
+	size_t buffer_j = *j;
+	const Token* tokens = (const Token*) &parser->lexer->tokens.addr;
 	Node* nodes = parser->nodes;
 
 	while(tokens[buffer_i].type == TokenType_R
@@ -139,20 +139,20 @@ Parser* parser) {
 }
 
 static int if_type_create_nodes(
-long int* i,
-long int* j,
+size_t* i,
+size_t* j,
 Node* parent,
 MemoryArea* memArea,
 Parser* parser) {
 	char* const memory = memArea->addr;
-	const Token* tokens = parser->lexer->tokens;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	Node* nodes = parser->nodes;
-	long int buffer_i = *i;
-	long int buffer_j = *j;
+	size_t buffer_i = *i;
+	size_t buffer_j = *j;
 	// rough allocation
 
 	while(tokens[buffer_i].subtype != TokenSubtype_SEMICOLON
-	   && buffer_i < parser->lexer->count) {
+	   && buffer_i < parser->lexer->tokens.count - 1) {
 		buffer_i += 1;
 		buffer_j += 1;
 	}
@@ -166,13 +166,13 @@ Parser* parser) {
 	buffer_i = *i;
 	buffer_j = *j;
 	// if the current scope has at least one parameter allocator->address[count_parenthesis_nest] is set to 1
-	long int count_parenthesis_nest = 0;	
+	size_t count_parenthesis_nest = 0;	
 
 	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 	do {
-		long int j_lock;
+		size_t j_lock;
 TYPE:
 		// lock alone
 		if(parse_type_lock_left(
@@ -338,14 +338,14 @@ RPARENTHESIS:
 }
 
 static int if_initialization_create_node(
-long int* i,
-long int* j,
+size_t* i,
+size_t* j,
 Node* parent,
 Parser* parser) {
 	// just parse literals for the moment, expressions later
-	const Token* tokens = parser->lexer->tokens;
-	long int buffer_i = *i;
-	long int buffer_j = *j;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
+	size_t buffer_i = *i;
+	size_t buffer_j = *j;
 
 	if(tokens[buffer_i].type != TokenType_LITERAL)
 		return 0;
@@ -367,16 +367,16 @@ Parser* parser) {
 }
 
 int if_identifier_create_nodes(
-long int* i,
-long int* j,
+size_t* i,
+size_t* j,
 MemoryArea* memArea,
 Parser* parser) {
-	const Token* tokens = parser->lexer->tokens;
-	long int buffer_i = *i;
-	long int buffer_j = *j;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
+	size_t buffer_i = *i;
+	size_t buffer_j = *j;
 	Node* nodes = parser->nodes;
 	NodeSubtype subtype = NodeSubtype_NO;
-	long int i_qualifier = buffer_i;
+	size_t i_qualifier = buffer_i;
 
 	while(parser_is_qualifier(&tokens[buffer_i])) buffer_i += 1;
 

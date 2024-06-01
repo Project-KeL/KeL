@@ -7,7 +7,7 @@
 bool lexer_scan_errors(
 const Source* restrict source,
 MemoryArea* restrict memArea) {
-	assert(memArea->size >= (size_t) source->length); // at least the size of the source (matching parenthesis)
+	assert(memArea->count >= (size_t) source->length); // at least the size of the source (matching parenthesis)
 
 	const char* code = source->content;
 	char* const memory = memArea->addr;

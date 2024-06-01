@@ -6,6 +6,7 @@
 #include "lexer.h"
 #include "parser_def.h"
 
+void initialize_parser(Parser* parser);
 bool create_parser(
 	const Lexer* lexer,
 	MemoryArea* memArea,

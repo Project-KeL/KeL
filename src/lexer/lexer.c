@@ -105,10 +105,9 @@ TokenType type,
 TokenSubtype subtype,
 long int* restrict start,
 long int* restrict end,
-long int* restrict i,
+size_t* restrict i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
 
 	do {
 		if(lexer_allocate_chunk(
@@ -117,6 +116,7 @@ Lexer* lexer) {
 		== false)
 			return -1;
 
+		Token* tokens = (Token*) lexer->tokens.addr;
 		lexer_get_next_word(
 			code,
 			start,
@@ -137,17 +137,17 @@ Lexer* lexer) {
 static int if_QL_create_token(
 long int* restrict start,
 long int* restrict end,
-long int* restrict i,
+size_t* restrict i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
+	Token* tokens = (Token*) lexer->tokens.addr;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int buffer_i = *i;
+	size_t buffer_i = *i;
 
 	if(isgraph(code[buffer_start - 1])
 	|| code[buffer_start] != '['
-	|| tokens[buffer_start - 1].subtype == TokenType_QR)
+	|| tokens[buffer_i - 1].subtype == TokenType_QR)
 		return 0;
 
 	switch(get_QL(
@@ -180,10 +180,10 @@ Lexer* lexer) {
 static bool if_L_create_token(
 long int start,
 long int* end,
-long int i,
+size_t i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
+	Token* tokens = (Token*) lexer->tokens.addr;
 	const bool previous_is_command = tokens[i - 1].type == TokenType_COMMAND;
 	const bool previous_is_operator_modifier = lexer_is_operator_modifier(code[tokens[i - 1].L_start]);
 
@@ -220,10 +220,9 @@ TokenType type,
 TokenSubtype subtype,
 long int* restrict start,
 long int* restrict end,
-long int* restrict i,
+size_t* restrict i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
 
 	do {
 		if(lexer_allocate_chunk(
@@ -232,6 +231,7 @@ Lexer* lexer) {
 		== false)
 			return -1;
 
+		Token* tokens = (Token*) lexer->tokens.addr;
 		lexer_get_next_word(
 			code,
 			start,
@@ -252,12 +252,12 @@ Lexer* lexer) {
 static int if_QR_create_token(
 long int* restrict start,
 long int* restrict end,
-long int* restrict i,
+size_t* restrict i,
 Lexer* restrict lexer) {
 	const char* code = lexer->source->content;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int buffer_i = *i;
+	size_t buffer_i = *i;
 
 	if(code[buffer_start] != ':'
 	|| code[buffer_start + 1] != '[')
@@ -290,11 +290,11 @@ Lexer* restrict lexer) {
 static bool if_R_create_token(
 long int start,
 long int* end,
-long int i,
+size_t i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
 	long int buffer_end = start + 1;
-	Token* tokens = lexer->tokens;
+	Token* tokens = (Token*) lexer->tokens.addr;
 	const bool previous_is_operator_modifier = lexer_is_operator_modifier(code[tokens[i - 1].L_start]);
 
 	if((code[start] != ':'
@@ -332,12 +332,12 @@ Lexer* lexer) {
 static bool if_QLR_create_token(
 long int* restrict start,
 long int* restrict end,
-long int* restrict i,
+size_t* restrict i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
-	long int buffer_i = *i;
+	size_t buffer_i = *i;
 
 	if(isgraph(code[buffer_start - 1])
 	|| code[buffer_start] != '[')
@@ -387,10 +387,10 @@ Lexer* lexer) {
 static bool if_LR_create_token(
 long int start,
 long int* end,
-long int i,
+size_t i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = lexer->tokens;
+	Token* tokens = (Token*) lexer->tokens.addr;
 
 	if(tokens[i - 1].type == TokenType_COMMAND
 	|| !lexer_is_valid_name(
@@ -554,32 +554,39 @@ Token* token) {
 	return true;
 }
 
+void initialize_lexer(Lexer* lexer) {
+	lexer->source = NULL;
+	initialize_memory_area(&lexer->tokens);
+}
+
 bool create_lexer(
 const Source* source,
 MemoryArea* restrict memArea,
 Lexer* restrict lexer) {
 	lexer->source = source;
-	lexer->tokens = NULL;
-	lexer->count = 0;
+
 	const char* code = source->content;
 	long int count_L_parenthesis_nest = 0; // to get a good match with R parenthesis
 	long int start = 0;
 	long int end = 1;
-	long int i = 1;
-
+	size_t i = 1;
+	// scan errors
 	if(lexer_scan_errors(
 		source,
 		memArea)
 	== false)
 		return false;
 
+	if(!lexer_create_allocator(lexer))
+		goto DESTROY;
+	// null token
 	if(lexer_allocate_chunk(
 		1,
 		lexer)
 	== false)
-		return false;
+		goto DESTROY;
 
-	create_token_null(&lexer->tokens[0]);
+	create_token_null(&((Token*) lexer->tokens.addr)[0]);
 
 	while(lexer_get_next_word(
 		code,
@@ -600,7 +607,7 @@ Lexer* restrict lexer) {
 		== false)
 			goto DESTROY;
 		// create tokens
-		Token* token = &lexer->tokens[i];
+		Token* token = & ((Token*) lexer->tokens.addr)[i];
 
 		if(if_command_create_token(
 			code,
@@ -644,7 +651,7 @@ Lexer* restrict lexer) {
 				&buffer_end);
 
 			if(lexer_is_operator_modifier(code[start])) {
-				Token* tokens = lexer->tokens;
+				Token* tokens = (Token*) lexer->tokens.addr;
 
 				do {					
 					i += 1;
@@ -700,7 +707,7 @@ Lexer* restrict lexer) {
 		== true) {
 			// OK
 		} else if(lexer_is_special(code[start])) {
-			Token* tokens = lexer->tokens;
+			Token* tokens = (Token*) lexer->tokens.addr;
 			long int buffer_end = end;
 			// right case
 			if(code[start] == ':'
@@ -730,6 +737,8 @@ Lexer* restrict lexer) {
 						lexer)
 					== false)
 						goto DESTROY;
+
+					tokens = (Token*) lexer->tokens.addr;
 				} while(lexer_is_operator_modifier(code[start]));
 
 				end = start;
@@ -788,6 +797,8 @@ Lexer* restrict lexer) {
 							lexer)
 						== false)
 							goto DESTROY;
+
+						tokens = (Token*) lexer->tokens.addr;
 					} while(code[start] != ':');
 
 					end -= 1;
@@ -844,25 +855,23 @@ TOKEN_SPECIAL:
 	if(i == 1)
 		goto DESTROY;
 
-	lexer->count = i;
-	Token* tokens_realloc = realloc(
-		lexer->tokens,
-		(i + 1) * sizeof(Token));
+	lexer->tokens.count = i;
 
-	if(tokens_realloc == NULL) {
+	if(!lexer_allocator_shrink(lexer)) {
 DESTROY:
 		destroy_lexer(lexer);
 		return false;
 	}
 
-	lexer->tokens = tokens_realloc;
-	create_token_null(&lexer->tokens[i]);
+	create_token_null(&((Token*) lexer->tokens.addr)[i]);
 	return true;
 }
 
 void destroy_lexer(
 Lexer* restrict lexer) {
+	if(lexer == NULL)
+		return;
+	
 	lexer->source = NULL;
-	free(lexer->tokens);
-	lexer->count = 0;
+	lexer_destroy_allocator(lexer);
 }

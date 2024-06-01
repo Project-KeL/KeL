@@ -4,6 +4,11 @@
 #include "binary.h"
 #include "elf.h"
 
+void initialize_binary(Binary* binary) {
+	binary->path = NULL;
+	binary->file = NULL;
+}
+
 bool create_binary(
 const char* restrict path,
 Binary* restrict binary) {
@@ -143,7 +148,7 @@ Binary* restrict binary,
 const Parser* restrict parser) {
 	binary_x64_elf_initialize(binary);
 
-	for(long int i = 0;
+	for(size_t i = 0;
 	i < parser->count - 1;
 	++i) {
 		// const Node* node = &parser->nodes[i];

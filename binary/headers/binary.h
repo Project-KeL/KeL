@@ -9,6 +9,7 @@ typedef struct {
 	FILE* file;
 } Binary;
 
+void initialize_binary(Binary* binary);
 bool create_binary(
 	const char* restrict path,
 	Binary* restrict binary);

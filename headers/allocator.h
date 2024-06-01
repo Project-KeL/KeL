@@ -6,12 +6,13 @@
 
 typedef struct {
 	void* addr;
-	size_t size;
+	size_t count;
 	size_t size_type;
 } MemoryArea;
 
+void initialize_memory_area(MemoryArea* restrict memArea);
 bool create_memory_area(
-	size_t size,
+	size_t count,
 	size_t size_type,
 	MemoryArea* restrict memArea);
 bool memory_area_realloc(
@@ -33,12 +34,13 @@ typedef struct {
 	MemoryChainLink* last;
 } MemoryChain;
 
+void initialize_memory_chain(MemoryChain* restrict memChain);
 bool create_memory_chain(
-	size_t size,
+	size_t count,
 	size_t size_type,
 	MemoryChain* restrict memChain);
 bool memory_chain_add_area(
-	size_t size,
+	size_t count,
 	size_t size_type,
 	MemoryChain* restrict memChain);
 MemoryArea* memory_chain_get(MemoryChain* restrict memChain);

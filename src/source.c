@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include "source.h"
 
+void initialize_source(Source* restrict source) {
+	source->path = NULL;
+	source->content = NULL;
+	source->length = 0;
+}
+
 bool create_source(
 const char* restrict path,
 Source* restrict source) {
@@ -75,6 +81,9 @@ ERROR:
 }
 
 void destroy_source(Source* restrict source) {
+	if(source == NULL)
+		return;
+
 	free(source->content);
 	source->path = NULL;
 	source->content = NULL;

@@ -1,47 +1,61 @@
 #include <assert.h>
+#include <stdio.h>
 #include "allocator.h"
 
+void initialize_memory_area(MemoryArea* restrict memArea) {
+	memArea->addr = NULL;
+	memArea->count = 0;
+	memArea->size_type = 0;
+}
+
 bool create_memory_area(
-size_t size,
+size_t count,
 size_t size_type,
 MemoryArea* restrict memArea) {
-	memArea->size_type = (size_type + 7) & ~7; // 64-bit alignment
-	memArea->addr = malloc(size * memArea->size_type);
+	memArea->size_type = size_type;
+	memArea->addr = malloc(count * memArea->size_type);
 	
 	if(memArea->addr == NULL) {
 		destroy_memory_area(memArea);
 		return false;
 	}
 
-	memArea->size = size;
+	memArea->count = count;
 	return true;
 }
 
 bool memory_area_realloc(
-size_t size,
+size_t count,
 MemoryArea* restrict memArea) {
-	if(memArea->size <= size) {
-		void* const addr_realloc = realloc(
-			memArea->addr,
-			size * memArea->size_type);
+	void* const addr_realloc = realloc(
+		memArea->addr,
+		count * memArea->size_type);
 
-		if(addr_realloc == NULL) {
-			destroy_memory_area(memArea);
-			return false;
-		}
-
-		memArea->addr = addr_realloc;
-		memArea->size = size;
+	if(addr_realloc == NULL) {
+		destroy_memory_area(memArea);
+		return false;
 	}
 
+	memArea->addr = addr_realloc;
+	memArea->count = count;
 	return true;
 }
 
 void destroy_memory_area(MemoryArea* restrict memArea) {
+	if(memArea->addr == NULL)
+		return;
+
 	free(memArea->addr);
 	memArea->addr = NULL;
-	memArea->size = 0;
+	memArea->count = 0;
 	memArea->size_type = 0;
+}
+
+void initialize_memory_chain(MemoryChain* restrict memChain) {
+	memChain->count = 0;
+	memChain->first = NULL;
+	memChain->current = NULL;
+	memChain->last = NULL;
 }
 
 bool create_memory_chain(
@@ -114,6 +128,9 @@ void memory_chain_rewind(MemoryChain* restrict memChain) {
 }
 
 void destroy_memory_chain(MemoryChain* restrict memChain) {
+	if(memChain == NULL)
+		return;
+
 	MemoryChainLink* link = memChain->first;
 
 	while(memChain->count != 0) {

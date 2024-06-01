@@ -19,6 +19,12 @@ char** argv) {
 	Lexer lexer;
 	Parser parser;
 
+	initialize_source(&source);
+	initialize_memory_area(&memArea);
+	initialize_binary(&binary);
+	initialize_lexer(&lexer);
+	initialize_parser(&parser);
+
 	if(create_source(
 		argv[1],
 		&source)
@@ -26,8 +32,6 @@ char** argv) {
 		error = true;
 		goto ERROR_0;
 	}
-
-	printf("%s\n", source.content + 1);
 
 	if(create_memory_area(
 		source.length,

@@ -27,10 +27,10 @@ bool parser_scan_errors(const Lexer* restrict lexer) {
 	const char* code = lexer->source->content;
 	size_t count_scope_nest = 0;
 
-	for(long int i = 0;
-	i < lexer->count;
+	for(size_t i = 0;
+	i < lexer->tokens.count;
 	i += 1) {
-		const Token* tokens = lexer->tokens;
+		const Token* tokens = (const Token*) lexer->tokens.addr;
 
 		if(tokens[i].type == TokenType_L) {
 			if(strncmp(

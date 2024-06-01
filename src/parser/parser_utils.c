@@ -63,7 +63,7 @@ bool parser_is_operator_modifier(const Token* restrict token) {
 bool parser_is_scope(
 long int i,
 const Lexer* restrict lexer) {
-	const Token* token = &lexer->tokens[i];
+	const Token* token = &((const Token*) lexer->tokens.addr)[i];
 
 	if(token->type != TokenType_L
 	|| strncmp(

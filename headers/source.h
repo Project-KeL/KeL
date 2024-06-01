@@ -7,6 +7,7 @@ typedef struct {
 	long int length;
 } Source;
 
+void initialize_source(Source* restrict source);
 bool create_source(
 	const char* restrict path,
 	Source* restrict source);

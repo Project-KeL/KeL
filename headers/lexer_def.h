@@ -93,9 +93,7 @@ typedef struct {
 
 typedef struct {
 	const Source* source;
-	MemoryArea* memArea;
-	Token* tokens;
-	long int count;
+	MemoryArea tokens;
 } Lexer;
 
 #endif
