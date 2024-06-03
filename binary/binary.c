@@ -149,7 +149,7 @@ const Parser* restrict parser) {
 	binary_x64_elf_initialize(binary);
 
 	for(size_t i = 0;
-	i < parser->count - 1;
+	i < parser->nodes.count - 1;
 	++i) {
 		// const Node* node = &parser->nodes[i];
 /*

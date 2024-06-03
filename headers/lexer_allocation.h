@@ -4,7 +4,7 @@
 #include "lexer_def.h"
 
 bool lexer_create_allocator(Lexer* lexer);
-bool lexer_allocate_chunk(
+bool lexer_allocator(
 	size_t minimum,
 	Lexer* lexer);
 bool lexer_allocator_shrink(Lexer* lexer);

@@ -6,7 +6,6 @@
 
 int if_identifier_create_nodes(
 	size_t* i,
-	size_t* j,
 	MemoryArea* memArea,
 	Parser* parser);
 

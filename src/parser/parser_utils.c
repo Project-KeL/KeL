@@ -76,25 +76,27 @@ const Lexer* restrict lexer) {
 	return true;
 }
 
-long int parser_get_j_scope_start_from_end(
-long int j,
-Parser* parser) {
-	const Node* nodes = parser->nodes;
+Node* parser_get_scope_from_period(Parser* parser) {
+	Node* node = (Node*) parser->nodes.top;
+	MemoryChainLink* current_link = parser->nodes.last;
 	long int count_scope_nest = 1;
-	// if we are at a period, we must ignore it to get the start of the scope
-	// if we are at the start of a scope, we get the previous one.
+
 	do {
-		j -= 1;
+		// get the last node in the previous memory area
+		if(node == current_link->memArea.addr) {
+			current_link = current_link->previous;
+			node = (Node*) current_link->memArea.addr + current_link->memArea.count - 1;
+		} else
+			node = (Node*) node - 1;
 
-		if(nodes[j].type == NodeType_SCOPE_END)
-			count_scope_nest += 1;
-
-		if(nodes[j].type == NodeType_SCOPE_START)
-			count_scope_nest -= 1;
+		switch(node->type) {
+		case NodeType_SCOPE_END: count_scope_nest += 1; break;
+		case NodeType_SCOPE_START: count_scope_nest -= 1; break;
+		}
 	} while(count_scope_nest != 0
-	     || parser->nodes[j].type != NodeType_SCOPE_START);
+	     && node->type != NodeType_SCOPE_START);
 
-	return j;
+	return node;
 }
 
 bool parser_is_special(const Token* token) {

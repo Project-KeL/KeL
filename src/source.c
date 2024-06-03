@@ -11,9 +11,10 @@ void initialize_source(Source* restrict source) {
 bool create_source(
 const char* restrict path,
 Source* restrict source) {
+	if(source == NULL)
+		return false;
+
 	source->path = path;
-	source->content = NULL;
-	source->length = 0;
 
 	bool error = false;
 	FILE* source_file = fopen(

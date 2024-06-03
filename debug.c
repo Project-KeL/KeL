@@ -151,15 +151,15 @@ void debug_print_tokens(const Lexer* lexer) {
 		"\nNumber of tokens: %ld.\n",
 		lexer->tokens.count - 2);
 }
-
+/*
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	printf("NODES:\n");
 
 	for(size_t j = 1;
-	j < parser->count;
+	j < parser->nodes.first->memArea.count - 1;
 	j += 1) {
-		const Node* node = &parser->nodes[j];
+		const Node* node = &((Node*) parser->nodes.vaddr)[j];
 
 		if(node->type == NodeType_SCOPE_START) {
 			printf("\tSCOPE START (%td NODES)\n",
@@ -191,7 +191,7 @@ void debug_print_nodes(const Parser* parser) {
 
 	printf(
 		"\nNumber of nodes: %ld.\n",
-		parser->count - 1);
+		parser->nodes.first->memArea.count - 2);
 }
-
+*/
 #endif

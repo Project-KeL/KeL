@@ -49,14 +49,6 @@ static int set_error(int value) {
 	return value;
 }
 
-static void create_token_null(Token* token) {
-	*token = (Token) {
-		.type = TokenType_NO,
-		.subtype = TokenSubtype_NO,
-		.start = 0,
-		.end = 0};
-}
-
 static void create_token_special(
 const char* restrict code,
 long int start,
@@ -110,7 +102,7 @@ Lexer* lexer) {
 	const char* code = lexer->source->content;
 
 	do {
-		if(lexer_allocate_chunk(
+		if(lexer_allocator(
 			*i + 1,
 			lexer)
 		== false)
@@ -225,7 +217,7 @@ Lexer* lexer) {
 	const char* code = lexer->source->content;
 
 	do {
-		if(lexer_allocate_chunk(
+		if(lexer_allocator(
 			*i + 1,
 			lexer)
 		== false)
@@ -563,6 +555,10 @@ bool create_lexer(
 const Source* source,
 MemoryArea* restrict memArea,
 Lexer* restrict lexer) {
+	assert(source != NULL);
+	assert(memArea != NULL);
+	assert(lexer != NULL);
+
 	lexer->source = source;
 
 	const char* code = source->content;
@@ -579,14 +575,6 @@ Lexer* restrict lexer) {
 
 	if(!lexer_create_allocator(lexer))
 		goto DESTROY;
-	// null token
-	if(lexer_allocate_chunk(
-		1,
-		lexer)
-	== false)
-		goto DESTROY;
-
-	create_token_null(&((Token*) lexer->tokens.addr)[0]);
 
 	while(lexer_get_next_word(
 		code,
@@ -601,7 +589,7 @@ Lexer* restrict lexer) {
 		if(code[end] == '\0')
 			break;
 		// allocation
-		if(lexer_allocate_chunk(
+		if(lexer_allocator(
 			i + 1,
 			lexer)
 		== false)
@@ -663,12 +651,13 @@ Lexer* restrict lexer) {
 						.R_start = start,
 						.R_end = buffer_end};
 					
-					if(lexer_allocate_chunk(
+					if(lexer_allocator(
 						i + 1,
 						lexer)
 					== false)
 						goto DESTROY;
 
+					tokens = (Token*) lexer->tokens.addr;
 					lexer_get_next_word(
 						code,
 						&start,
@@ -732,7 +721,7 @@ Lexer* restrict lexer) {
 						&start,
 						&buffer_end);
 
-					if(lexer_allocate_chunk(
+					if(lexer_allocator(
 						i + 1,
 						lexer)
 					== false)
@@ -792,7 +781,7 @@ Lexer* restrict lexer) {
 							&start,
 							&end);
 
-						if(lexer_allocate_chunk(
+						if(lexer_allocator(
 							i + 1,
 							lexer)
 						== false)
@@ -857,14 +846,13 @@ TOKEN_SPECIAL:
 
 	lexer->tokens.count = i;
 
-	if(!lexer_allocator_shrink(lexer)) {
-DESTROY:
-		destroy_lexer(lexer);
-		return false;
-	}
+	if(!lexer_allocator_shrink(lexer))
+		goto DESTROY;
 
-	create_token_null(&((Token*) lexer->tokens.addr)[i]);
 	return true;
+DESTROY:
+	destroy_lexer(lexer);
+	return false;
 }
 
 void destroy_lexer(

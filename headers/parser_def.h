@@ -2,6 +2,7 @@
 #define PARSER_DEF
 
 #include <stdint.h>
+#include "allocator.h"
 #include "lexer_def.h"
 
 typedef enum: uint64_t {
@@ -158,8 +159,7 @@ struct Node {
 
 typedef struct {
 	const Lexer* lexer;
-	Node* nodes;
-	size_t count;
+	MemoryChain nodes;
 } Parser;
 
 #endif

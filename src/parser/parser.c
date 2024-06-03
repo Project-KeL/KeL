@@ -8,7 +8,6 @@
 #include <stdio.h>
 
 // i is the current token to be processed
-// j is the current node to be created
 
 static int error = 0;
 
@@ -20,17 +19,8 @@ static int set_error(int value) {
 	return value;
 }
 
-static void create_node_null(Node* node) {
-	*node = (Node) {
-		.type = NodeType_NO,
-		.subtype = NodeSubtype_NO,
-		.token = NULL,
-		.child = NULL};
-}
-
 static bool if_scope_create_node(
 size_t i,
-size_t j,
 Parser* restrict parser) {
 	if(parser_is_scope(
 		i,
@@ -38,7 +28,7 @@ Parser* restrict parser) {
 	== false)
 		return false;
 
-	parser->nodes[j] = (Node) {
+	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_SCOPE_START,
 		.subtype = NodeSubtypeScope_NO};
 	return true;
@@ -46,73 +36,59 @@ Parser* restrict parser) {
 
 static int if_period_create_node(
 size_t i,
-size_t j,
 Parser* parser) {
-	const Token* tokens = (Token*) parser->lexer->tokens.addr;
+	const Token* token = (Token*) parser->lexer->tokens.addr + i;
 
-	if(tokens[i].subtype != TokenSubtype_PERIOD)
-		return false;
+	if(token->subtype != TokenSubtype_PERIOD)
+		return 0;
 
-	size_t j_scope_start = parser_get_j_scope_start_from_end(
-			j,
-			parser);
-	parser->nodes[j] = (Node) {
+	if(!parser_allocator(parser))
+		return -1;
+
+	Node* scope = parser_get_scope_from_period(parser);
+	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_SCOPE_END,
-		.subtype = parser->nodes[j_scope_start].subtype};
-	parser->nodes[j_scope_start].child = &parser->nodes[j];
-	return true;
+		.subtype = scope->subtype};
+	scope->child = (Node*) parser->nodes.top;
+	return 1;
 }
 
 void initialize_parser(Parser* parser) {
 	parser->lexer = NULL;
-	parser->nodes = NULL;
-	parser->count = 0;
+	initialize_memory_chain(&parser->nodes);
 }
 
 bool create_parser(
 const Lexer* lexer,
 MemoryArea* memArea,
 Parser* restrict parser) {
-	if(lexer->tokens.count == 0)
-		goto DESTROY;
+	assert(parser != NULL);
+	assert(lexer != NULL);
+	assert(memArea != NULL);
 
 	parser->lexer = lexer;
-	parser->nodes = NULL;
-	parser->count = 0;
-	const Token* tokens = (Token*) lexer->tokens.addr;
+	const Token* tokens = (const Token*) lexer->tokens.addr;
 	size_t i = 1;
-	size_t j = 1;
 
 	if(!parser_scan_errors(lexer))
 		return false;
 
-	if(parser_allocate_chunk(
-		1,
-		parser)
-	== false)
+	if(!parser_create_allocator(parser))
 		return false;
-
-	create_node_null(&parser->nodes[0]);
 
 	while(i < lexer->tokens.count - 1) {
 		// allocation
-		if(parser_allocate_chunk(
-			j + 1,
-			parser)
-		== false)
+		if(!parser_allocator(parser))
 			goto DESTROY;
 		// create nodes
 		if(if_scope_create_node(
 			i,
-			j,
 			parser)
 		== true) {
 			i += 1;
-			j += 1;
 		} else if(set_error(
 			if_identifier_create_nodes(
 				&i,
-				&j,
 				memArea,
 				parser))
 		== 1) {
@@ -122,11 +98,9 @@ Parser* restrict parser) {
 		if(set_error(
 			if_period_create_node(
 				i,
-				j,
 				parser))
 		== 1) {
 			i += 1;
-			j += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
 		} else
@@ -136,24 +110,14 @@ Parser* restrict parser) {
 			goto DESTROY;
 		// unlike `create_lexer` all the incrementations are done
 	}
-
+/*
 	if(j == 1)
 		goto DESTROY;
-
-	parser->count = j;
-	Node* nodes_realloc = realloc(
-		parser->nodes,
-		(j + 1) * sizeof(Node));
-
-	if(nodes_realloc == NULL) {
-DESTROY:
-		destroy_parser(parser);
-		return false;
-	}
-
-	parser->nodes = nodes_realloc;
-	create_node_null(&parser->nodes[j]);
+*/
 	return true;
+DESTROY:
+	destroy_parser(parser);
+	return false;
 }
 
 void destroy_parser(Parser* restrict parser) {
@@ -161,7 +125,5 @@ void destroy_parser(Parser* restrict parser) {
 		return;
 
 	parser->lexer = NULL;
-	free(parser->nodes);
-	parser->nodes = NULL;
-	parser->count = 0;
+	destroy_memory_chain(&parser->nodes);
 }

@@ -39,31 +39,29 @@ static NodeSubtypeChildTypeModifier operator_modifier_to_subtype_right(TokenSubt
 	}
 }
 
-static void type_bind_child_token(
+static bool type_bind_child_token(
 NodeTypeChildType type,
 NodeSubtype subtype,
 const Token* token,
-Node** parent,
-Node* node) {	
-	*node = (Node) {
+Parser* parser) {
+	if(!parser_allocator(parser))
+		return false;
+
+	*((Node*) parser->nodes.top) = (Node) {
 		.type = type,
 		.subtype = subtype,
 		.token = token,
 		.child1 = NULL,
 		.child2 = NULL};
-	(*parent)->child1 = node;
-	*parent = node;
+	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
+	return true;
 }
 
 static bool parse_type_lock_left(
 size_t* i,
-size_t* j,
-Node* parent,
 Parser* parser) {
 	size_t buffer_i = *i;
-	size_t buffer_j = *j;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	Node* nodes = parser->nodes;
 	// L side before lock
 	while(tokens[buffer_i].type == TokenType_L
 	   && parser_is_operator_modifier(&tokens[buffer_i])) {
@@ -74,14 +72,12 @@ Parser* parser) {
 				NodeTypeChildType_MODIFIER,
 				(NodeSubtype) operator_modifier_to_subtype_left(tokens[buffer_i].subtype),
 				&tokens[buffer_i],
-				&parent,
-				&nodes[buffer_j]);
+				parser);
 			// just ignore right brackets (for the moment)
-			if(parent->subtype == NodeSubtypeChildTypeModifier_ARRAY)
+			if(((Node*) parser->nodes.previous)->subtype == NodeSubtypeChildTypeModifier_ARRAY)
 				buffer_i += 1;
 
 			buffer_i += 1;
-			buffer_j += 1;
 	}
 	// R side before lock
 	while(tokens[buffer_i].type == TokenType_R
@@ -90,33 +86,26 @@ Parser* parser) {
 			NodeTypeChildType_MODIFIER,
 			(NodeSubtype) operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
 			&tokens[buffer_i],
-			&parent,
-			&nodes[buffer_j]);
+			parser);
 
-		if(parent->subtype == NodeSubtypeChildTypeModifier_ARRAY)
+		if(((Node*) parser->nodes.previous)->subtype == NodeSubtypeChildTypeModifier_ARRAY)
 			buffer_i += 1;
 
 		buffer_i += 1;
-		buffer_j += 1;
 	}
 
 	if(tokens[buffer_i].type != TokenType_R)
 		return false;
 
 	*i = buffer_i;
-	*j = buffer_j;
 	return true;
 }
 
 static bool parse_type_lock_right(
 size_t* i,
-size_t* j,
-Node* parent,
 Parser* parser) {
 	size_t buffer_i = *i;
-	size_t buffer_j = *j;
 	const Token* tokens = (const Token*) &parser->lexer->tokens.addr;
-	Node* nodes = parser->nodes;
 
 	while(tokens[buffer_i].type == TokenType_R
 	   && parser_is_operator_leveling(&tokens[buffer_i])) {
@@ -124,61 +113,39 @@ Parser* parser) {
 			NodeTypeChildType_MODIFIER,
 			(NodeSubtype) operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
 			&tokens[buffer_i],
-			&parent,
-			&nodes[buffer_j]);
+			parser);
 		buffer_i += 1;
-		buffer_j += 1;
 	}
 
 	if(parser_is_operator_modifier(&tokens[buffer_i]))
 		return false;
 
 	*i = buffer_i;
-	*j = buffer_j;
 	return true;
 }
 
 static int if_type_create_nodes(
 size_t* i,
-size_t* j,
-Node* parent,
 MemoryArea* memArea,
 Parser* parser) {
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	Node* nodes = parser->nodes;
 	size_t buffer_i = *i;
-	size_t buffer_j = *j;
-	// rough allocation
 
-	while(tokens[buffer_i].subtype != TokenSubtype_SEMICOLON
-	   && buffer_i < parser->lexer->tokens.count - 1) {
-		buffer_i += 1;
-		buffer_j += 1;
-	}
-
-	if(parser_allocate_chunk(
-		buffer_j + 1,
-		parser)
-	== false)
+	if(!parser_allocator(parser))
 		return -1;
-
-	buffer_i = *i;
-	buffer_j = *j;
-	// if the current scope has at least one parameter allocator->address[count_parenthesis_nest] is set to 1
+	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;	
 
 	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 	do {
-		size_t j_lock;
+		Node* lock;
 TYPE:
 		// lock alone
 		if(parse_type_lock_left(
 			&buffer_i,
-			&buffer_j,
-			parent,
 			parser)
 		== false)
 			return false;
@@ -188,17 +155,13 @@ TYPE:
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChild_NO,
 				&tokens[buffer_i],
-				&parent,
-				&nodes[buffer_j]);
-			j_lock = buffer_j;
+				parser);
+			lock = (Node*) parser->nodes.top;
 			buffer_i += 1;
-			buffer_j += 1;
 			memory[count_parenthesis_nest] = 1;
 
 			if(parse_type_lock_right(
 				&buffer_i,
-				&buffer_j,
-				parent,
 				parser)
 			== false)
 				return 0;
@@ -223,27 +186,23 @@ R_LPARENTHESIS:
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
 				&tokens[buffer_i],
-				&parent,
-				&nodes[buffer_j]);
+				parser);
 			buffer_i += 1;
-			buffer_j += 1;
 R_LPARENTHESIS_SKIP_PARAMETER:
 			type_bind_child_token(
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChildTypeScoped_RETURN_NONE,
 				NULL,
-				&parent,
-				&nodes[buffer_j]);
-			j_lock = buffer_j;
+				parser);
+			lock = (Node*) parser->nodes.top;
 			buffer_i += 1;
-			buffer_j += 1;
 			memory[count_parenthesis_nest] = 1;
 			count_parenthesis_nest += 1;
 			memory[count_parenthesis_nest] = 0;
 		}
 
 		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
-			nodes[j_lock].subtype = NodeSubtypeChildTypeScoped_RETURN_LOCK;
+			lock->subtype = NodeSubtypeChildTypeScoped_RETURN_LOCK;
 // LPARENTHESIS:
 			// handle nested empty parenthesis like in :(())
 			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
@@ -278,10 +237,8 @@ READ_PARAMETER:
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
 					&tokens[buffer_i],
-					&parent,
-					&nodes[buffer_j]);
+					parser);
 				buffer_i += 1;
-				buffer_j += 1;
 				goto TYPE;
 			} else if(count_parenthesis_nest > 1
 			       && parser_is_lock(&tokens[buffer_i])) {
@@ -297,9 +254,7 @@ RPARENTHESIS:
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER_NONE,
 					NULL,
-					&parent,
-					&nodes[buffer_j]);
-				buffer_j += 1;
+					parser);
 			}
 
 			do {
@@ -320,10 +275,8 @@ RPARENTHESIS:
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
 					&tokens[buffer_i],
-					&parent,
-					&nodes[buffer_j]);
+					parser);
 				buffer_i += 1;
-				buffer_j += 1;
 				goto TYPE;
 		} else if(parser_is_lock(&tokens[buffer_i])) {
 			goto TYPE;
@@ -333,48 +286,40 @@ RPARENTHESIS:
 	} while(count_parenthesis_nest != 0);
 
 	*i = buffer_i;
-	*j = buffer_j;
 	return 1;
 }
 
 static int if_initialization_create_node(
 size_t* i,
-size_t* j,
-Node* parent,
 Parser* parser) {
 	// just parse literals for the moment, expressions later
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
-	size_t buffer_j = *j;
 
 	if(tokens[buffer_i].type != TokenType_LITERAL)
 		return 0;
 
-	if(parser_allocate_chunk(
-		buffer_j + 1,
-		parser)
-	== false)
+	if(!parser_allocator(parser))
 		return -1;
 
-	parser->nodes[buffer_j] = (Node) {
+	if(!parser_allocator(parser))
+		return -1;
+
+	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_LITERAL,
 		.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
 		.token = &tokens[buffer_i]};
-	parent->child1 = &parser->nodes[buffer_j];
+	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 	*i = buffer_i + 1;
-	*j = buffer_j + 1;
 	return 1;
 }
 
 int if_identifier_create_nodes(
 size_t* i,
-size_t* j,
 MemoryArea* memArea,
 Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
-	size_t buffer_j = *j;
-	Node* nodes = parser->nodes;
 	NodeSubtype subtype = NodeSubtype_NO;
 	size_t i_qualifier = buffer_i;
 
@@ -389,61 +334,54 @@ Parser* parser) {
 	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
 		return 0;
 
-	nodes[buffer_j] = (Node) {
+	parser_allocator_save(parser);
+	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_IDENTIFICATION,
 		.subtype = subtype,
 		.token = &tokens[buffer_i],
 		.child1 = NULL,
 		.child2 = NULL};
 	buffer_i += 1;
-	buffer_j += 1;
+	Node* node_identification = (Node*) parser->nodes.top;
 
 	while(parser_is_qualifier(&tokens[i_qualifier])) {
-		if(parser_allocate_chunk(
-			buffer_j + 1,
-			parser)
+		if(parser_allocator(parser)
 		== false)
 			return -1;
 
-		nodes[buffer_j] = (Node) {
+		*((Node*) parser->nodes.top) = (Node) {
 			.type = NodeType_QUALIFIER,
 			.subtype = tokens[i_qualifier].subtype,
 			.token = &tokens[i_qualifier],
 			.child1 = NULL,
 			.child2 = NULL};
-		nodes[buffer_j - 1].child1 = &nodes[buffer_j];
+		((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 		i_qualifier += 1;
-		buffer_j += 1;
 	}
 	// add the type as child nodes in `.child1`
 	switch(if_type_create_nodes(
 		&buffer_i,
-		&buffer_j,
-		&nodes[buffer_j - 1],
 		memArea,
 		parser)
 	) {
 	case -1: return -1;
-	case 0: return 0;
+	case 0: parser_allocator_restore(parser); return 0;
 	case 1: /* fall through */;
 	}
 
 	switch(if_initialization_create_node(
 		&buffer_i,
-		&buffer_j,
-		&parser->nodes[buffer_j - 1],
 		parser)) {
 	case -1: return -1;
 	case 0: // declaration case
-		parser->nodes[*j].subtype |= NodeSubtypeIdentificationBitType_DECLARATION;
+		node_identification->subtype |= NodeSubtypeIdentificationBitType_DECLARATION;
 		break;
 	case 1: // initialization case
-		parser->nodes[*j].subtype |= NodeSubtypeIdentificationBitType_INITIALIZATION;
+		node_identification->subtype |= NodeSubtypeIdentificationBitType_INITIALIZATION;
 		break;
 	}
 
 	*i = buffer_i;
-	*j = buffer_j;
 	return 1;
 }
 
