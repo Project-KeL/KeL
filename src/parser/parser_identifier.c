@@ -131,9 +131,6 @@ Parser* parser) {
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
-
-	if(!parser_allocator(parser))
-		return -1;
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;	
 

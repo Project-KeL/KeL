@@ -72,7 +72,7 @@ char** argv) {
 		goto ERROR_4;
 	}
 #ifndef NDEBUG
-	// debug_print_nodes(&parser);
+	debug_print_nodes(&parser);
 #endif
 	binary_x64(
 		&binary,

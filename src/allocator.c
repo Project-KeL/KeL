@@ -92,7 +92,7 @@ ERROR1:
 }
 
 bool memory_chain_add_area(
-size_t size,
+size_t count,
 MemoryChain* restrict memChain) {
 	const size_t size_type = memChain->first->memArea.size_type;
 	memChain->last->next = malloc(sizeof(MemoryChainLink));
@@ -101,7 +101,7 @@ MemoryChain* restrict memChain) {
 		goto ERROR1;
 
 	if(create_memory_area(
-		size,
+		count,
 		size_type,
 		&memChain->last->next->memArea)
 	== false)

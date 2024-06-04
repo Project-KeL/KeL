@@ -1,4 +1,5 @@
 #ifndef NDEBUG
+#include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include "debug.h"
@@ -151,19 +152,18 @@ void debug_print_tokens(const Lexer* lexer) {
 		"\nNumber of tokens: %ld.\n",
 		lexer->tokens.count - 2);
 }
-/*
+
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	printf("NODES:\n");
+	MemoryChainLink* link = parser->nodes.first;
+	const Node* node = (Node*) parser->nodes.first->memArea.addr;
+	size_t count = 0;
 
-	for(size_t j = 1;
-	j < parser->nodes.first->memArea.count - 1;
-	j += 1) {
-		const Node* node = &((Node*) parser->nodes.vaddr)[j];
-
+	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count - 1) {
 		if(node->type == NodeType_SCOPE_START) {
 			printf("\tSCOPE START (%td NODES)\n",
-				node->child - node);
+				node->value);
 		} else if(node->type == NodeType_IDENTIFICATION) {
 			printf("\t");
 			print_info_node_key_identification(
@@ -172,12 +172,16 @@ void debug_print_nodes(const Parser* parser) {
 			const Node* child1 = node->child1;
 
 			do {
+				if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
+					link = link->next;
+
 				printf("\t\t");
 				print_info_node_type(
 					code,
 					child1);
-				child1 = child1->child1;
-				j += 1;
+				node = child1;
+				child1 = node->child1;
+				count += 1;
 			} while(child1 != NULL);
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("\tSCOPE END\n");
@@ -187,11 +191,22 @@ void debug_print_nodes(const Parser* parser) {
 				node->type,
 				node->subtype);
 		}
+
+		if(node == (Node*) link->memArea.addr + link->memArea.count - 1) {
+			if(link->next == NULL)
+				break;
+
+			link = link->next;
+			node = (Node*) link->memArea.addr;
+		} else
+			node += 1;
+
+		count += 1;
 	}
 
 	printf(
 		"\nNumber of nodes: %ld.\n",
-		parser->nodes.first->memArea.count - 2);
+		count);
 }
-*/
+
 #endif

@@ -30,11 +30,13 @@ Parser* restrict parser) {
 
 	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_SCOPE_START,
-		.subtype = NodeSubtypeScope_NO};
+		.subtype = NodeSubtypeScope_NO,
+		.value = 0};
 	return true;
 }
 
 static int if_period_create_node(
+bool allocate_period,
 size_t i,
 Parser* parser) {
 	const Token* token = (Token*) parser->lexer->tokens.addr + i;
@@ -42,7 +44,8 @@ Parser* parser) {
 	if(token->subtype != TokenSubtype_PERIOD)
 		return 0;
 
-	if(!parser_allocator(parser))
+	if(allocate_period
+	&& !parser_allocator(parser))
 		return -1;
 
 	Node* scope = parser_get_scope_from_period(parser);
@@ -69,6 +72,7 @@ Parser* restrict parser) {
 	parser->lexer = lexer;
 	const Token* tokens = (const Token*) lexer->tokens.addr;
 	size_t i = 1;
+	bool allocate_period = false;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -77,15 +81,20 @@ Parser* restrict parser) {
 		return false;
 
 	while(i < lexer->tokens.count - 1) {
-		// allocation
-		if(!parser_allocator(parser))
-			goto DESTROY;
 		// create nodes
-		if(if_scope_create_node(
+		if(parser_is_scope(
 			i,
-			parser)
+			parser->lexer)
 		== true) {
-			i += 1;
+			while(if_scope_create_node(
+				i,
+				parser)
+			== true) {
+				if(!parser_allocator(parser))
+					goto DESTROY;
+
+				i += 1;
+			}
 		} else if(set_error(
 			if_identifier_create_nodes(
 				&i,
@@ -93,13 +102,16 @@ Parser* restrict parser) {
 				parser))
 		== 1) {
 			// OK
-		}
+		} else if(((Node*) parser->nodes.previous)->type != NodeType_SCOPE_END)
+			allocate_period = true;
 		// check end of scope (period) or end of instruction (semicolon)
 		if(set_error(
 			if_period_create_node(
+				allocate_period,
 				i,
 				parser))
 		== 1) {
+			allocate_period = false;
 			i += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
@@ -108,7 +120,9 @@ Parser* restrict parser) {
 		// error checking
 		if(error == -1)
 			goto DESTROY;
-		// unlike `create_lexer` all the incrementations are done
+		// allocation
+		if(!parser_allocator(parser))
+			goto DESTROY;
 	}
 /*
 	if(j == 1)

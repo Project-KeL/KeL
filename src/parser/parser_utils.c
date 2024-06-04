@@ -78,24 +78,28 @@ const Lexer* restrict lexer) {
 
 Node* parser_get_scope_from_period(Parser* parser) {
 	Node* node = (Node*) parser->nodes.top;
-	MemoryChainLink* current_link = parser->nodes.last;
+	MemoryChainLink* link = parser->nodes.last;
 	long int count_scope_nest = 1;
+	uint64_t count = 0;
 
 	do {
 		// get the last node in the previous memory area
-		if(node == current_link->memArea.addr) {
-			current_link = current_link->previous;
-			node = (Node*) current_link->memArea.addr + current_link->memArea.count - 1;
+		if(node == link->memArea.addr) {
+			link = link->previous;
+			node = (Node*) link->memArea.addr + link->memArea.count - 1;
 		} else
-			node = (Node*) node - 1;
+			node -= 1;
 
 		switch(node->type) {
 		case NodeType_SCOPE_END: count_scope_nest += 1; break;
 		case NodeType_SCOPE_START: count_scope_nest -= 1; break;
 		}
-	} while(count_scope_nest != 0
-	     && node->type != NodeType_SCOPE_START);
 
+		count += 1;
+	} while(count_scope_nest != 0
+	     || node->type != NodeType_SCOPE_START);
+
+	node->value = count - 1;
 	return node;
 }
 

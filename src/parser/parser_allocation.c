@@ -19,17 +19,16 @@ bool parser_create_allocator(Parser* parser) {
 bool parser_allocator(Parser* parser) {
 	const size_t count = parser->nodes.last->memArea.count;
 
-	if(count <= (size_t) ((char*) parser->nodes.top - (char*) parser->nodes.last->memArea.addr) + 1) {
+	if((Node*) parser->nodes.top + 1 >= (Node*) parser->nodes.last->memArea.addr + count) {
 		// the remaining area is filled with null tokens (calloc)
 		if(memory_chain_add_area(
 			CHUNK,
 			&parser->nodes)
 		== false)
 			return false;
-		// null token implicit (calloc)
 	} else {
 		parser->nodes.previous = parser->nodes.top;
-		parser->nodes.top = (char*) parser->nodes.top + parser->nodes.first->memArea.size_type;
+		parser->nodes.top = (Node*) parser->nodes.top + 1;
 	}
 
 	return true;
@@ -39,6 +38,12 @@ void parser_allocator_save(Parser* parser) {
 	parser->nodes.buffer_count = parser->nodes.count;
 	parser->nodes.buffer_previous = parser->nodes.previous;
 	parser->nodes.buffer_top = parser->nodes.top;
+}
+
+void parser_allocator_clear(Parser* parser) {
+	parser->nodes.buffer_count = 0;
+	parser->nodes.buffer_previous = NULL;
+	parser->nodes.buffer_top = NULL;
 }
 
 void parser_allocator_restore(Parser* parser) {
@@ -52,9 +57,7 @@ void parser_allocator_restore(Parser* parser) {
 	parser->nodes.previous = parser->nodes.buffer_previous;
 	parser->nodes.top = parser->nodes.buffer_top;
 
-	parser->nodes.buffer_count = 0;
-	parser->nodes.buffer_previous = NULL;
-	parser->nodes.buffer_top = NULL;
+	parser_allocator_clear(parser);
 }
 
 void parser_destroy_allocator(Parser* parser) {
