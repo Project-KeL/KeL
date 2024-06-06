@@ -12,7 +12,7 @@ char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	bool error = false;
+	bool exit_status = true;
 	Source source;
 	MemoryArea memArea;
 	Binary binary;
@@ -25,67 +25,53 @@ char** argv) {
 	initialize_lexer(&lexer);
 	initialize_parser(&parser);
 
-	if(create_source(
+	if((exit_status = create_source(
 		argv[1],
-		&source)
-	== false) {
-		error = true;
-		goto ERROR_0;
-	}
+		&source))
+	== false)
+		goto END;
 
-	if(create_memory_area(
+	if((exit_status = create_memory_area(
 		source.length,
 		sizeof(uint8_t),
-		&memArea)
-	== false) {
-		error = true;
-		goto ERROR_1;
-	}
+		&memArea))
+	== false)
+		goto END;
 
-	if(create_binary(
+	if((exit_status = create_binary(
 		"./bin",
-		&binary)
-	== false) {
-		error = true;
-		goto ERROR_2;
-	}
+		&binary))
+	== false)
+		goto END;
 
 	printf("%s\n", source.content);
 
-	if(create_lexer(
+	if((exit_status = create_lexer(
 		&source,
 		&memArea,
 		&lexer)
-	== false) {
-		error = true;
-		goto ERROR_3;
-	}
+	== false))
+		goto END;
 #ifndef NDEBUG
 	debug_print_tokens(&lexer);
 #endif
-	if(create_parser(
+	if((exit_status = create_parser(
 		&lexer,
 		&memArea,
-		&parser)
-	== false) {
-		error = true;
-		goto ERROR_4;
-	}
+		&parser))
+	== false)
+		goto END;
 #ifndef NDEBUG
 	debug_print_nodes(&parser);
 #endif
 	binary_x64(
 		&binary,
 		&parser);
+END:
 	destroy_parser(&parser);
-ERROR_4:
 	destroy_lexer(&lexer);
-ERROR_3:
 	destroy_binary(&binary);
-ERROR_2:
 	destroy_memory_area(&memArea);
-ERROR_1:
 	destroy_source(&source);
-ERROR_0:
-	return error ? EXIT_FAILURE : EXIT_SUCCESS;
+	return exit_status ? EXIT_SUCCESS : EXIT_FAILURE;
 }

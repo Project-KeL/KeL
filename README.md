@@ -42,11 +42,11 @@ Keys can be used as identifiers (like constants and variables). In this configur
 
 Let's say the target of the compiler is an architecture where we can define 32-bit unsigned integers and let's say we had encapsulated this concept in the `u32` lock.
 ```
-@var1:u32 1; !-- var is set to 1.
-@var2 :u32 1; !-- The @ escapes the left blank-sensitiveness.
-[mut] @var3 :u32; !-- var3 is declared mutable.
+@var1:u32 1;           !-- var is set to 1.
+@var2 :u32 1;          !-- The @ escapes the left blank-sensitiveness.
+[mut] @var3 :u32;      !-- var3 is declared mutable.
 [mut] @var4 :u32 var2; !-- var4 is initialized with the value of var2.
-@var5 var1; !-- The type is deduced.
+@var5 var1;            !-- The type is deduced.
 ```
 
 After the _identification_ of a key (declaration or initialization), it can be reassigned.
@@ -78,14 +78,35 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 !-- c can be rewrote c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
 
 !-- lab4 returns a u32 (alternative syntax).
-#lab4 :`(a :u32) :u32
+#lab4 :_(a :u32) :u32
 
 !-- lab5 returns a parameterized label returning a u32 taking a u32.
-#lab5 :`(a :u32, b :u32) :u32(a :u32);
+#lab5 :_(a :u32, b :u32) :u32(a :u32);
 ```
 
-- [x] Parse types (stable?).
-- [ ] Parse types with the R grave accent syntax.
-- [x] Parse initialization with a literal (to be improved).
-- [ ] Parse parameterized labels initialization.
-- [ ] Parse arrays and pointers.
+- [ ] Lexer (may evolve)
+    - [x] Commands.
+    - [x] Qualifiers.
+    - [x] Scopes.
+    - [x] Keys.
+    - [x] Locks.
+    - [x] Literals.
+    - [ ] R special symbols.
+    - [x] Identifiers.
+- [ ] Parser
+    - [x] Parse types.
+    - [ ] Parse types with the R underscore syntax.
+    - [x] Declarations.
+    - [ ] Parse initialization (work in progress).
+        - [x] Initialization with literals.
+        - [x] Scoped initialization.
+        - [ ] Initialization with an expression.
+    - [ ] Parameterized scope calls.
+    - [ ] Expressions.
+    - [ ] Conditions and loops.
+    - [ ] Parse type deducing possibility.
+    - [ ] Parse arrays and pointers.
+    - [ ] Parse references and dereferences.
+- [ ] Modules
+- [ ] Generator
+    - [ ] Built-in macros to write in the output.
