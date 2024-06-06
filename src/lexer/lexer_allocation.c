@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "lexer_allocation.h"
@@ -32,9 +33,7 @@ Lexer* lexer) {
 			(minimum / CHUNK + 1) * CHUNK,
 			&lexer->tokens)
 		== false)
-			return false;
-
-		
+			return false;	
 	}
 
 	return true;
@@ -44,7 +43,7 @@ bool lexer_allocator_shrink(Lexer* lexer) {
 	const bool error = memory_area_realloc(
 		lexer->tokens.count + 1, // null token
 		&lexer->tokens);
-	create_token_null(&((Token*) lexer->tokens.addr)[0]);
+	create_token_null((Token*) lexer->tokens.addr + lexer->tokens.count - 1);
 	return error;
 }
 

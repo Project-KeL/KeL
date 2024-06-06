@@ -149,21 +149,21 @@ void debug_print_tokens(const Lexer* lexer) {
 	}
 
 	printf(
-		"\nNumber of tokens: %ld.\n",
+		"\nNumber of tokens: %zu.\n",
 		lexer->tokens.count - 2);
 }
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	printf("NODES:\n");
-	MemoryChainLink* link = parser->nodes.first;
-	const Node* node = (Node*) parser->nodes.first->memArea.addr;
+	MemoryChainLink* link = parser->nodes.first->next;
+	const Node* node = (Node*) parser->nodes.first->next->memArea.addr;
 	size_t count = 0;
 
-	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count - 1) {
+	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
 		if(node->type == NodeType_SCOPE_START) {
 			printf("\tSCOPE START (%td NODES)\n",
-				node->value);
+				node->value - 1);
 		} else if(node->type == NodeType_IDENTIFICATION) {
 			printf("\t");
 			print_info_node_key_identification(
@@ -205,7 +205,7 @@ void debug_print_nodes(const Parser* parser) {
 	}
 
 	printf(
-		"\nNumber of nodes: %ld.\n",
+		"\nNumber of nodes: %zu.\n",
 		count);
 }
 

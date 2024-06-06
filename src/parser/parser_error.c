@@ -28,7 +28,7 @@ bool parser_scan_errors(const Lexer* restrict lexer) {
 	size_t count_scope_nest = 0;
 
 	for(size_t i = 0;
-	i < lexer->tokens.count;
+	i < lexer->tokens.count - 1;
 	i += 1) {
 		const Token* tokens = (const Token*) lexer->tokens.addr;
 

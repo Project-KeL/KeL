@@ -143,6 +143,7 @@ typedef enum: uint64_t {
 typedef struct Node Node;
 
 struct Node {
+	bool is_child;
 	uint64_t type;
 	uint64_t subtype;
 	union {

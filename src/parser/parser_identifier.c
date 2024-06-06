@@ -48,6 +48,7 @@ Parser* parser) {
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = true,
 		.type = type,
 		.subtype = subtype,
 		.token = token,
@@ -105,7 +106,7 @@ static bool parse_type_lock_right(
 size_t* i,
 Parser* parser) {
 	size_t buffer_i = *i;
-	const Token* tokens = (const Token*) &parser->lexer->tokens.addr;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 
 	while(tokens[buffer_i].type == TokenType_R
 	   && parser_is_operator_leveling(&tokens[buffer_i])) {
@@ -332,7 +333,12 @@ Parser* parser) {
 		return 0;
 
 	parser_allocator_save(parser);
+
+	if(!parser_allocator(parser))
+		return -1;
+
 	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = false,
 		.type = NodeType_IDENTIFICATION,
 		.subtype = subtype,
 		.token = &tokens[buffer_i],
@@ -342,11 +348,11 @@ Parser* parser) {
 	Node* node_identification = (Node*) parser->nodes.top;
 
 	while(parser_is_qualifier(&tokens[i_qualifier])) {
-		if(parser_allocator(parser)
-		== false)
+		if(!parser_allocator(parser))
 			return -1;
 
 		*((Node*) parser->nodes.top) = (Node) {
+			.is_child = true,
 			.type = NodeType_QUALIFIER,
 			.subtype = tokens[i_qualifier].subtype,
 			.token = &tokens[i_qualifier],

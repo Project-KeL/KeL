@@ -123,43 +123,31 @@ ERROR1:
 }
 
 void memory_chain_destroy_memory_area_last(MemoryChain* restrict memChain) {
-	assert(memChain->count > 0);
+	assert(memChain->count > 1);
 	destroy_memory_area(&memChain->last->memArea);
 
-	if(memChain->last->previous != NULL) {
-		memChain->last = memChain->last->previous;
-		free(memChain->last->next);
-		memChain->last->next = NULL;
-	} else {
-		free(memChain->last);
-		memChain->last = NULL;
-	}
-
+	memChain->last = memChain->last->previous;
+	free(memChain->last->next);
+	memChain->last->next = NULL;
 	memChain->count -= 1;
 
-	if(memChain->count > 0) {
-		const size_t size_type = memChain->first->memArea.size_type;
-		MemoryChainLink* const previous = memChain->last->previous;
+	const size_t size_type = memChain->first->memArea.size_type;
+	MemoryChainLink* const previous = memChain->last->previous;
 
-		if(previous != NULL)
-			memChain->previous = (char*) previous->memArea.addr + size_type * (previous->memArea.count - 1);
-		else
-			memChain->previous = NULL;
-
-		memChain->top = memChain->last->memArea.addr;
-	} else {
+	if(previous != NULL)
+		memChain->previous = (char*) previous->memArea.addr + size_type * (previous->memArea.count - 1);
+	else
 		memChain->previous = NULL;
-		memChain->top = NULL;
-	}
-
 }
 
 void destroy_memory_chain(MemoryChain* restrict memChain) {
 	if(memChain == NULL)
 		return;
 
-	while(memChain->count != 0)
+	while(memChain->count > 1)
 		memory_chain_destroy_memory_area_last(memChain);
 
+	destroy_memory_area(&memChain->first->memArea);
+	free(memChain->first);
 	initialize_memory_chain(memChain);
 }

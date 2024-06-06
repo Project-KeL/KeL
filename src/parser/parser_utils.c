@@ -90,16 +90,18 @@ Node* parser_get_scope_from_period(Parser* parser) {
 		} else
 			node -= 1;
 
-		switch(node->type) {
-		case NodeType_SCOPE_END: count_scope_nest += 1; break;
-		case NodeType_SCOPE_START: count_scope_nest -= 1; break;
+		if(!node->is_child) {
+			switch(node->type) {
+			case NodeType_SCOPE_END: count_scope_nest += 1; break;
+			case NodeType_SCOPE_START: count_scope_nest -= 1; break;
+			}
 		}
 
 		count += 1;
 	} while(count_scope_nest != 0
 	     || node->type != NodeType_SCOPE_START);
 
-	node->value = count - 1;
+	node->value = count;
 	return node;
 }
 

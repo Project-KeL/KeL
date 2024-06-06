@@ -28,15 +28,19 @@ Parser* restrict parser) {
 	== false)
 		return false;
 
+	if(!parser_allocator(parser))
+		return false;
+
 	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = false,
 		.type = NodeType_SCOPE_START,
 		.subtype = NodeSubtypeScope_NO,
-		.value = 0};
+		.value = 0,
+		.child = NULL};
 	return true;
 }
 
 static int if_period_create_node(
-bool allocate_period,
 size_t i,
 Parser* parser) {
 	const Token* token = (Token*) parser->lexer->tokens.addr + i;
@@ -44,12 +48,12 @@ Parser* parser) {
 	if(token->subtype != TokenSubtype_PERIOD)
 		return 0;
 
-	if(allocate_period
-	&& !parser_allocator(parser))
+	if(!parser_allocator(parser))
 		return -1;
 
 	Node* scope = parser_get_scope_from_period(parser);
 	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = false,
 		.type = NodeType_SCOPE_END,
 		.subtype = scope->subtype};
 	scope->child = (Node*) parser->nodes.top;
@@ -72,7 +76,7 @@ Parser* restrict parser) {
 	parser->lexer = lexer;
 	const Token* tokens = (const Token*) lexer->tokens.addr;
 	size_t i = 1;
-	bool allocate_period = false;
+	bool is_scope = false;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -90,11 +94,10 @@ Parser* restrict parser) {
 				i,
 				parser)
 			== true) {
-				if(!parser_allocator(parser))
-					goto DESTROY;
-
 				i += 1;
 			}
+
+			is_scope = true;
 		} else if(set_error(
 			if_identifier_create_nodes(
 				&i,
@@ -102,27 +105,25 @@ Parser* restrict parser) {
 				parser))
 		== 1) {
 			// OK
-		} else if(((Node*) parser->nodes.previous)->type != NodeType_SCOPE_END)
-			allocate_period = true;
+		}
 		// check end of scope (period) or end of instruction (semicolon)
 		if(set_error(
 			if_period_create_node(
-				allocate_period,
 				i,
 				parser))
 		== 1) {
-			allocate_period = false;
 			i += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
+		} else if(is_scope) {
+			// OK
 		} else
 			goto DESTROY;
 		// error checking
 		if(error == -1)
 			goto DESTROY;
 		// allocation
-		if(!parser_allocator(parser))
-			goto DESTROY;
+		is_scope = false;
 	}
 /*
 	if(j == 1)
