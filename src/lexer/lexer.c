@@ -197,7 +197,7 @@ Lexer* lexer) {
 		*end,
 		*end,
 		*end,
-		&tokens[i]);
+		tokens + i);
 	
 	if(code[*end] == ':'
 	// R possibility
@@ -317,7 +317,7 @@ Lexer* lexer) {
 		start,
 		start,
 		*end,
-		&tokens[i]);
+		tokens + i);
 	return true;
 }
 
@@ -412,7 +412,7 @@ Lexer* lexer) {
 		*end,
 		R_start,
 		R_end,
-		&tokens[i]);
+		tokens + i);
 	*end = R_end;
 	return true;
 }
@@ -860,6 +860,6 @@ Lexer* restrict lexer) {
 	if(lexer == NULL)
 		return;
 	
-	lexer->source = NULL;
 	lexer_destroy_allocator(lexer);
+	initialize_lexer(lexer);
 }

@@ -21,7 +21,7 @@ bool lexer_create_allocator(Lexer* lexer) {
 	== false)
 		return false;
 
-	create_token_null(&((Token*) lexer->tokens.addr)[0]);
+	create_token_null((Token*) lexer->tokens.addr);
 	return true;
 }
 

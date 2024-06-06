@@ -36,17 +36,17 @@ const Token* restrict token) {
 	|| token->type == TokenType_IDENTIFIER) {
 		printf("%.*s\n",
 			(int) (token->L_end - token->L_start),
-			&code[token->L_start]);
+			code + token->L_start);
 	} else if(token->type == TokenType_QR
 	       || token->type == TokenType_R) {
 		printf("%.*s\n",
 			(int) (token->R_end - token->R_start),
-			&code[token->R_start]);
+			code + token->R_start);
 	} else if(token->type == TokenType_QLR) {
 		if(token->subtype == TokenType_QL) {
 			printf("%.*s\n",
 				(int) (token->L_end - token->L_start),
-				&code[token->L_start]);
+				code + token->L_start);
 		} else {
 			printf("%.*s\n",
 				(int) (token->R_end - token->R_start),
@@ -55,9 +55,9 @@ const Token* restrict token) {
 	} else if(token->type == TokenType_LR) {
 		printf("%.*s, %.*s\n",
 			(int) (token->L_end - token->L_start),
-			&code[token->L_start],
+			code + token->L_start,
 			(int) (token->R_end - token->R_start),
-			&code[token->L_start]);
+			code + token->L_start);
 	} else if(token->type == TokenType_LITERAL) {
 		switch(token->subtype) {
 		case TokenSubtype_LITERAL_NUMBER:
@@ -70,7 +70,7 @@ const Token* restrict token) {
 
 		printf("\t<%.*s>\n",
 			(int) (token->end - token->start),
-			&code[token->start]);
+			code + token->start);
 	}
 }
 
@@ -89,9 +89,15 @@ const Node* node) {
 	else
 		printf("INITIALIZATION:");
 
-	printf(" <%.*s>\n",
+	printf(" <%.*s>",
 		(int) (node->token->L_end - node->token->L_start),
-		&code[node->token->L_start]);
+		code + node->token->L_start);
+
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+	== NodeSubtypeIdentificationBitScoped_TRUE)
+		printf(" SCOPED\n");
+	else
+		printf("\n");
 }
 
 static void print_info_node_type(
@@ -104,34 +110,34 @@ const Node* node) {
 		if(node->subtype == TokenType_QL) {
 			printf("QL <%.*s>\n",
 				(int) (token->L_end - token->L_start),
-				&code[token->L_start]);
+				code + token->L_start);
 		} else {
 			printf("QR <%.*s>\n",
 				(int) (token->R_end - token->R_start),
-				&code[token->R_start]);
+				code + token->R_start);
 		} break;
 	case NodeTypeChildType_LOCK:
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
 				printf("LOCK <%.*s>\n",
 					(int) (token->R_end - token->R_start),
-					&code[token->R_start]); break;
+					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_RETURN_NONE:
 				printf("RETURN NONE\n"); break;
 			case NodeSubtypeChildTypeScoped_RETURN_LOCK:
 				printf("RETURN LOCK <%.*s>\n",
 					(int) (token->R_end - token->R_start),
-					&code[token->R_start]); break;
+					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER_NONE:
 				printf("PARAMETER NONE\n"); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER:
 				printf("PARAMETER <%.*s>\n",
 					(int) (token->L_end - token->L_start),
-					&code[token->L_start]); break;
+					code + token->L_start); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER_LOCK:
 				printf("PARAMETER LOCK <%.*s>\n",
 					(int) (token->R_end - token->R_start),
-					&code[token->R_start]); break;
+					code + token->R_start); break;
 		} break;
 	}
 }
@@ -145,7 +151,7 @@ void debug_print_tokens(const Lexer* lexer) {
 		printf("\t");
 		print_info_token(
 			lexer->source->content,
-			&((Token*) lexer->tokens.addr)[i]);
+			(Token*) lexer->tokens.addr + i);
 	}
 
 	printf(

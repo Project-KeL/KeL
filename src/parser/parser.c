@@ -22,7 +22,7 @@ static int set_error(int value) {
 static bool if_scope_create_node(
 size_t i,
 Parser* restrict parser) {
-	if(parser_is_scope(
+	if(parser_is_scope_L(
 		i,
 		parser->lexer)
 	== false)
@@ -86,7 +86,7 @@ Parser* restrict parser) {
 
 	while(i < lexer->tokens.count - 1) {
 		// create nodes
-		if(parser_is_scope(
+		if(parser_is_scope_L(
 			i,
 			parser->lexer)
 		== true) {
@@ -139,6 +139,6 @@ void destroy_parser(Parser* restrict parser) {
 	if(parser == NULL)
 		return;
 
-	parser->lexer = NULL;
 	destroy_memory_chain(&parser->nodes);
+	initialize_parser(parser);
 }

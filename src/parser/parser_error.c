@@ -35,7 +35,7 @@ bool parser_scan_errors(const Lexer* restrict lexer) {
 		if(tokens[i].type == TokenType_L) {
 			if(strncmp(
 				"scope",
-				&code[tokens[i].L_start],
+				code + tokens[i].L_start,
 				tokens[i].L_end - tokens[i].L_start)
 			== 0)
 				count_scope_nest += 1;

@@ -65,14 +65,14 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	// L side before lock
 	while(tokens[buffer_i].type == TokenType_L
-	   && parser_is_operator_modifier(&tokens[buffer_i])) {
+	   && parser_is_operator_modifier(tokens + buffer_i)) {
 			// do not support arrays yet
 			// arrays may contain expression so this case will need to be processed
 			// `.child2` will hold this expression
 			type_bind_child_token(
 				NodeTypeChildType_MODIFIER,
 				(NodeSubtype) operator_modifier_to_subtype_left(tokens[buffer_i].subtype),
-				&tokens[buffer_i],
+				tokens + buffer_i,
 				parser);
 			// just ignore right brackets (for the moment)
 			if(((Node*) parser->nodes.previous)->subtype == NodeSubtypeChildTypeModifier_ARRAY)
@@ -82,11 +82,11 @@ Parser* parser) {
 	}
 	// R side before lock
 	while(tokens[buffer_i].type == TokenType_R
-	   && parser_is_operator_modifier(&tokens[buffer_i])) {
+	   && parser_is_operator_modifier(tokens + buffer_i)) {
 		type_bind_child_token(
 			NodeTypeChildType_MODIFIER,
 			(NodeSubtype) operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
-			&tokens[buffer_i],
+			tokens + buffer_i,
 			parser);
 
 		if(((Node*) parser->nodes.previous)->subtype == NodeSubtypeChildTypeModifier_ARRAY)
@@ -109,16 +109,16 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 
 	while(tokens[buffer_i].type == TokenType_R
-	   && parser_is_operator_leveling(&tokens[buffer_i])) {
+	   && parser_is_operator_leveling(tokens + buffer_i)) {
 		type_bind_child_token(
 			NodeTypeChildType_MODIFIER,
 			(NodeSubtype) operator_modifier_to_subtype_right(tokens[buffer_i].subtype),
-			&tokens[buffer_i],
+			tokens + buffer_i,
 			parser);
 		buffer_i += 1;
 	}
 
-	if(parser_is_operator_modifier(&tokens[buffer_i]))
+	if(parser_is_operator_modifier(tokens + buffer_i))
 		return false;
 
 	*i = buffer_i;
@@ -129,13 +129,14 @@ static int if_type_create_nodes(
 size_t* i,
 MemoryArea* memArea,
 Parser* parser) {
+	int scoped = 1; // 2 if the type is scoped
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
-	size_t count_parenthesis_nest = 0;	
+	size_t count_parenthesis_nest = 0;
 
-	if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
+	if(parser_is_R_left_parenthesis(tokens + buffer_i))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 	do {
@@ -149,11 +150,15 @@ TYPE:
 			return false;
 
 		if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS) {
-			type_bind_child_token(
+			if(type_bind_child_token(
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChild_NO,
-				&tokens[buffer_i],
-				parser);
+				tokens + buffer_i,
+				parser)
+			== false)
+				return -1;
+
+			size_t i_lock = buffer_i;
 			lock = (Node*) parser->nodes.top;
 			buffer_i += 1;
 			memory[count_parenthesis_nest] = 1;
@@ -165,33 +170,48 @@ TYPE:
 				return 0;
 
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
-			&& count_parenthesis_nest == 0)
+			&& count_parenthesis_nest == 0) {
+				if(parser_is_scope_R(
+					i_lock,
+					parser->lexer)
+				== true)
+					scoped = 2;
+
 				break;
+			}
 		}
 		// lock not alone (good luck)
-		while(parser_is_R_left_parenthesis(&tokens[buffer_i])) {
+		scoped = 2;
+
+		while(parser_is_R_left_parenthesis(tokens + buffer_i)) {
 R_LPARENTHESIS:
 			if(count_parenthesis_nest > 1
 			// handle R left parenthesis at the first nesting level like in :(a :())
 			|| (count_parenthesis_nest == 1
-			 && !parser_is_parenthesis(&tokens[buffer_i - 1])))
+			 && !parser_is_parenthesis(tokens + buffer_i - 1)))
 				goto R_LPARENTHESIS_SKIP_PARAMETER;
 
-			if(!parser_is_key(&tokens[buffer_i]))
+			if(!parser_is_key(tokens + buffer_i))
 				return false;
 
-			type_bind_child_token(
+			if(type_bind_child_token(
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
-				&tokens[buffer_i],
-				parser);
+				tokens + buffer_i,
+				parser)
+			== false)
+				return -1;
+
 			buffer_i += 1;
 R_LPARENTHESIS_SKIP_PARAMETER:
-			type_bind_child_token(
+			if(type_bind_child_token(
 				NodeTypeChildType_LOCK,
 				(NodeSubtype) NodeSubtypeChildTypeScoped_RETURN_NONE,
 				NULL,
-				parser);
+				parser)
+			== false)
+				return -1;
+
 			lock = (Node*) parser->nodes.top;
 			buffer_i += 1;
 			memory[count_parenthesis_nest] = 1;
@@ -210,7 +230,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 			count_parenthesis_nest += 1;
 			memory[count_parenthesis_nest] = 0;
 
-			if(parser_is_R_left_parenthesis(&tokens[buffer_i]))
+			if(parser_is_R_left_parenthesis(tokens + buffer_i))
 				goto R_LPARENTHESIS;
 
 			goto READ_PARAMETER;
@@ -224,22 +244,25 @@ READ_PARAMETER:
 
 			memory[count_parenthesis_nest] = 1;
 
-			if(parser_is_key(&tokens[buffer_i])) {
+			if(parser_is_key(tokens + buffer_i)) {
 				// ignore parameter after the first nesting level
 				if(count_parenthesis_nest > 1) {
 					buffer_i += 1;
 					goto TYPE;
 				}
 
-				type_bind_child_token(
+				if(type_bind_child_token(
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
-					&tokens[buffer_i],
-					parser);
+					tokens + buffer_i,
+					parser)
+				== false)
+					return -1;
+
 				buffer_i += 1;
 				goto TYPE;
 			} else if(count_parenthesis_nest > 1
-			       && parser_is_lock(&tokens[buffer_i])) {
+			       && parser_is_lock(tokens + buffer_i)) {
 				goto TYPE;
 			} else {
 				// a lock must succeed a key at the first nesting level
@@ -248,11 +271,13 @@ READ_PARAMETER:
 		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
 RPARENTHESIS:
 			if(memory[count_parenthesis_nest] == 0) {
-				type_bind_child_token(
+				if(type_bind_child_token(
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER_NONE,
 					NULL,
-					parser);
+					parser)
+				== false)
+					return -1;
 			}
 
 			do {
@@ -262,21 +287,24 @@ RPARENTHESIS:
 
 			if(tokens[buffer_i].subtype == TokenSubtype_COMMA)
 				goto COMMA;
-		} else if(parser_is_key(&tokens[buffer_i])) {
+		} else if(parser_is_key(tokens + buffer_i)) {
 				// keep ignoring parameter after the first nesting level
 				if(count_parenthesis_nest > 1) {
 					buffer_i += 1;
 					goto TYPE;
 				}
 				// a parameter after an R left parenthesis like in :(a :b)
-				type_bind_child_token(
+				if(type_bind_child_token(
 					NodeTypeChildType_LOCK,
 					(NodeSubtype) NodeSubtypeChildTypeScoped_PARAMETER,
-					&tokens[buffer_i],
-					parser);
+					tokens + buffer_i,
+					parser)
+				== false)
+					return -1;
+
 				buffer_i += 1;
 				goto TYPE;
-		} else if(parser_is_lock(&tokens[buffer_i])) {
+		} else if(parser_is_lock(tokens + buffer_i)) {
 			goto TYPE;
 		} else {
 			return 0;
@@ -284,7 +312,7 @@ RPARENTHESIS:
 	} while(count_parenthesis_nest != 0);
 
 	*i = buffer_i;
-	return 1;
+	return scoped;
 }
 
 static int if_initialization_create_node(
@@ -306,7 +334,7 @@ Parser* parser) {
 	*((Node*) parser->nodes.top) = (Node) {
 		.type = NodeType_LITERAL,
 		.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
-		.token = &tokens[buffer_i]};
+		.token = tokens + buffer_i};
 	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 	*i = buffer_i + 1;
 	return 1;
@@ -321,7 +349,7 @@ Parser* parser) {
 	NodeSubtype subtype = NodeSubtype_NO;
 	size_t i_qualifier = buffer_i;
 
-	while(parser_is_qualifier(&tokens[buffer_i])) buffer_i += 1;
+	while(parser_is_qualifier(tokens + buffer_i)) buffer_i += 1;
 
 	if(tokens[buffer_i].type != TokenType_COMMAND)
 		return 0;
@@ -341,13 +369,13 @@ Parser* parser) {
 		.is_child = false,
 		.type = NodeType_IDENTIFICATION,
 		.subtype = subtype,
-		.token = &tokens[buffer_i],
+		.token = tokens + buffer_i,
 		.child1 = NULL,
 		.child2 = NULL};
 	buffer_i += 1;
 	Node* node_identification = (Node*) parser->nodes.top;
 
-	while(parser_is_qualifier(&tokens[i_qualifier])) {
+	while(parser_is_qualifier(tokens + i_qualifier)) {
 		if(!parser_allocator(parser))
 			return -1;
 
@@ -355,7 +383,7 @@ Parser* parser) {
 			.is_child = true,
 			.type = NodeType_QUALIFIER,
 			.subtype = tokens[i_qualifier].subtype,
-			.token = &tokens[i_qualifier],
+			.token = tokens + i_qualifier,
 			.child1 = NULL,
 			.child2 = NULL};
 		((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
@@ -369,8 +397,11 @@ Parser* parser) {
 	) {
 	case -1: return -1;
 	case 0: parser_allocator_restore(parser); return 0;
-	case 1: /* fall through */;
+	case 1: break;
+	case 2: node_identification->subtype |= NodeSubtypeIdentificationBitScoped_TRUE; break;
 	}
+
+	parser_allocator_save(parser);
 
 	switch(if_initialization_create_node(
 		&buffer_i,

@@ -60,16 +60,32 @@ bool parser_is_operator_modifier(const Token* restrict token) {
 	    || parser_is_bracket(token);
 }
 
-bool parser_is_scope(
+bool parser_is_scope_L(
 long int i,
 const Lexer* restrict lexer) {
-	const Token* token = &((const Token*) lexer->tokens.addr)[i];
+	const Token* token = ((const Token*) lexer->tokens.addr) + i;
 
 	if(token->type != TokenType_L
 	|| strncmp(
 		"scope",
-		&lexer->source->content[token->L_start],
+		lexer->source->content + token->L_start,
 		token->L_end - token->L_start)
+	!= 0)
+		return false;
+
+	return true;
+}
+
+bool parser_is_scope_R(
+long int i,
+const Lexer* restrict lexer) {
+	const Token* token = ((const Token*) lexer->tokens.addr) + i;
+
+	if(token->type != TokenType_R
+	|| strncmp(
+		"scope",
+		lexer->source->content + token->R_start,
+		token->R_end - token->R_start)
 	!= 0)
 		return false;
 
