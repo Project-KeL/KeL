@@ -87,6 +87,8 @@ const Token* restrict token) {
 static void print_info_node_key_identification(
 const char* code,
 const Node* node) {
+	bool is_initialization = false;
+
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
 	== NodeSubtypeIdentificationBitCommand_HASH)
 		printf("# ");
@@ -94,10 +96,12 @@ const Node* node) {
 		printf("@ ");
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
-	== NodeSubtypeIdentificationBitType_DECLARATION)
+	== NodeSubtypeIdentificationBitType_DECLARATION) {
 		printf("DECLARATION");
-	else
+	} else {
+		is_initialization = true;
 		printf("INITIALIZATION:");
+	}
 
 	printf(" <%.*s>",
 		(int) (node->token->L_end - node->token->L_start),
@@ -105,9 +109,15 @@ const Node* node) {
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
 	== NodeSubtypeIdentificationBitScoped_TRUE)
-		printf(" SCOPED\n");
-	else
-		printf("\n");
+		printf(" SCOPED");
+
+	if(is_initialization) {
+		printf(" <%.*s>",
+			(int) (node->child2->token->L_end - node->child2->token->L_start),
+			code + node->child2->token->L_start);
+	}
+
+	printf("\n");
 }
 
 static void print_info_node_type(
@@ -177,11 +187,12 @@ void debug_print_nodes(const Parser* parser) {
 	size_t count = 0;
 
 	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
+		printf("\t");
+
 		if(node->type == NodeType_SCOPE_START) {
-			printf("\tSCOPE START (%td NODES)\n",
+			printf("SCOPE START (%td NODES)\n",
 				node->value - 1);
 		} else if(node->type == NodeType_IDENTIFICATION) {
-			printf("\t");
 			print_info_node_key_identification(
 				code,
 				node);
@@ -201,9 +212,13 @@ void debug_print_nodes(const Parser* parser) {
 			} while(child1 != NULL);
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("\tSCOPE END\n");
+		} else if(node->type == NodeType_LITERAL) {
+			print_info_token(
+				code,
+				node->token);
 		} else {
 			printf(
-				"\t%" PRIu64 ", %" PRIu64 "\n",
+				"%" PRIu64 ", %" PRIu64 "\n",
 				node->type,
 				node->subtype);
 		}

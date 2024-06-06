@@ -314,6 +314,7 @@ RPARENTHESIS:
 
 static int if_initialization_create_node(
 size_t* i,
+Node* node_identification,
 Parser* parser) {
 	// just parse literals for the moment, expressions later
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
@@ -322,21 +323,20 @@ Parser* parser) {
 	if(parser_is_scope_L(tokens + buffer_i))
 		return 1;
 
-	if(tokens[buffer_i].type != TokenType_LITERAL)
+	if(!parser_allocator(parser))
+		return -1;
+
+	if(tokens[buffer_i].type == TokenType_LITERAL) {
+		*((Node*) parser->nodes.top) = (Node) {
+			.type = NodeType_LITERAL,
+			.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
+			.token = tokens + buffer_i};
+		buffer_i += 1;
+	} else
 		return 0;
 
-	if(!parser_allocator(parser))
-		return -1;
-
-	if(!parser_allocator(parser))
-		return -1;
-
-	*((Node*) parser->nodes.top) = (Node) {
-		.type = NodeType_LITERAL,
-		.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
-		.token = tokens + buffer_i};
-	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
-	*i = buffer_i + 1;
+	node_identification->child2 = (Node*) parser->nodes.top;
+	*i = buffer_i;
 	return 1;
 }
 
@@ -397,7 +397,7 @@ Parser* parser) {
 	) {
 	case -1: return -1;
 	case 0: parser_allocator_restore(parser); return 0;
-	case 1: break;
+	case 1: /* fall through */ break;
 	case 2: node_identification->subtype |= NodeSubtypeIdentificationBitScoped_TRUE; break;
 	}
 
@@ -405,6 +405,7 @@ Parser* parser) {
 
 	switch(if_initialization_create_node(
 		&buffer_i,
+		node_identification,
 		parser)) {
 	case -1: return -1;
 	case 0: // declaration case

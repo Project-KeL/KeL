@@ -150,7 +150,7 @@ Lexer* lexer) {
 		&buffer_i,
 		lexer)) {
 	case -1: return -1;
-	case 1: /* fall through */
+	case 1: /* fall through */;
 	}
 
 	buffer_end += 1;
