@@ -24,8 +24,10 @@ const Token* restrict token) {
 	case TokenType_LITERAL: type = "LIT"; break;
 	}
 
-	printf("%s \t ",
-		type);
+	if(token->subtype != TokenSubtype_SCOPE) {
+		printf("%s \t ",
+			type);
+	}
 
 	if(token->type == TokenType_COLON_LONELY
 	|| token->type == TokenType_COMMAND
@@ -34,14 +36,22 @@ const Token* restrict token) {
 	|| token->type == TokenType_L
 	|| token->type == TokenType_PL
 	|| token->type == TokenType_IDENTIFIER) {
-		printf("%.*s\n",
-			(int) (token->L_end - token->L_start),
-			code + token->L_start);
+		if(token->subtype == TokenSubtype_SCOPE) {
+			printf("L SCOPE\n");
+		} else {
+			printf("%.*s\n",
+				(int) (token->L_end - token->L_start),
+				code + token->L_start);
+		}
 	} else if(token->type == TokenType_QR
 	       || token->type == TokenType_R) {
-		printf("%.*s\n",
-			(int) (token->R_end - token->R_start),
-			code + token->R_start);
+		if(token->subtype == TokenSubtype_SCOPE) {
+			printf("R SCOPE\n");
+		} else {
+			printf("%.*s\n",
+				(int) (token->R_end - token->R_start),
+				code + token->R_start);
+		}
 	} else if(token->type == TokenType_QLR) {
 		if(token->subtype == TokenType_QL) {
 			printf("%.*s\n",

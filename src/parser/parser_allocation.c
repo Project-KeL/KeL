@@ -48,7 +48,6 @@ void parser_allocator_clear(Parser* parser) {
 
 void parser_allocator_restore(Parser* parser) {
 	assert(parser->nodes.buffer_count != 0);
-	assert(parser->nodes.buffer_previous != NULL);
 	assert(parser->nodes.buffer_top != NULL);
 
 	while(parser->nodes.count != parser->nodes.buffer_count)

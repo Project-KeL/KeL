@@ -14,12 +14,8 @@ bool parser_is_R_right_parenthesis(const Token* token);
 bool parser_is_qualifier(const Token* token);
 bool parser_is_operator_leveling(const Token* restrict token);
 bool parser_is_operator_modifier(const Token* restrict token);
-bool parser_is_scope_L(
-	long int i,
-	const Lexer* restrict lexer);
-bool parser_is_scope_R(
-	long int i,
-	const Lexer* restrict lexer);
+bool parser_is_scope_L(const Token* restrict token);
+bool parser_is_scope_R(const Token* restrict token);
 Node* parser_get_scope_from_period(Parser* parser);
 bool parser_is_special(const Token* token);
 bool parser_is_key(const Token* token);

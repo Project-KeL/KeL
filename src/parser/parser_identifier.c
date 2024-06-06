@@ -171,10 +171,7 @@ TYPE:
 
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
-				if(parser_is_scope_R(
-					i_lock,
-					parser->lexer)
-				== true)
+				if(parser_is_scope_R(tokens + i_lock))
 					scoped = 2;
 
 				break;
@@ -321,6 +318,9 @@ Parser* parser) {
 	// just parse literals for the moment, expressions later
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
+
+	if(parser_is_scope_L(tokens + buffer_i))
+		return 1;
 
 	if(tokens[buffer_i].type != TokenType_LITERAL)
 		return 0;

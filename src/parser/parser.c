@@ -7,8 +7,6 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
-// i is the current token to be processed
-
 static int error = 0;
 
 static int set_error(int value) {
@@ -22,10 +20,7 @@ static int set_error(int value) {
 static bool if_scope_create_node(
 size_t i,
 Parser* restrict parser) {
-	if(parser_is_scope_L(
-		i,
-		parser->lexer)
-	== false)
+	if(!parser_is_scope_L((const Token*) parser->lexer->tokens.addr + i))
 		return false;
 
 	if(!parser_allocator(parser))
@@ -86,10 +81,7 @@ Parser* restrict parser) {
 
 	while(i < lexer->tokens.count - 1) {
 		// create nodes
-		if(parser_is_scope_L(
-			i,
-			parser->lexer)
-		== true) {
+		if(parser_is_scope_L(tokens + i)) {
 			while(if_scope_create_node(
 				i,
 				parser)
@@ -104,7 +96,8 @@ Parser* restrict parser) {
 				memArea,
 				parser))
 		== 1) {
-			// OK
+			if(parser_is_scope_L(tokens + i))
+				is_scope = true;
 		}
 		// check end of scope (period) or end of instruction (semicolon)
 		if(set_error(

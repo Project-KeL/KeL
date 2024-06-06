@@ -191,13 +191,27 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	create_token_colon_word(
-		TokenType_L,
-		start,
-		*end,
-		*end,
-		*end,
-		tokens + i);
+	if(strncmp(
+		"scope",
+		code + start,
+		*end - start)
+	== 0) {
+		tokens[i] = (Token) {
+			.type = TokenType_L,
+			.subtype = TokenSubtype_SCOPE,
+			.L_start = start,
+			.L_end = *end,
+			.R_start = *end,
+			.R_end = *end};
+	} else {
+		create_token_colon_word(
+			TokenType_L,
+			start,
+			*end,
+			*end,
+			*end,
+			tokens + i);
+	}
 	
 	if(code[*end] == ':'
 	// R possibility
@@ -311,13 +325,28 @@ Lexer* lexer) {
 	if(!previous_is_operator_modifier)
 		*end = buffer_end;
 
-	create_token_colon_word(
-		TokenType_R,
-		start,
-		start,
-		start,
-		*end,
-		tokens + i);
+	if(strncmp(
+		"scope",
+		code + start,
+		*end - start)
+	== 0) {
+		tokens[i] = (Token) {
+			.type = TokenType_R,
+			.subtype = TokenSubtype_SCOPE,
+			.L_start = start,
+			.L_end = start,
+			.R_start = start,
+			.R_end = *end};
+	} else {
+		create_token_colon_word(
+			TokenType_R,
+			start,
+			start,
+			start,
+			*end,
+			tokens + i);
+	}
+
 	return true;
 }
 

@@ -33,6 +33,7 @@ typedef enum: uint32_t {
 typedef enum: uint32_t {
 #define TOKEN_SUBTYPE(subtype) TokenSubtype_ ## subtype
 	TOKEN_SUBTYPE(NO) = 0,
+	TOKEN_SUBTYPE(SCOPE),
 	// litteral
 	TOKEN_SUBTYPE(LITERAL_NUMBER), // the base is the highest byte
 	TOKEN_SUBTYPE(LITERAL_CHARACTER),
