@@ -42,7 +42,7 @@ MemoryArea* restrict memArea) {
 }
 
 void destroy_memory_area(MemoryArea* restrict memArea) {
-	if(memArea->addr == NULL)
+	if(memArea == NULL)
 		return;
 
 	free(memArea->addr);

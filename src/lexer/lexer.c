@@ -841,12 +841,21 @@ TOKEN_SPECIAL:
 					count_L_parenthesis_nest -= 1;
 				
 				if(code[start] == ':') {
-					create_token_special(
-						code,
-						start,
-						TokenType_COLON_LONELY,
-						token);
+					size_t buffer_start = start;
+
+					while(!isgraph(code[buffer_start])) buffer_start += 1;
+
+					if(lexer_is_command(code[buffer_start])) {
+						create_token_special(
+							code,
+							start,
+							TokenType_COLON_LONELY,
+							token);
+					} else {
+						goto CREATE_TOKEN_SPECIAL;
+					}
 				} else {
+CREATE_TOKEN_SPECIAL:
 					create_token_special(
 						code,
 						start,
