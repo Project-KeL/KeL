@@ -91,22 +91,25 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
     - [x] Keys.
     - [x] Locks.
     - [x] Literals.
-    - [ ] R special symbols.
+    - [ ] R special symbols (partial support).
     - [x] Identifiers.
 - [ ] Parser
-    - [x] Parse types.
-    - [ ] Parse types with the R underscore syntax.
-    - [x] Declarations.
+    - [ ] Parse types.
+        - [x] Simple types.
+        - [x] Parameterized label types.
+        - [ ] Types with the R underscore syntax.
+    - [ ] Declarations
+        - [x] Without type deduction.
+        - [ ] With type deduction.
     - [ ] Parse initialization (work in progress).
-        - [x] Initialization with literals.
-        - [x] Scoped initialization.
-        - [ ] Initialization with an expression.
-    - [ ] Parameterized scope calls.
+        - [x] With literals.
+        - [x] With scopes.
+        - [ ] With an expression.
+    - [ ] Parameterized labels calls.
     - [ ] Expressions.
     - [ ] Conditions and loops.
-    - [ ] Parse type deducing possibility.
     - [ ] Parse arrays and pointers.
-    - [ ] Parse references and dereferences.
+    - [ ] Parse R modifiers.
 - [ ] Modules
 - [ ] Generator
     - [ ] Built-in macros to write in the output.

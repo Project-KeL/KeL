@@ -91,7 +91,7 @@ Parser* restrict parser) {
 
 			is_scope = true;
 		} else if(set_error(
-			if_identifier_create_nodes(
+			if_identification_create_nodes(
 				&i,
 				memArea,
 				parser))

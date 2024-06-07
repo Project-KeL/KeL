@@ -55,9 +55,6 @@ void initialize_memory_chain(MemoryChain* restrict memChain) {
 	memChain->last = NULL;
 	memChain->previous = NULL;
 	memChain->top = NULL;
-	memChain->buffer_count = 0;
-	memChain->buffer_previous = NULL;
-	memChain->buffer_top = NULL;
 }
 
 bool create_memory_chain(
@@ -150,4 +147,31 @@ void destroy_memory_chain(MemoryChain* restrict memChain) {
 	destroy_memory_area(&memChain->first->memArea);
 	free(memChain->first);
 	initialize_memory_chain(memChain);
+}
+
+void initialize_memory_chain_state(MemoryChainState* restrict memChain_state) {
+	memChain_state->buffer_count = 0;
+	memChain_state->buffer_previous = NULL;
+	memChain_state->buffer_top = NULL;
+}
+
+void memory_chain_state_save(
+const MemoryChain* restrict memChain,
+MemoryChainState* restrict memChain_state) {
+	memChain_state->buffer_count = memChain->count;
+	memChain_state->buffer_previous = memChain->previous;
+	memChain_state->buffer_top = memChain->top;
+}
+
+void memory_chain_state_restore(
+MemoryChain* restrict memChain,
+const MemoryChainState* restrict memChain_state) {
+	assert(memChain_state->buffer_count != 0);
+	assert(memChain_state->buffer_top != NULL);
+	
+	while(memChain->count != memChain_state->buffer_count)
+		memory_chain_destroy_memory_area_last(memChain);
+
+	memChain->previous = memChain_state->buffer_previous;
+	memChain->top = memChain_state->buffer_top;
 }

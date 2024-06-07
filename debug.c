@@ -108,10 +108,9 @@ const Node* node) {
 		code + node->token->L_start);
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-	== NodeSubtypeIdentificationBitScoped_TRUE)
+	== NodeSubtypeIdentificationBitScoped_TRUE) {
 		printf(" SCOPED");
-
-	if(is_initialization) {
+	} else if(is_initialization) {
 		printf(" <%.*s>",
 			(int) (node->child2->token->L_end - node->child2->token->L_start),
 			code + node->child2->token->L_start);
@@ -211,7 +210,7 @@ void debug_print_nodes(const Parser* parser) {
 				count += 1;
 			} while(child1 != NULL);
 		} else if(node->type == NodeType_SCOPE_END) {
-			printf("\tSCOPE END\n");
+			printf("SCOPE END\n");
 		} else if(node->type == NodeType_LITERAL) {
 			print_info_token(
 				code,

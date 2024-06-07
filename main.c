@@ -31,6 +31,8 @@ char** argv) {
 	== false)
 		goto END;
 
+	printf("%s\n", source.content + 1);
+
 	if((exit_status = create_memory_area(
 		source.length,
 		sizeof(uint8_t),
@@ -43,8 +45,6 @@ char** argv) {
 		&binary))
 	== false)
 		goto END;
-
-	printf("%s\n", source.content);
 
 	if((exit_status = create_lexer(
 		&source,

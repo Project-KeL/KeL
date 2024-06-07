@@ -340,7 +340,7 @@ Parser* parser) {
 	return 1;
 }
 
-int if_identifier_create_nodes(
+int if_identification_create_nodes(
 size_t* i,
 MemoryArea* memArea,
 Parser* parser) {
@@ -348,6 +348,9 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	NodeSubtype subtype = NodeSubtype_NO;
 	size_t i_qualifier = buffer_i;
+	MemoryChainState memChain_state;
+
+	initialize_memory_chain_state(&memChain_state);
 
 	while(parser_is_qualifier(tokens + buffer_i)) buffer_i += 1;
 
@@ -360,7 +363,9 @@ Parser* parser) {
 	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
 		return 0;
 
-	parser_allocator_save(parser);
+	memory_chain_state_save(
+		&parser->nodes,
+		&memChain_state);
 
 	if(!parser_allocator(parser))
 		return -1;
@@ -396,12 +401,17 @@ Parser* parser) {
 		parser)
 	) {
 	case -1: return -1;
-	case 0: parser_allocator_restore(parser); return 0;
+	case 0:
+		memory_chain_state_restore(
+			&parser->nodes,
+			&memChain_state); return 0;
 	case 1: /* fall through */ break;
 	case 2: node_identification->subtype |= NodeSubtypeIdentificationBitScoped_TRUE; break;
 	}
 
-	parser_allocator_save(parser);
+	memory_chain_state_save(
+		&parser->nodes,
+		&memChain_state);
 
 	switch(if_initialization_create_node(
 		&buffer_i,
@@ -409,6 +419,9 @@ Parser* parser) {
 		parser)) {
 	case -1: return -1;
 	case 0: // declaration case
+		memory_chain_state_restore(
+			&parser->nodes,
+			&memChain_state);
 		node_identification->subtype |= NodeSubtypeIdentificationBitType_DECLARATION;
 		break;
 	case 1: // initialization case

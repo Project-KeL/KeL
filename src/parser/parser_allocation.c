@@ -34,33 +34,4 @@ bool parser_allocator(Parser* parser) {
 	return true;
 }
 
-void parser_allocator_save(Parser* parser) {
-	parser->nodes.buffer_count = parser->nodes.count;
-	parser->nodes.buffer_previous = parser->nodes.previous;
-	parser->nodes.buffer_top = parser->nodes.top;
-}
-
-void parser_allocator_clear(Parser* parser) {
-	parser->nodes.buffer_count = 0;
-	parser->nodes.buffer_previous = NULL;
-	parser->nodes.buffer_top = NULL;
-}
-
-void parser_allocator_restore(Parser* parser) {
-	assert(parser->nodes.buffer_count != 0);
-	assert(parser->nodes.buffer_top != NULL);
-
-	while(parser->nodes.count != parser->nodes.buffer_count)
-		memory_chain_destroy_memory_area_last(&parser->nodes);
-
-	parser->nodes.previous = parser->nodes.buffer_previous;
-	parser->nodes.top = parser->nodes.buffer_top;
-
-	parser_allocator_clear(parser);
-}
-
-void parser_destroy_allocator(Parser* parser) {
-	destroy_memory_chain(&parser->nodes);
-}
-
 #undef CHUNK

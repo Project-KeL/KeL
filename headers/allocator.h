@@ -34,10 +34,13 @@ typedef struct {
 	MemoryChainLink* last;
 	void* previous;
 	void* top;
+} MemoryChain;
+
+typedef struct {
 	size_t buffer_count;
 	void* buffer_previous;
 	void* buffer_top;
-} MemoryChain;
+} MemoryChainState;
 
 void initialize_memory_chain(MemoryChain* restrict memChain);
 bool create_memory_chain(
@@ -49,5 +52,12 @@ bool memory_chain_add_area(
 	MemoryChain* restrict memChain);
 void memory_chain_destroy_memory_area_last(MemoryChain* restrict memChain);
 void destroy_memory_chain(MemoryChain* restrict memChain);
+void initialize_memory_chain_state(MemoryChainState* restrict memChain_state);
+void memory_chain_state_save(
+	const MemoryChain* restrict memChain,
+	MemoryChainState* restrict memChain_state);
+void memory_chain_state_restore(
+	MemoryChain* restrict memChain,
+	const MemoryChainState* restrict memChain_state);
 
 #endif

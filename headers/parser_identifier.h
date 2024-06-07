@@ -4,7 +4,7 @@
 #include "allocator.h"
 #include "parser_def.h"
 
-int if_identifier_create_nodes(
+int if_identification_create_nodes(
 	size_t* i,
 	MemoryArea* memArea,
 	Parser* parser);
