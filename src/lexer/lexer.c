@@ -839,7 +839,7 @@ TOKEN_SPECIAL:
 					count_L_parenthesis_nest += 1;
 				else if(code[start] == ')')
 					count_L_parenthesis_nest -= 1;
-				
+				// to declare a lock
 				if(code[start] == ':') {
 					size_t buffer_start = start + 1;
 

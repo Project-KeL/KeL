@@ -95,21 +95,20 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
     - [x] Identifiers.
 - [ ] Parser
     - [ ] Parse types.
-        - [x] Simple types.
-        - [x] Parameterized label types.
-        - [ ] Types with the R underscore syntax.
-    - [ ] Declarations
+        - [x] Lock alone.
+        - [x] Parameterized label.
+        - [ ] R underscore syntax.
+        - [ ] L and R modifiers (arrays, pointers, ...).
+    - [ ] Identification
         - [x] Without type deduction.
         - [ ] With type deduction.
-    - [ ] Parse initialization (work in progress).
+    - [ ] Initialization (work in progress).
         - [x] With literals.
         - [x] With scopes.
         - [ ] With an expression.
     - [ ] Parameterized labels calls.
     - [ ] Expressions.
     - [ ] Conditions and loops.
-    - [ ] Parse arrays and pointers.
-    - [ ] Parse R modifiers.
 - [ ] Modules
 - [ ] Generator
     - [ ] Built-in macros to write in the output.
