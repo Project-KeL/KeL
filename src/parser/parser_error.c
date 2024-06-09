@@ -8,7 +8,7 @@
  */
 /*
 static bool scan_type(
-const Lexer* restrict lexer,
+const Lexer* lexer,
 long int* i) {
 	const Token* tokens = lexer->tokens;
 	long int buffer_i = *i;
@@ -23,7 +23,7 @@ long int* i) {
 	}
 }
 */
-bool parser_scan_errors(const Lexer* restrict lexer) {
+bool parser_scan_errors(const Lexer* lexer) {
 	const char* code = lexer->source->content;
 	size_t count_scope_nest = 0;
 

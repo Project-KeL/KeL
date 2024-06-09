@@ -19,11 +19,11 @@ static int set_error(int value) {
 
 static bool if_scope_create_node(
 size_t i,
-Parser* restrict parser) {
+Parser* parser) {
 	if(!parser_is_scope_L((const Token*) parser->lexer->tokens.addr + i))
 		return false;
 
-	if(!parser_allocator(parser))
+	if(!parser_allocator_node(parser))
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {
@@ -43,7 +43,7 @@ Parser* parser) {
 	if(token->subtype != TokenSubtype_PERIOD)
 		return 0;
 
-	if(!parser_allocator(parser))
+	if(!parser_allocator_node(parser))
 		return -1;
 
 	Node* scope = parser_get_scope_from_period(parser);
@@ -57,13 +57,13 @@ Parser* parser) {
 
 void initialize_parser(Parser* parser) {
 	parser->lexer = NULL;
-	initialize_memory_chain(&parser->nodes);
+	parser_initialize_allocators(parser);
 }
 
 bool create_parser(
 const Lexer* lexer,
-MemoryArea* memArea,
-Parser* restrict parser) {
+MemoryArea* restrict memArea,
+Parser* parser) {
 	assert(parser != NULL);
 	assert(lexer != NULL);
 	assert(memArea != NULL);
@@ -76,7 +76,7 @@ Parser* restrict parser) {
 	if(!parser_scan_errors(lexer))
 		return false;
 
-	if(!parser_create_allocator(parser))
+	if(!parser_create_allocators(parser))
 		return false;
 
 	while(i < lexer->tokens.count - 1) {
@@ -128,10 +128,10 @@ DESTROY:
 	return false;
 }
 
-void destroy_parser(Parser* restrict parser) {
+void destroy_parser(Parser* parser) {
 	if(parser == NULL)
 		return;
 
-	destroy_memory_chain(&parser->nodes);
+	parser_destroy_allocators(parser);
 	initialize_parser(parser);
 }

@@ -112,3 +112,5 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 - [ ] Modules
 - [ ] Generator
     - [ ] Built-in macros to write in the output.
+
+NB: "./binary" and "./linker" are just placeholders.

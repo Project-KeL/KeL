@@ -161,6 +161,8 @@ struct Node {
 typedef struct {
 	const Lexer* lexer;
 	MemoryChain nodes;
+	MemoryChain identifiers;
+	MemoryChain identifiers_parameterized;
 } Parser;
 
 #endif

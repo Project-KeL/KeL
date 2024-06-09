@@ -3,6 +3,6 @@
 
 #include "lexer.h"
 
-bool parser_scan_errors(const Lexer* restrict lexer);
+bool parser_scan_errors(const Lexer* lexer);
 
 #endif

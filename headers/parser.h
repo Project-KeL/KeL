@@ -9,8 +9,8 @@
 void initialize_parser(Parser* parser);
 bool create_parser(
 	const Lexer* lexer,
-	MemoryArea* memArea,
-	Parser* restrict parser);
-void destroy_parser(Parser* restrict parser);
+	MemoryArea* restrict memArea,
+	Parser* parser);
+void destroy_parser(Parser* parser);
 
 #endif

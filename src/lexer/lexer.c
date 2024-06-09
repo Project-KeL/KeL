@@ -50,10 +50,10 @@ static int set_error(int value) {
 }
 
 static void create_token_special(
-const char* restrict code,
+const char* code,
 long int start,
 TokenType type,
-Token* restrict token) {
+Token* token) {
 	*token = (Token) {
 		.type = type,
 		.subtype = lexer_character_to_subtype(code[start]),
@@ -67,7 +67,7 @@ long int L_start,
 long int L_end,
 long int R_start,
 long int R_end,
-Token* restrict token) {
+Token* token) {
 	*token = (Token) {
 		.type = type,
 		.subtype = TokenSubtype_NO,
@@ -99,6 +99,8 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
+	assert(start != end);
+
 	const char* code = lexer->source->content;
 
 	do {
@@ -108,7 +110,7 @@ Lexer* lexer) {
 		== false)
 			return -1;
 
-		Token* tokens = (Token*) lexer->tokens.addr;
+		Token* const tokens = (Token*) lexer->tokens.addr;
 		lexer_get_next_word(
 			code,
 			start,
@@ -131,6 +133,8 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
+	assert(start != end);
+
 	const char* code = lexer->source->content;
 	Token* tokens = (Token*) lexer->tokens.addr;
 	long int buffer_start = *start;
@@ -228,6 +232,8 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
+	assert(start != end);
+
 	const char* code = lexer->source->content;
 
 	do {
@@ -259,7 +265,9 @@ static int if_QR_create_token(
 long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
-Lexer* restrict lexer) {
+Lexer* lexer) {
+	assert(start != end);
+
 	const char* code = lexer->source->content;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
@@ -355,6 +363,8 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
+	assert(start != end);
+
 	const char* code = lexer->source->content;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
@@ -447,7 +457,7 @@ Lexer* lexer) {
 }
 
 static bool if_literal_create_token(
-const char* restrict code,
+const char* code,
 long int start,
 long int* end,
 Token* token) {
@@ -583,7 +593,7 @@ void initialize_lexer(Lexer* lexer) {
 bool create_lexer(
 const Source* source,
 MemoryArea* restrict memArea,
-Lexer* restrict lexer) {
+Lexer* lexer) {
 	assert(source != NULL);
 	assert(memArea != NULL);
 	assert(lexer != NULL);
@@ -624,7 +634,7 @@ Lexer* restrict lexer) {
 		== false)
 			goto DESTROY;
 		// create tokens
-		Token* token = & ((Token*) lexer->tokens.addr)[i];
+		Token* token = (Token*) lexer->tokens.addr + i;
 
 		if(if_command_create_token(
 			code,
@@ -894,8 +904,7 @@ DESTROY:
 	return false;
 }
 
-void destroy_lexer(
-Lexer* restrict lexer) {
+void destroy_lexer(Lexer* lexer) {
 	if(lexer == NULL)
 		return;
 	

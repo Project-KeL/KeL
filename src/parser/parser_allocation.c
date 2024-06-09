@@ -5,7 +5,17 @@
 
 #define CHUNK 1
 
-bool parser_create_allocator(Parser* parser) {
+void parser_initialize_allocators(Parser* parser) {
+	assert(parser != NULL);
+
+	initialize_memory_chain(&parser->nodes);
+	initialize_memory_chain(&parser->identifiers);
+	initialize_memory_chain(&parser->identifiers_parameterized);
+}
+
+bool parser_create_allocators(Parser* parser) {
+	assert(parser != NULL);
+
 	if(create_memory_chain(
 		CHUNK,
 		sizeof(Node),
@@ -13,25 +23,52 @@ bool parser_create_allocator(Parser* parser) {
 	== false)
 		return false;
 	// null token implicit (calloc)
-	return true;
-}
+	if(create_memory_chain(
+		CHUNK,
+		sizeof(Node*),
+		&parser->identifiers)
+	== false)
+		return false;
 
-bool parser_allocator(Parser* parser) {
-	const size_t count = parser->nodes.last->memArea.count;
-
-	if((Node*) parser->nodes.top + 1 >= (Node*) parser->nodes.last->memArea.addr + count) {
-		// the remaining area is filled with null tokens (calloc)
-		if(memory_chain_add_area(
-			CHUNK,
-			&parser->nodes)
-		== false)
-			return false;
-	} else {
-		parser->nodes.previous = parser->nodes.top;
-		parser->nodes.top = (Node*) parser->nodes.top + 1;
-	}
+	if(create_memory_chain(
+		CHUNK,
+		sizeof(Node*),
+		&parser->identifiers_parameterized)
+	== false)
+		return false;
 
 	return true;
 }
 
+void parser_destroy_allocators(Parser* parser) {
+	assert(parser != NULL);
+
+	destroy_memory_chain(&parser->identifiers_parameterized);
+	destroy_memory_chain(&parser->identifiers);
+	destroy_memory_chain(&parser->nodes);
+}
+
+bool parser_allocator_node(Parser* parser) {
+	assert(parser != NULL);
+
+	return memory_chain_reserve_data(
+		CHUNK,
+		&parser->nodes);
+}
+
+bool parser_allocator_identifier(Parser* parser) {
+	assert(parser != NULL);
+
+	return memory_chain_reserve_data(
+		CHUNK,
+		&parser->identifiers);
+}
+
+bool parser_allocator_identifier_parameterized(Parser* parser) {
+	assert(parser != NULL);
+
+	return memory_chain_reserve_data(
+		CHUNK,
+		&parser->identifiers_parameterized);
+}
 #undef CHUNK

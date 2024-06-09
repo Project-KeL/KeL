@@ -7,10 +7,10 @@ typedef struct {
 	long int length;
 } Source;
 
-void initialize_source(Source* restrict source);
+void initialize_source(Source* source);
 bool create_source(
-	const char* restrict path,
-	Source* restrict source);
-void destroy_source(Source* restrict source);
+	const char* path,
+	Source* source);
+void destroy_source(Source* source);
 
 #endif

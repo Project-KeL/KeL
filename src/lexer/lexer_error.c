@@ -5,8 +5,8 @@
 #include <stdio.h>
 
 bool lexer_scan_errors(
-const Source* restrict source,
-MemoryArea* restrict memArea) {
+const Source* source,
+MemoryArea* memArea) {
 	assert(memArea->count >= (size_t) source->length); // at least the size of the source (matching parenthesis)
 
 	const char* code = source->content;

@@ -5,7 +5,7 @@
 #include "source.h"
 
 bool lexer_scan_errors(
-	const Source* restrict source,
-	MemoryArea* restrict memArea);
+	const Source* source,
+	MemoryArea* memArea);
 
 #endif

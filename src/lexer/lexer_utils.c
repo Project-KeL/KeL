@@ -148,11 +148,13 @@ char c2) {
 }
 // name of a colon word
 bool lexer_is_valid_name(
-const char* restrict string,
+const char* string,
 long int start,
 long int end) {
-	string = &string[start]; // because start is left untouched
-	bool is_valid = isalpha(string[0]);
+	assert(string != NULL);
+
+	string = string + start; // because start is left untouched
+	bool is_valid = isalpha(*string);
 
 	for(long int i = 1;
 	i < end - start;
@@ -168,8 +170,8 @@ long int end) {
 }
 
 bool lexer_skip_glyphs_but_not_special(
-const char* restrict string,
-long int* restrict end) {
+const char* string,
+long int* end) {
 	if(!isgraph(string[*end])
 	|| lexer_is_special(string[*end]))
 		return false;
@@ -183,15 +185,15 @@ long int* restrict end) {
 }
 
 void lexer_skip_controls_and_spaces_but_not_eof(
-const char* restrict string,
-long int* restrict end) {
+const char* string,
+long int* end) {
 	while(string[*end] != '\0'
 	   && !isgraph(string[*end])) *end += 1;
 }
 
 bool lexer_get_next_word_immediate(
-const char* restrict string,
-long int* restrict end) {
+const char* string,
+long int* end) {
 	if(string[*end] == '\0')
 		return false;
 	else if(lexer_is_special(string[*end])) {
@@ -204,11 +206,13 @@ long int* restrict end) {
 }
 
 bool lexer_get_next_word(
-const char* restrict string,
-long int* start,
-long int* end) {
+const char* string,
+long int* restrict start,
+long int* restrict end) {
 	assert(start != NULL);
 	assert(end != NULL);
+	assert(start != end);
+
 	lexer_skip_controls_and_spaces_but_not_eof(
 		string,
 		end);
@@ -220,39 +224,43 @@ long int* end) {
 }
 
 bool lexer_skip_comment(
-const char* code,
-long int* start,
-long int* end) {
-	if(code[*start] == '!') {
-		if(code[*start + 1] != '-'
-		|| code[*start + 2] != '-')
+const char* string,
+long int* restrict start,
+long int* restrict end) {
+	assert(start != NULL);
+	assert(end != NULL);
+	assert(start != end);
+
+	if(string[*start] == '!') {
+		if(string[*start + 1] != '-'
+		|| string[*start + 2] != '-')
 			return false;
 
 		*end += 1;
 
 		do {
 			*end += 1;
-		} while(code[*end] != '\n'
-			 && code[*end] != '\0');
-	} else if(code[*start] == '|') {
-		if(code[*start + 1] != '-'
-		|| code[*start + 2] != '-')
+		} while(string[*end] != '\n'
+			 && string[*end] != '\0');
+	} else if(string[*start] == '|') {
+		if(string[*start + 1] != '-'
+		|| string[*start + 2] != '-')
 			return false;
 
 		*end += 1;
 
 		do {
 			*end += 1;
-		} while(code[*end] != '-'
-		   || code[*end + 1] != '-'
-		   || code[*end + 2] != '|'); // error checked
+		} while(string[*end] != '-'
+		   || string[*end + 1] != '-'
+		   || string[*end + 2] != '|'); // error checked
 			
 		*end += 3;
 	} else
 		return false;
 
 	lexer_get_next_word(
-		code,
+		string,
 		start,
 		end);
 	return true;

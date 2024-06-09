@@ -4,6 +4,7 @@
 #include "parser_type.h"
 #include "parser_utils.h"
 
+/*
 static NodeSubtypeChildTypeModifier operator_modifier_to_subtype_left(TokenSubtype subtype_token) {
 	switch(subtype_token) {
 	case TokenSubtype_AMPERSAND: return NodeSubtypeChildTypeModifier_AMPERSAND_LEFT;
@@ -26,13 +27,14 @@ static NodeSubtypeChildTypeModifier operator_modifier_to_subtype_right(TokenSubt
 	default: assert(false);
 	}
 }
+*/
 
 static bool type_bind_child_token(
 NodeTypeChildType type,
 NodeSubtype subtype,
 const Token* token,
 Parser* parser) {
-	if(!parser_allocator(parser))
+	if(!parser_allocator_node(parser))
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {
@@ -45,7 +47,7 @@ Parser* parser) {
 	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 	return true;
 }
-
+/*
 static bool parse_type_lock_left(
 size_t* i,
 Parser* parser) {
@@ -112,15 +114,19 @@ Parser* parser) {
 	*i = buffer_i;
 	return true;
 }
-
+*/
 int if_type_create_nodes(
 size_t* i,
-MemoryArea* memArea,
+MemoryArea* restrict memArea,
 Parser* parser) {
-	int scoped = 1; // 2 if the type is scoped
+	assert(i != NULL);
+	assert(memArea != NULL);
+	assert(parser != NULL);
+
+	size_t buffer_i = *i;
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	size_t buffer_i = *i;
+	int scoped = 1; // 2 if the type is scoped
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;
 
@@ -131,12 +137,14 @@ Parser* parser) {
 		Node* lock;
 TYPE:
 		// lock alone
+		
+		/*
 		if(parse_type_lock_left(
 			&buffer_i,
 			parser)
 		== false)
 			return false;
-
+		*/
 		if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS) {
 			if(type_bind_child_token(
 				NodeTypeChildType_LOCK,
@@ -150,13 +158,13 @@ TYPE:
 			lock = (Node*) parser->nodes.top;
 			buffer_i += 1;
 			memory[count_parenthesis_nest] = 1;
-
+			/*
 			if(parse_type_lock_right(
 				&buffer_i,
 				parser)
 			== false)
 				return 0;
-
+			*/
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
 				if(parser_is_scope_R(tokens + i_lock))

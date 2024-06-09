@@ -6,7 +6,7 @@
 
 int if_identification_create_nodes(
 	size_t* i,
-	MemoryArea* memArea,
+	MemoryArea* restrict memArea,
 	Parser* parser);
 
 #endif

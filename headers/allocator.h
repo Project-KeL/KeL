@@ -10,15 +10,15 @@ typedef struct {
 	size_t size_type;
 } MemoryArea;
 
-void initialize_memory_area(MemoryArea* restrict memArea);
+void initialize_memory_area(MemoryArea* memArea);
 bool create_memory_area(
 	size_t count,
 	size_t size_type,
-	MemoryArea* restrict memArea);
+	MemoryArea* memArea);
 bool memory_area_realloc(
 	size_t size,
-	MemoryArea* restrict memArea);
-void destroy_memory_area(MemoryArea* restrict memArea);
+	MemoryArea* memArea);
+void destroy_memory_area(MemoryArea* memArea);
 
 typedef struct MemoryChainLink MemoryChainLink;
 
@@ -42,22 +42,25 @@ typedef struct {
 	void* buffer_top;
 } MemoryChainState;
 
-void initialize_memory_chain(MemoryChain* restrict memChain);
+void initialize_memory_chain(MemoryChain* memChain);
 bool create_memory_chain(
 	size_t count,
 	size_t size_type,
-	MemoryChain* restrict memChain);
+	MemoryChain* memChain);
+void memory_chain_destroy_memory_area_last(MemoryChain* memChain);
+void destroy_memory_chain(MemoryChain*  memChain);
 bool memory_chain_add_area(
 	size_t count,
-	MemoryChain* restrict memChain);
-void memory_chain_destroy_memory_area_last(MemoryChain* restrict memChain);
-void destroy_memory_chain(MemoryChain* restrict memChain);
-void initialize_memory_chain_state(MemoryChainState* restrict memChain_state);
+	MemoryChain* memChain);
+bool memory_chain_reserve_data(
+	size_t count,
+	MemoryChain* memChain);
+void initialize_memory_chain_state(MemoryChainState* memChain_state);
 void memory_chain_state_save(
-	const MemoryChain* restrict memChain,
-	MemoryChainState* restrict memChain_state);
+	const MemoryChain* memChain,
+	MemoryChainState* memChain_state);
 void memory_chain_state_restore(
-	MemoryChain* restrict memChain,
-	const MemoryChainState* restrict memChain_state);
+	MemoryChain* memChain,
+	const MemoryChainState* memChain_state);
 
 #endif

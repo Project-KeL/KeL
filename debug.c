@@ -6,7 +6,7 @@
 
 static void print_info_token(
 const char* code,
-const Token* restrict token) {
+const Token* token) {
 	const char* type;
 
 	switch(token->type) {

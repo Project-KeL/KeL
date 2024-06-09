@@ -28,7 +28,7 @@ Parser* parser) {
 	if(parser_is_scope_L(tokens + buffer_i))
 		return 1;
 
-	if(!parser_allocator(parser))
+	if(!parser_allocator_node(parser))
 		return -1;
 
 	if(tokens[buffer_i].type == TokenType_LITERAL) {
@@ -47,10 +47,14 @@ Parser* parser) {
 
 int if_identification_create_nodes(
 size_t* i,
-MemoryArea* memArea,
+MemoryArea* restrict memArea,
 Parser* parser) {
-	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
+	assert(i != NULL);
+	assert(memArea != NULL);
+	assert(parser != NULL);
+
 	size_t buffer_i = *i;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	NodeSubtype subtype = NodeSubtype_NO;
 	size_t i_qualifier = buffer_i;
 	MemoryChainState memChain_state;
@@ -72,7 +76,7 @@ Parser* parser) {
 		&parser->nodes,
 		&memChain_state);
 
-	if(!parser_allocator(parser))
+	if(!parser_allocator_node(parser))
 		return -1;
 
 	*((Node*) parser->nodes.top) = (Node) {
@@ -86,7 +90,7 @@ Parser* parser) {
 	Node* node_identification = (Node*) parser->nodes.top;
 
 	while(parser_is_qualifier(tokens + i_qualifier)) {
-		if(!parser_allocator(parser))
+		if(!parser_allocator_node(parser))
 			return -1;
 
 		*((Node*) parser->nodes.top) = (Node) {

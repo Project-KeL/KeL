@@ -1,8 +1,9 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "source.h"
 
-void initialize_source(Source* restrict source) {
+void initialize_source(Source* source) {
 	source->path = NULL;
 	source->content = NULL;
 	source->length = 0;
@@ -11,23 +12,18 @@ void initialize_source(Source* restrict source) {
 bool create_source(
 const char* restrict path,
 Source* restrict source) {
-	if(source == NULL)
-		return false;
+	assert(path != NULL);
+	assert(source != NULL);
 
 	source->path = path;
 
-	bool error = false;
+	bool error = true;
 	FILE* source_file = fopen(
 		path,
 		"r");
 
-	if(source_file == NULL) {
-		printf("Cannot open the source file at \"");
-		printf(path);
-		printf("\".\n");
+	if(source_file == NULL)
 		goto ERROR;
-	}
-
 	// get length
 	fseek(
 		source_file,
@@ -39,54 +35,43 @@ Source* restrict source) {
 		0,
 		SEEK_SET);
 
-	if(ferror(source_file) != 0) {
-		printf("Error during a file positionning.\n");
-		error = true;
+	if(ferror(source_file) != 0)
 		goto CLOSE;
-	}
 	// get source as a string
 	source->content = malloc(source->length * sizeof(char) + 2);
 
-	if(source->content == NULL) {
-		printf("Allocation error.\n");
-		error = true;
+	if(source->content == NULL)
 		goto CLOSE;
-	}
 
 	source->content[0] = '\0'; // will prevent errors with indexes
+
 	if(fread(
 		source->content + 1,
 		1,
 		source->length,
 		source_file)
-	!= (size_t) source->length) {
-		printf("Cannot read the source at \"");
-		printf(path);
-		printf("\".\n");
-		error = true;
-	}
+	!= (size_t) source->length)
+		goto CLOSE;
+
+	error = false;
 CLOSE:
-	if(fclose(source_file) == EOF) {
-		printf("Cannot close the source file at \"");
-		printf(path);
-		printf("\".\n");
-	}
-ERROR:
-	if(error) {
-		destroy_source(source);
-		return false;
-	}
+	if(fclose(source_file) == EOF)
+		error = true;
+
+	if(error)
+		goto ERROR;
 
 	source->content[(size_t) source->length + 1] = '\0';
 	return true;
+ERROR:
+	destroy_source(source);
+	return false;
 }
 
-void destroy_source(Source* restrict source) {
+void destroy_source(Source* source) {
 	if(source == NULL)
 		return;
 
 	free(source->content);
-	source->path = NULL;
-	source->content = NULL;
-	source->length = 0;
+	initialize_source(source);
 }

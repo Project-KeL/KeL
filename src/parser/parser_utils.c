@@ -48,32 +48,32 @@ bool parser_is_qualifier(const Token* token) {
 	    || token->type == TokenType_QLR;
 }
 
-bool parser_is_operator_leveling(const Token* restrict token) {
+bool parser_is_operator_leveling(const Token* token) {
 	return token->subtype == TokenSubtype_AMPERSAND
 	    || token->subtype == TokenSubtype_MINUS
 	    || token->subtype == TokenSubtype_PIPE
 	    || token->subtype == TokenSubtype_PLUS;
 }
 
-bool parser_is_operator_modifier(const Token* restrict token) {
+bool parser_is_operator_modifier(const Token* token) {
 	return parser_is_operator_leveling(token)
 	    || parser_is_bracket(token);
 }
 
-bool parser_is_scope_L(const Token* restrict token) {
+bool parser_is_scope_L(const Token* token) {
 	return token->type == TokenType_L
 	    && token->subtype == TokenSubtype_SCOPE;
 }
 
-bool parser_is_scope_R(const Token* restrict token) {
+bool parser_is_scope_R(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_SCOPE;
 }
 
 Node* parser_get_scope_from_period(Parser* parser) {
 	Node* node = (Node*) parser->nodes.top;
-	MemoryChainLink* link = parser->nodes.last;
-	long int count_scope_nest = 1;
+	MemoryChainLink* restrict link = parser->nodes.last;
+	size_t count_scope_nest = 1;
 	uint64_t count = 0;
 
 	do {
