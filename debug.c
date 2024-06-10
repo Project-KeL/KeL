@@ -190,11 +190,24 @@ void debug_print_nodes(const Parser* parser) {
 	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
 		printf("\t");
 
-		if(node->type == NodeType_MODULE
-		&& node->subtype == NodeSubtypeModule_INPUT) {
-			printf("IMOD <%.*s>\n",
-				(int) (node->token->L_end - node->token->L_start),
-				code + node->token->L_start);
+		if(node->type == NodeType_MODULE) {
+			if(node->subtype == NodeSubtypeModule_INPUT) {
+				printf("IMOD <%.*s>\n",
+					(int) (node->token->L_end - node->token->L_start),
+					code + node->token->L_start);
+				const Node* child = node->child;
+
+				while(child != NULL) {
+					if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
+						link = link->next;
+
+					printf("\t\tSUBMOD <%.*s>\n",
+						(int) (node->token->L_end - node->token->L_start),
+						code + node->token->L_start);
+					node = child;
+					child = child->child;
+				}
+			}
 		} else if(node->type == NodeType_SCOPE_START) {
 			printf("SCOPE START (%td NODES)\n",
 				node->value - 1);
