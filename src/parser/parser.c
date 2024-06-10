@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include "parser.h"
-#include "parser_allocation.h"
+#include "parser_allocator.h"
 #include "parser_error.h"
 #include "parser_identifier.h"
 #include "parser_utils.h"

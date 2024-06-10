@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "parser_allocation.h"
+#include "parser_allocator.h"
 
 #define CHUNK 1
 

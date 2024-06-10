@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "lexer.h"
-#include "parser_allocation.h"
+#include "parser_allocator.h"
 #include "parser_type.h"
 #include "parser_utils.h"
 

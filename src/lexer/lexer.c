@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "lexer.h"
-#include "lexer_allocation.h"
+#include "lexer_allocator.h"
 #include "lexer_error.h"
 #include "lexer_utils.h"
 

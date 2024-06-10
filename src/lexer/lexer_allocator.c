@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "lexer_allocation.h"
+#include "lexer_allocator.h"
 
 #define CHUNK 4096
 
