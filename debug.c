@@ -36,7 +36,9 @@ const Token* token) {
 	|| token->type == TokenType_L
 	|| token->type == TokenType_PL
 	|| token->type == TokenType_IDENTIFIER) {
-		if(token->subtype == TokenSubtype_SCOPE) {
+		if(token->subtype == TokenSubtype_MODULE_INPUT) {
+			printf("IMOD\n");
+		} else if(token->subtype == TokenSubtype_SCOPE) {
 			printf("L SCOPE\n");
 		} else {
 			printf("%.*s\n",
@@ -188,7 +190,11 @@ void debug_print_nodes(const Parser* parser) {
 	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
 		printf("\t");
 
-		if(node->type == NodeType_SCOPE_START) {
+		if(node->subtype == NodeSubtypeModule_MODULE_INPUT) {
+			printf("IMOD <%.*s>\n",
+				(int) (node->token->L_end - node->token->L_start),
+				code + node->token->L_start);
+		} else if(node->type == NodeType_SCOPE_START) {
 			printf("SCOPE START (%td NODES)\n",
 				node->value - 1);
 		} else if(node->type == NodeType_IDENTIFICATION) {

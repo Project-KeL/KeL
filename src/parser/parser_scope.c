@@ -37,7 +37,9 @@ size_t i,
 Parser* parser) {
 	assert(parser != NULL);
 
-	if(!parser_is_scope_L((const Token*) parser->lexer->tokens.addr + i))
+	const Token* token = (Token*) parser->lexer->tokens.addr + i;
+
+	if(!parser_is_scope_L(token))
 		return false;
 
 	if(!parser_allocator_node(parser))

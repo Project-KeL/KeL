@@ -8,6 +8,7 @@
 typedef enum: uint64_t {
 #define NODE_TYPE(type) NodeType_ ## type
 	NODE_TYPE(NO) = 0,
+	NODE_TYPE(MODULE),
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
 	NODE_TYPE(QUALIFIER),
@@ -37,11 +38,23 @@ typedef enum: uint64_t {
 } NodeSubtypeChild;
 
 /*
+ * MOD
+*/
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeModule_ ## subtype
+	NODE_SUBTYPE(NO) = 0,
+	NODE_SUBTYPE(MODULE_INPUT),
+	NODE_SUBTYPE(MODULE_OUTPUT),
+#undef NODE_SUBTYPE
+} NodeSubtypeModule;
+
+/*
  * SCOPE
 */
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(type) NodeSubtypeScope_ ## type
+#define NODE_SUBTYPE(subtype) NodeSubtypeScope_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
 	NODE_SUBTYPE(THEN),
 	NODE_SUBTYPE(THEN_NOT),

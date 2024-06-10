@@ -4,6 +4,7 @@
 #include "parser_allocator.h"
 #include "parser_error.h"
 #include "parser_identifier.h"
+#include "parser_module.h"
 #include "parser_scope.h"
 #include "parser_utils.h"
 #include <stdio.h>
@@ -44,7 +45,13 @@ Parser* parser) {
 
 	while(i < lexer->tokens.count - 1) {
 		// create nodes
-		if(parser_is_scope_L(tokens + i)) {
+		if(set_error(
+			if_module_create_nodes(
+				&i,
+				parser))
+		== 1) {
+			// OK
+		} else if(parser_is_scope_L(tokens + i)) {
 			while(if_scope_create_node(
 				i,
 				parser)

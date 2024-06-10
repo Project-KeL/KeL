@@ -85,32 +85,35 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 ```
 
 - [ ] Lexer (may evolve)
-    - [x] Commands.
-    - [x] Qualifiers.
-    - [x] Scopes.
-    - [x] Keys.
-    - [x] Locks.
-    - [x] Literals.
-    - [ ] R special symbols (partial support).
-    - [x] Identifiers.
+    - [x] Commands
+    - [x] Qualifiers
+    - [x] Scopes
+    - [x] Keys
+    - [x] Locks
+    - [x] Literals
+    - [ ] R special symbols (partial support)
+    - [x] Identifiers
 - [ ] Parser
-    - [ ] Parse types.
-        - [x] Lock alone.
-        - [x] Parameterized label.
-        - [ ] R underscore syntax.
-        - [ ] L and R modifiers (arrays, pointers, ...).
+    - [ ] Input module
+        - [x] Module
+        - [ ] Submodule
+    - [ ] Types
+        - [x] Lock alone
+        - [x] Parameterized label
+        - [ ] R underscore syntax
+        - [ ] L and R modifiers (arrays, pointers, ...)
     - [ ] Identification
-        - [x] Without type deduction.
-        - [ ] With type deduction.
-    - [ ] Initialization (work in progress).
-        - [x] With literals.
-        - [x] With scopes.
-        - [ ] With an expression.
-    - [ ] Parameterized labels calls.
-    - [ ] Expressions.
-    - [ ] Conditions and loops.
+        - [x] Without type deduction
+        - [ ] With type deduction
+    - [ ] Initialization (work in progress)
+        - [x] With literals
+        - [x] With scopes
+        - [ ] With an expression
+    - [ ] Parameterized labels calls
+    - [ ] Expressions
+    - [ ] Conditions and loops
 - [ ] Modules
 - [ ] Generator
-    - [ ] Built-in macros to write in the output.
+    - [ ] Built-in macros to write in the output
 
 NB: "./binary" and "./linker" are just placeholders.

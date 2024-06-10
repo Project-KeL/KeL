@@ -1,7 +1,6 @@
 #ifndef PARSER_SCOPE
 #define PARSER_SCOPE
 
-#include <stddef.h>
 #include "parser_def.h"
 
 bool if_scope_create_node(

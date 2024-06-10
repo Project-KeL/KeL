@@ -196,6 +196,18 @@ Lexer* lexer) {
 		return false;
 
 	if(strncmp(
+		"imod",
+		code + start,
+		*end - start)
+	== 0) {
+		tokens[i] = (Token) {
+			.type = TokenType_L,
+			.subtype = TokenSubtype_MODULE_INPUT,
+			.L_start = start,
+			.L_end = *end,
+			.R_start = *end,
+			.R_end = *end};
+	} else if(strncmp(
 		"scope",
 		code + start,
 		*end - start)
