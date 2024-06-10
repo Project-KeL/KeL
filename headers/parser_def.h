@@ -44,8 +44,8 @@ typedef enum: uint64_t {
 typedef enum: uint64_t {
 #define NODE_SUBTYPE(subtype) NodeSubtypeModule_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
-	NODE_SUBTYPE(MODULE_INPUT),
-	NODE_SUBTYPE(MODULE_OUTPUT),
+	NODE_SUBTYPE(INPUT),
+	NODE_SUBTYPE(OUTPUT),
 #undef NODE_SUBTYPE
 } NodeSubtypeModule;
 

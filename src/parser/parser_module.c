@@ -26,7 +26,7 @@ Parser* parser) {
 		*((Node*) parser->nodes.top) = (Node) {
 			.is_child = false,
 			.type = NodeType_MODULE,
-			.subtype = NodeSubtypeModule_MODULE_INPUT,
+			.subtype = NodeSubtypeModule_INPUT,
 			.token = tokens + buffer_i};
 		buffer_i += 1;
 
