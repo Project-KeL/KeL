@@ -18,7 +18,6 @@ char** argv) {
 	Binary binary;
 	Lexer lexer;
 	Parser parser;
-
 	initialize_source(&source);
 	initialize_memory_area(&memArea);
 	initialize_binary(&binary);

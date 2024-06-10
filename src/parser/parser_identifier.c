@@ -58,7 +58,6 @@ Parser* parser) {
 	NodeSubtype subtype = NodeSubtype_NO;
 	size_t i_qualifier = buffer_i;
 	MemoryChainState memChain_state;
-
 	initialize_memory_chain_state(&memChain_state);
 
 	while(parser_is_qualifier(tokens + buffer_i)) buffer_i += 1;

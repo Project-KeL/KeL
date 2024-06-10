@@ -38,7 +38,7 @@ typedef enum: uint64_t {
 } NodeSubtypeChild;
 
 /*
- * MOD
+ * MODULE
 */
 
 typedef enum: uint64_t {
@@ -56,6 +56,10 @@ typedef enum: uint64_t {
 typedef enum: uint64_t {
 #define NODE_SUBTYPE(subtype) NodeSubtypeScope_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
+	// file scope
+	NODE_SUBTYPE(FILE_START),
+	NODE_SUBTYPE(FILE_END),
+	// 
 	NODE_SUBTYPE(THEN),
 	NODE_SUBTYPE(THEN_NOT),
 	NODE_SUBTYPE(THROUGH),

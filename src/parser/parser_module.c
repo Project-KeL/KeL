@@ -14,15 +14,16 @@ Parser* parser) {
 	if(!parser_allocator_node(parser))
 		return -1;
 
+	Node* previous = (Node*) parser->nodes.previous;
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = true,
 		.type = NodeType_MODULE,
-		.subtype = NodeSubtypeModule_INPUT,
+		.subtype = previous->subtype,
 		.token = token};
-	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
+	previous->child = (Node*) parser->nodes.top;
 	return 1;
 }
-
+#include <stdio.h>
 int if_module_create_nodes(
 size_t* i,
 Parser* parser) {
@@ -32,22 +33,38 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 
-	if(tokens[buffer_i].subtype != TokenSubtype_MODULE_INPUT)
+	if(tokens[buffer_i].subtype != TokenSubtype_MODULE_INPUT
+	&& tokens[buffer_i].subtype != TokenSubtype_MODULE_OUTPUT)
 		return 0;
+
+	NodeSubtypeModule subtype;
+
+	if(tokens[buffer_i].subtype == TokenSubtype_MODULE_INPUT)
+		subtype = NodeSubtypeModule_INPUT;
+	else if(tokens[buffer_i].subtype == TokenSubtype_MODULE_OUTPUT)
+		subtype = NodeSubtypeModule_OUTPUT;
+	else
+		goto RETURN_0;
 
 	buffer_i += 1;
 
 	if(tokens[buffer_i].type != TokenType_L)
 		return 0;
 
+	MemoryChainState memChain_state;
+	initialize_memory_chain_state(&memChain_state);
+	memory_chain_state_save(
+		&parser->nodes,
+		&memChain_state);
+
 	do {
 		if(!parser_allocator_node(parser))
 			return -1;
-
+	
 		*((Node*) parser->nodes.top) = (Node) {
 			.is_child = false,
 			.type = NodeType_MODULE,
-			.subtype = NodeSubtypeModule_INPUT,
+			.subtype = subtype,
 			.token = tokens + buffer_i,
 			.child = NULL};
 		buffer_i += 1;
@@ -57,8 +74,11 @@ Parser* parser) {
 			buffer_i,
 			parser))
 		== 1) {
-			if(error == -1)
-				return -1;
+			switch(error) {
+			case -1: return -1;
+			case 0: goto RETURN_0;
+			case 1: /* fall through */;
+			}
 
 			buffer_i += 1;
 		}
@@ -71,4 +91,9 @@ Parser* parser) {
 
 	*i = buffer_i;
 	return 1;
+RETURN_0:
+	memory_chain_state_restore(
+		&parser->nodes,
+		&memChain_state);
+	return 0;
 }
