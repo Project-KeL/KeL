@@ -202,8 +202,8 @@ void debug_print_nodes(const Parser* parser) {
 						link = link->next;
 
 					printf("\t\tSUBMOD <%.*s>\n",
-						(int) (node->token->L_end - node->token->L_start),
-						code + node->token->L_start);
+						(int) (child->token->L_end - child->token->L_start),
+						code + child->token->L_start);
 					node = child;
 					child = child->child;
 				}
