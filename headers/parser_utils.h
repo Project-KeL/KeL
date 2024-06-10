@@ -16,7 +16,6 @@ bool parser_is_operator_leveling(const Token* token);
 bool parser_is_operator_modifier(const Token* token);
 bool parser_is_scope_L(const Token* token);
 bool parser_is_scope_R(const Token* token);
-Node* parser_get_scope_from_period(Parser* parser);
 bool parser_is_special(const Token* token);
 bool parser_is_key(const Token* token);
 bool parser_is_lock(const Token* token);

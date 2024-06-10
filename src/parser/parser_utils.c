@@ -70,35 +70,6 @@ bool parser_is_scope_R(const Token* token) {
 	    && token->subtype == TokenSubtype_SCOPE;
 }
 
-Node* parser_get_scope_from_period(Parser* parser) {
-	Node* node = (Node*) parser->nodes.top;
-	MemoryChainLink* restrict link = parser->nodes.last;
-	size_t count_scope_nest = 1;
-	uint64_t count = 0;
-
-	do {
-		// get the last node in the previous memory area
-		if(node == link->memArea.addr) {
-			link = link->previous;
-			node = (Node*) link->memArea.addr + link->memArea.count - 1;
-		} else
-			node -= 1;
-
-		if(!node->is_child) {
-			switch(node->type) {
-			case NodeType_SCOPE_END: count_scope_nest += 1; break;
-			case NodeType_SCOPE_START: count_scope_nest -= 1; break;
-			}
-		}
-
-		count += 1;
-	} while(count_scope_nest != 0
-	     || node->type != NodeType_SCOPE_START);
-
-	node->value = count;
-	return node;
-}
-
 bool parser_is_special(const Token* token) {
 	return token->subtype >= TokenSubtype_EXCLAMATION_MARK
 	    && token->subtype <= TokenSubtype_TILDE;
