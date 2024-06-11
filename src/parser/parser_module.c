@@ -1,7 +1,6 @@
 #include <assert.h>
 #include "parser_allocator.h"
 #include "parser_module.h"
-#include <stdio.h>
 
 static int module_bind_child_module(
 size_t i,
@@ -23,7 +22,7 @@ Parser* parser) {
 	previous->child = (Node*) parser->nodes.top;
 	return 1;
 }
-#include <stdio.h>
+
 int if_module_create_nodes(
 size_t* i,
 Parser* parser) {
@@ -41,10 +40,8 @@ Parser* parser) {
 
 	if(tokens[buffer_i].subtype == TokenSubtype_MODULE_INPUT)
 		subtype = NodeSubtypeModule_INPUT;
-	else if(tokens[buffer_i].subtype == TokenSubtype_MODULE_OUTPUT)
-		subtype = NodeSubtypeModule_OUTPUT;
 	else
-		goto RETURN_0;
+		subtype = NodeSubtypeModule_OUTPUT;
 
 	buffer_i += 1;
 

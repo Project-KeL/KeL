@@ -8,9 +8,12 @@
 #include <stdio.h>
 
 static NodeSubtypeIdentificationBitCommand token_subtype_command_to_subtype(TokenSubtype subtype_token) {
-	return subtype_token == TokenSubtype_HASH ?
-		NodeSubtypeIdentificationBitCommand_HASH
-		: NodeSubtypeIdentificationBitCommand_AT;
+	switch(subtype_token) {
+	case TokenSubtype_HASH: return NodeSubtypeIdentificationBitCommand_HASH;
+	case TokenSubtype_AT: return NodeSubtypeIdentificationBitCommand_AT;
+	case TokenSubtype_EXCLAMATION_MARK: return NodeSubtypeIdentificationBitCommand_EXCLAMATION_MARK;
+	default: assert(false);
+	}
 }
 
 static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_token) {
@@ -103,15 +106,17 @@ Parser* parser) {
 		i_qualifier += 1;
 	}
 	// add the type as child nodes in `.child1`
-	switch(if_type_create_nodes(
+	NodeSubtypeIdentificationBitScoped bitScoped = if_type_create_nodes(
 		&buffer_i,
 		memArea,
-		parser)
-	) {
-	case -1: return -1;
-	case 0: goto RETURN_0;
-	case 1: /* fall through */ break;
-	case 2: node_identification->subtype |= NodeSubtypeIdentificationBitScoped_TRUE; break;
+		parser);
+	
+	if(!parser->error_allocator)
+		return -1;
+
+	switch(bitScoped) {
+	case NodeSubtypeIdentificationBitScoped_INVALID: goto RETURN_0;
+	default: node_identification->subtype |= bitScoped; break;
 	}
 
 	memory_chain_state_save(

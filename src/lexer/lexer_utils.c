@@ -73,7 +73,8 @@ bool lexer_is_delimiter(char c) {
 }
 
 bool lexer_is_command(char c) {
-	return c == '#'
+	return c == '!'
+	    || c == '#'
 	    || c == '@';
 }
 // is interpreted when encountered alone

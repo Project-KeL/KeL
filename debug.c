@@ -94,8 +94,12 @@ const Node* node) {
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
 	== NodeSubtypeIdentificationBitCommand_HASH)
 		printf("# ");
-	else
+	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
+	== NodeSubtypeIdentificationBitCommand_AT)
 		printf("@ ");
+	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
+	== NodeSubtypeIdentificationBitCommand_EXCLAMATION_MARK)
+		printf("! ");
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
 	== NodeSubtypeIdentificationBitType_DECLARATION) {
@@ -110,8 +114,11 @@ const Node* node) {
 		code + node->token->L_start);
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-	== NodeSubtypeIdentificationBitScoped_TRUE) {
-		printf(" SCOPED");
+	== NodeSubtypeIdentificationBitScoped_LABEL) {
+		printf(" LABEL");
+	} else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+	== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED) {
+		printf(" PARAMETERIZED LABEL");
 	} else if(is_initialization) {
 		printf(" <%.*s>",
 			(int) (node->child2->token->L_end - node->child2->token->L_start),

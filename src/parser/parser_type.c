@@ -115,7 +115,7 @@ Parser* parser) {
 	return true;
 }
 */
-int if_type_create_nodes(
+NodeSubtypeIdentificationBitScoped if_type_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
 Parser* parser) {
@@ -126,7 +126,7 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	int scoped = 1; // 2 if the type is scoped
+	NodeSubtypeIdentificationBitScoped value = NodeSubtypeIdentificationBitScoped_NO;
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;
 
@@ -168,13 +168,13 @@ TYPE:
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
 				if(parser_is_scope_R(tokens + i_lock))
-					scoped = 2;
+					value = NodeSubtypeIdentificationBitScoped_LABEL;
 
 				break;
 			}
 		}
 		// lock not alone (good luck)
-		scoped = 2;
+		value = NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED;
 
 		while(parser_is_R_left_parenthesis(tokens + buffer_i)) {
 R_LPARENTHESIS:
@@ -305,5 +305,5 @@ RPARENTHESIS:
 	} while(count_parenthesis_nest != 0);
 
 	*i = buffer_i;
-	return scoped;
+	return value;
 }
