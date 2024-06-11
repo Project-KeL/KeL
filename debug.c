@@ -189,13 +189,26 @@ void debug_print_tokens(const Lexer* lexer) {
 
 void debug_print_declarations(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
-	MemoryChainLink* link = parser->declarations.first->next;
-	const Node* node = (Node*) parser->declarations.first->next->memArea.addr;
+	MemoryChainLink* link;
+	const Node* node;
+
+	if(parser->declarations.first->memArea.count > 1) {
+		link = parser->declarations.first;
+		node = (Node*) link->memArea.addr + 1;
+	} else {
+		link = parser->declarations.first->next;
+		node = (Node*) link->memArea.addr;
+	}
+	
 	size_t count = 0;
 	printf("DECLARATIONS:\n");
 
 	while(node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count) {
+		if(node->type == NodeType_NO)
+			break;
+
 		printf("\t");
+
 		print_info_node_key_identification(
 			parser->lexer->source->content,
 			node);
@@ -230,8 +243,17 @@ void debug_print_declarations(const Parser* parser) {
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
-	MemoryChainLink* link = parser->nodes.first->next;
-	const Node* node = (Node*) parser->nodes.first->next->memArea.addr;
+	MemoryChainLink* link;
+	const Node* node;
+
+	if(parser->nodes.first->memArea.count > 1) {
+		link = parser->nodes.first;
+		node = (Node*) link->memArea.addr + 1;
+	} else {
+		link = parser->nodes.first->next;
+		node = (Node*) link->memArea.addr;
+	}
+
 	size_t count = 0;
 	printf("NODES:\n");
 
