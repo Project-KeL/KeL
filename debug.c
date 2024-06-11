@@ -217,10 +217,14 @@ void debug_print_nodes(const Parser* parser) {
 					code + child->token->L_start);
 				node = child;
 				child = child->child;
+				count += 1;
 			}
+
+			count += 1;
 		} else if(node->type == NodeType_SCOPE_START) {
 			printf("SCOPE START (%td NODES)\n",
 				node->value - 1);
+			count += 1;
 		} else if(node->type == NodeType_IDENTIFICATION) {
 			print_info_node_key_identification(
 				code,
@@ -239,17 +243,22 @@ void debug_print_nodes(const Parser* parser) {
 				child1 = node->child1;
 				count += 1;
 			} while(child1 != NULL);
+
+			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
+			count += 1;
 		} else if(node->type == NodeType_LITERAL) {
 			print_info_token(
 				code,
 				node->token);
+			count += 1;
 		} else {
 			printf(
 				"%" PRIu64 ", %" PRIu64 "\n",
 				node->type,
 				node->subtype);
+			count += 1;
 		}
 
 		if(node == (Node*) link->memArea.addr + link->memArea.count - 1) {
@@ -260,8 +269,6 @@ void debug_print_nodes(const Parser* parser) {
 			node = (Node*) link->memArea.addr;
 		} else
 			node += 1;
-
-		count += 1;
 	}
 
 	printf(
