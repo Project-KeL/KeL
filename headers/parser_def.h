@@ -178,8 +178,7 @@ struct Node {
 typedef struct {
 	const Lexer* lexer;
 	MemoryChain nodes;
-	MemoryChain identifiers;
-	MemoryChain identifiers_parameterized;
+	MemoryChain declarations; // declarations at file scope
 	bool error_allocator;
 } Parser;
 

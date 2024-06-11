@@ -184,15 +184,56 @@ void debug_print_tokens(const Lexer* lexer) {
 
 	printf(
 		"\nNumber of tokens: %zu.\n",
-		lexer->tokens.count - 2);
+		lexer->tokens.count);
+}
+
+void debug_print_declarations(const Parser* parser) {
+	const char* code = parser->lexer->source->content;
+	MemoryChainLink* link = parser->declarations.first->next;
+	const Node* node = (Node*) parser->declarations.first->next->memArea.addr;
+	size_t count = 0;
+	printf("DECLARATIONS:\n");
+
+	while(node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count) {
+		printf("\t");
+		print_info_node_key_identification(
+			parser->lexer->source->content,
+			node);
+		const Node* child1 = node->child1;
+
+		do {
+			if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
+				link = link->next;
+
+			printf("\t\t");
+			print_info_node_type(
+				code,
+				child1);
+			node = child1;
+			child1 = node->child1;
+		} while(child1 != NULL);
+
+		count += 1;
+
+		if(node == (Node*) link->memArea.addr + link->memArea.count - 1) {
+			if(link->next == NULL)
+				break;
+
+			link = link->next;
+			node = (Node*) link->memArea.addr;
+		} else
+			node += 1;
+	}
+
+	printf("\nNumber of declarations at file scope: %zu\n", count);
 }
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
-	printf("NODES:\n");
 	MemoryChainLink* link = parser->nodes.first->next;
 	const Node* node = (Node*) parser->nodes.first->next->memArea.addr;
 	size_t count = 0;
+	printf("NODES:\n");
 
 	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
 		printf("\t");

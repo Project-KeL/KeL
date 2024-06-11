@@ -61,6 +61,7 @@ char** argv) {
 	== false)
 		goto END;
 #ifndef NDEBUG
+	debug_print_declarations(&parser);
 	debug_print_nodes(&parser);
 #endif
 	binary_x64(

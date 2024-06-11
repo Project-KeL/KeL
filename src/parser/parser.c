@@ -24,6 +24,54 @@ void initialize_parser(Parser* parser) {
 	parser_initialize_allocators(parser);
 }
 
+static bool parse_scope_file(
+MemoryArea* restrict memArea,
+Parser* parser) {
+	size_t i = 0;
+	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
+	// the counter is triggered when the first parameterized label is encountered
+	size_t count_scope_nest = 0;
+	// to insert declarations in the right place
+	const MemoryChain buffer_memChain = parser->nodes;
+	parser->nodes = parser->declarations;
+
+	while(i < parser->lexer->tokens.count - 1) {
+		Node* node_identification;
+
+		if(parser_is_scope_L(tokens + i)) {
+			if(count_scope_nest > 0)
+				count_scope_nest += 1;
+
+			i += 1;
+		} else if(tokens[i].subtype == TokenSubtype_PERIOD) {
+			if(count_scope_nest > 0)
+				count_scope_nest -= 1;
+
+			i += 1;
+		}
+
+		if(count_scope_nest == 0
+		&& set_error(
+			if_declaration_create_nodes(
+				&i,
+				memArea,
+				&node_identification,
+				parser))
+		== 1) {
+			if((node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+			== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED)
+				count_scope_nest += 1;
+		} else
+			i += 1;
+
+		if(error == -1)
+			return false;
+	}
+
+	parser->nodes = buffer_memChain;
+	return true;
+}
+
 bool create_parser(
 const Lexer* lexer,
 MemoryArea* restrict memArea,
@@ -42,6 +90,12 @@ Parser* parser) {
 
 	if(!parser_create_allocators(parser))
 		return false;
+
+	if(parse_scope_file(
+		memArea,
+		parser)
+	== false)
+		goto DESTROY;
 
 	while(i < lexer->tokens.count - 1) {
 		// create nodes

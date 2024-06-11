@@ -163,7 +163,7 @@ TYPE:
 				&buffer_i,
 				parser)
 			== false)
-				return 0;
+				NodeSubtypeIdentificationBitScoped_INVALID;
 			*/
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
@@ -217,7 +217,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 // LPARENTHESIS:
 			// handle nested empty parenthesis like in :(())
 			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
-				return 0;
+				return NodeSubtypeIdentificationBitScoped_INVALID;
 
 			buffer_i += 1;
 			count_parenthesis_nest += 1;
@@ -259,7 +259,7 @@ READ_PARAMETER:
 				goto TYPE;
 			} else {
 				// a lock must succeed a key at the first nesting level
-				return 0;
+				return NodeSubtypeIdentificationBitScoped_INVALID;
 			}
 		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
 RPARENTHESIS:
@@ -300,7 +300,7 @@ RPARENTHESIS:
 		} else if(parser_is_lock(tokens + buffer_i)) {
 			goto TYPE;
 		} else {
-			return 0;
+			return NodeSubtypeIdentificationBitScoped_INVALID;
 		}
 	} while(count_parenthesis_nest != 0);
 
