@@ -56,9 +56,9 @@ Let's say the target of the compiler is an architecture where we can define 32-b
 var3 = 3;         !-- var3 is set to 3.
 ```
 
-Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label has the type `scope` which is a key and a lock at the same time, and parameterized labels can be initialized with a scope. Let `A` and `B` be locks.
+Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label has the type `scope` which is a key and a lock at the same time, and parameterized labels can be initialized with a `scope`. Let `A` and `B` be locks.
 ```
-!-- Declaration of a parameterized label returning a A taking a B.
+!-- Declaration of a parameterized label returning a B taking a A.
 @lab_x :B(x :A);
 
 !-- A label.
