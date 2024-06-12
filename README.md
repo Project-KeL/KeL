@@ -29,7 +29,7 @@ A single line comment begins with `!--` and a multiline comment is surrounded by
 ```
 
 ## Keys and locks
-The central symbol in KeL is `:`. It is 'blank-sensitive' meaning the characters surrounding it (including non-glyph characters) are significant. To simplify, a word right before `:` is called a _key_ and a word right after a _lock_, everything is a key by default so a key alone does not need `:` right after it.
+The central symbol in KeL is `:`. It is 'blank-sensitive' meaning the characters surrounding it (including non-glyph characters) are significant. To simplify, a word right before `:` is called a _key_ and a word right after a _lock_.Everything is a key by default so a key alone does not need `:` right after it. The `.` is right blank-sensitive. These symbols are the only ones to have this property.
 
 There are three other important symbols called _commands_.
 1. `#` refers to declarations or other actions to be executed at compile-time.
@@ -37,6 +37,8 @@ There are three other important symbols called _commands_.
 3. `!` means something has to be resolved at most during the binary generation.
 
 Commands also escape the blank-sensitiveness of the colon depending on their position.
+
+A scope is delimited by `scope` and `.` where the `.` is followed by a blank. An instruction ends with a `;` but the last instruction of a scope may end with a `.`.
 
 #### Identification
 Keys can be used as identifiers (like constants and variables). In this configuration, the lock sets the type partially.

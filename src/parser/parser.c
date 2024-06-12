@@ -139,7 +139,7 @@ Parser* parser) {
 		// error checking
 		if(error == -1)
 			goto DESTROY;
-		// allocation
+
 		is_scope = false;
 	}
 /*
