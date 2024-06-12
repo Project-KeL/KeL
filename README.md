@@ -38,7 +38,7 @@ There are three other important symbols called _commands_.
 
 Commands also escape the blank-sensitiveness of the `:` depending on their position.
 
-A scope is delimited by `scope` and `.` where the `.` is followed by a blank. An instruction ends with a `;` but the last instruction of a scope may end with a `.`.
+A scope is delimited by `scope` and `.` where the `.` is followed by a blank. An instruction ends with a `;` but the last instruction of a scope may ends with a `.`.
 
 Keys and locks are processed separately. This means a key may have the same name of a lock.
 
@@ -117,4 +117,4 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
 - [ ] Generator
     - [ ] Built-in macros to write in the output
 
-NB: "./binary" and "./linker" are just placeholders.
+_NB: "./binary" and "./linker" are just placeholders._

@@ -13,8 +13,8 @@ typedef enum: uint64_t {
 	NODE_TYPE(SCOPE_END),
 	NODE_TYPE(QUALIFIER),
 	NODE_TYPE(IDENTIFICATION), // `.subtype` holds the command, the type of identification and the qualifiers
+	NODE_TYPE(CALL),
 	NODE_TYPE(LITERAL),
-	NODE_TYPE(AFFECTATION),
 	NODE_TYPE(EXPRESSION),
 #undef NODE_TYPE
 } NodeType;
@@ -37,6 +37,18 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE_CHILD
 } NodeSubtypeChild;
 
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_LOCK),
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_START),
+	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_END),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_NONE),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER),
+	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_LOCK),
+#undef NODE_SUBTYPE_CHILD_TYPE
+} NodeSubtypeChildTypeLock;
+
 /*
  * MODULE
 */
@@ -56,10 +68,6 @@ typedef enum: uint64_t {
 typedef enum: uint64_t {
 #define NODE_SUBTYPE(subtype) NodeSubtypeScope_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
-	// file scope
-	NODE_SUBTYPE(FILE_START),
-	NODE_SUBTYPE(FILE_END),
-	// 
 	NODE_SUBTYPE(THEN),
 	NODE_SUBTYPE(THEN_NOT),
 	NODE_SUBTYPE(THROUGH),
@@ -105,6 +113,49 @@ typedef enum: uint64_t {
 } NodeSubtypeIdentificationBitScoped;
 
 /*
+ * CALLS
+*/
+
+#define MASK_BIT_NODE_SUBTYPE_CALL_TIME 0b11
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitTime_ ## subtype
+	NODE_SUBTYPE(BINARY) = 0b00,
+	NODE_SUBTYPE(COMPILE) = 0b01,
+	NODE_SUBTYPE(RUN) = 0b10,
+#undef NODE_SUBTYPE
+} NodeSubtypeCallBitTime;
+
+#define SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN 2
+#define MASK_BIT_NODE_SUBTYPE_CALL_RETURN (0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN)
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitReturn_ ## subtype
+	NODE_SUBTYPE(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
+	NODE_SUBTYPE(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
+#undef NODE_SUBTYPE
+} NodeSubtypeCallBitReturn; // the type of the returned value is explicit?
+
+#define SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE 3
+#define MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE (0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitReturnDeduce_ ## subtype
+	NODE_SUBTYPE(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
+	NODE_SUBTYPE(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
+#undef NODE_SUBTYPE
+} NodeSubtypeCallBitReturnDeduce; // the true case will be used during parsing expressions only
+
+typedef enum: uint64_t {
+#define NODE_TYPE_CHILD(type) NodeTypeChildCall_ ## type
+	NODE_TYPE_CHILD(NO) = 0,
+	NODE_TYPE_CHILD(RETURN_UNKNOWN), // may return with a type to be deduced or no return
+	NODE_TYPE_CHILD(RETURN_LOCK),
+	NODE_TYPE_CHILD(ARGUMENT),
+#undef NODE_TYPE_CHILD
+} NodeTypeChildCall;
+
+/*
  * MODIFIERS
 */
 
@@ -131,18 +182,6 @@ typedef enum: uint64_t {
 	NODE_SUBTYPE_CHILD_TYPE(PLUS_RIGHT),
 #undef NODE_SUBTYPE_CHILD_TYPE
 } NodeSubtypeChildTypeModifier;
-
-typedef enum: uint64_t {
-#define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_LOCK),
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_START),
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_END),
-	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_NONE),
-	NODE_SUBTYPE_CHILD_TYPE(PARAMETER),
-	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_LOCK),
-#undef NODE_SUBTYPE_CHILD_TYPE
-} NodeSubtypeChildTypeLock;
 
 /*
  * LITERAL
