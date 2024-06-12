@@ -29,16 +29,18 @@ A single line comment begins with `!--` and a multiline comment is surrounded by
 ```
 
 ## Keys and locks
-The central symbol in KeL is `:`. It is 'blank-sensitive' meaning the characters surrounding it (including non-glyph characters) are significant. To simplify, a word right before `:` is called a _key_ and a word right after a _lock_.Everything is a key by default so a key alone does not need `:` right after it. The `.` is right blank-sensitive. These symbols are the only ones to have this property.
+The central symbol in KeL is `:`. It is 'blank-sensitive' meaning the characters surrounding it (including non-glyph characters) are significant. To simplify, a word right before `:` is called a _key_ and a word right after a _lock_. Everything is a key by default so a key alone does not need `:` right after it. The `.` is right blank-sensitive. These symbols are the only ones to have this property.
 
 There are three other important symbols called _commands_.
 1. `#` refers to declarations or other actions to be executed at compile-time.
 2. `@` is the equivalent at run-time.
 3. `!` means something has to be resolved at most during the binary generation.
 
-Commands also escape the blank-sensitiveness of the colon depending on their position.
+Commands also escape the blank-sensitiveness of the `:` depending on their position.
 
 A scope is delimited by `scope` and `.` where the `.` is followed by a blank. An instruction ends with a `;` but the last instruction of a scope may end with a `.`.
+
+Keys and locks are processed separately. This means a key may have the same name of a lock.
 
 #### Identification
 Keys can be used as identifiers (like constants and variables). In this configuration, the lock sets the type partially.
@@ -46,7 +48,7 @@ Keys can be used as identifiers (like constants and variables). In this configur
 Let's say the target of the compiler is an architecture where we can define 32-bit unsigned integers and let's say we had encapsulated this concept in the `u32` lock.
 ```
 @var1:u32 1;      !-- var is set to 1.
-@var2 :u32 1;     !-- The @ escapes the left blank-sensitiveness.
+@var2 :u32 1;     !-- The `@` escapes the left blank-sensitiveness.
 [mut] @var3 :u32; !-- var3 is declared mutable.
 @var4 :u32 var2;  !-- var4 is initialized with the value of var2.
 @var5 var1;       !-- The type is deduced.
@@ -54,10 +56,10 @@ Let's say the target of the compiler is an architecture where we can define 32-b
 var3 = 3;         !-- var3 is set to 3.
 ```
 
-Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label has the type `scope` which is a key and a lock at the same time, and parameterized labels can be initialized with a scope.
+Keys can also be used as _parameterized labels_ (calling conventions are part of the compiler 'customizability'). A label has the type `scope` which is a key and a lock at the same time, and parameterized labels can be initialized with a scope. Let `A` and `B` be locks.
 ```
-!-- Declaration of a parameterized label returning a u32 taking a u32.
-@lab_x :u32(x :u32);
+!-- Declaration of a parameterized label returning a A taking a B.
+@lab_x :B(x :A);
 
 !-- A label.
 #lab1 :scope;
@@ -71,16 +73,16 @@ Keys can also be used as _parameterized labels_ (calling conventions are part of
     !-- code
 .
 
-!-- b takes no parameter and returns a u32.
-!-- c takes a parameterized label taking a u32 returning nothing and returns a u32.
-@lab3 :(a :u32, b :u32(), c :u32(:(:u32)));
-!-- c can be rewrote c :u32(L :(x :u32)) because parameters are ignored after the first nesting level.
+!-- b takes no parameter and returns a B.
+!-- c takes a parameterized label taking a A returning nothing and returns a B.
+@lab3 :(a :A, b :B(), c :B(:(:A)));
+!-- c can be rewrote c :B(L :(x :A)) because parameters are ignored after the first nesting level.
 
-!-- lab4 returns a u32 (alternative syntax).
-#lab4 :_(a :u32) :u32
+!-- lab4 returns a B (alternative syntax).
+#lab4 :_(a :A) :B
 
-!-- lab5 returns a parameterized label returning a u32 taking a u32.
-#lab5 :_(a :u32, b :u32) :u32(a :u32);
+!-- lab5 returns a parameterized label returning a B taking a A.
+#lab5 :_(a :A, b :B) :B(a :A);
 ```
 
 - [ ] Lexer (may evolve)
