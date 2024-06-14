@@ -30,6 +30,9 @@ char** argv) {
 	== false)
 		goto END;
 
+	if((exit_status = source.length == 0))
+		goto END;
+
 	printf("%s\n", source.content + 1);
 
 	if((exit_status = create_memory_area(

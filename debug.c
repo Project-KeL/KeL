@@ -148,7 +148,7 @@ const Node* node) {
 	case NodeTypeChildType_LOCK:
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
-				printf("LOCK <%.*s>\n",
+				printf("TYPE <%.*s>\n",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_RETURN_NONE:
@@ -187,13 +187,19 @@ void debug_print_tokens(const Lexer* lexer) {
 void debug_print_declarations(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	const MemoryChainLink* link;
-	const Node* node = parser_allocator_start(
+	const Node* node = parser_allocator_start_declaration(
 		parser,
 		&link);
 	size_t count = 0;
 	printf("DECLARATIONS:\n");
 
-	while(node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count) {
+	if(node == NULL)
+		return;
+
+	while(parser_allocator_continue_declaration(
+		parser,
+		node)
+	== true) {
 		if(node->type == NodeType_NO)
 			break;
 
@@ -205,7 +211,7 @@ void debug_print_declarations(const Parser* parser) {
 		const Node* child1 = node->child1;
 
 		do {
-			parser_allocator_link_next(
+			parser_allocator_next_link(
 				node,
 				&link);
 			printf("\t\t");
@@ -218,14 +224,12 @@ void debug_print_declarations(const Parser* parser) {
 
 		count += 1;
 
-		if(node == (Node*) link->memArea.addr + link->memArea.count - 1) {
-			if(link->next == NULL)
-				break;
-
-			link = link->next;
-			node = (Node*) link->memArea.addr;
-		} else
-			node += 1;
+		if(parser_allocator_next(
+			parser,
+			&link,
+			&node)
+		== false)
+			break;
 	}
 
 	printf("\nNumber of declarations at file scope: %zu\n", count);
@@ -234,13 +238,19 @@ void debug_print_declarations(const Parser* parser) {
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	const MemoryChainLink* link;
-	const Node* node = parser_allocator_start(
+	const Node* node = parser_allocator_start_node(
 		parser,
 		&link);
 	size_t count = 0;
 	printf("NODES:\n");
 
-	while(node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count) {
+	if(node == NULL)
+		return;
+
+	while(parser_allocator_continue_node(
+		parser,
+		node)
+	== true) {
 		printf("\t");
 
 		if(node->type == NodeType_MODULE) {
@@ -278,7 +288,7 @@ void debug_print_nodes(const Parser* parser) {
 			const Node* child1 = node->child1;
 
 			do {
-				parser_allocator_link_next(
+				parser_allocator_next_link(
 					node,
 					&link);
 				printf("\t\t");
@@ -307,14 +317,12 @@ void debug_print_nodes(const Parser* parser) {
 			count += 1;
 		}
 
-		if(node == (Node*) link->memArea.addr + link->memArea.count - 1) {
-			if(link->next == NULL)
-				break;
-
-			link = link->next;
-			node = (Node*) link->memArea.addr;
-		} else
-			node += 1;
+		if(parser_allocator_next(
+			parser,
+			&link,
+			&node)
+		== false)
+			break;
 	}
 
 	printf(

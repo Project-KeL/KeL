@@ -2,6 +2,7 @@
 #include <string.h>
 #include "parser.h"
 #include "parser_allocator.h"
+#include "parser_call.h"
 #include "parser_error.h"
 #include "parser_identifier.h"
 #include "parser_module.h"
@@ -122,6 +123,12 @@ Parser* parser) {
 		== 1) {
 			if(parser_is_scope_L(tokens + i))
 				is_scope = true;
+		} else if(set_error(
+			if_call_create_nodes(
+				&i,
+				parser))
+		== 1) {
+			// OK
 		}
 		// check end of scope (period) or end of instruction (semicolon)
 		if(set_error(

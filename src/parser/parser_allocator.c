@@ -48,7 +48,37 @@ bool parser_allocator(Parser* parser) {
 		&parser->nodes);
 }
 
-const Node* parser_allocator_start(
+void parser_allocator_next_link(
+const Node* node,
+const MemoryChainLink** link) {
+	assert(node != NULL);
+	assert(link != NULL);
+
+	if(node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1)	
+		*link = (*link)->next;
+}
+
+bool parser_allocator_next(
+const Parser* parser,
+const MemoryChainLink** link,
+const Node** node) {
+	assert(parser != NULL);
+	assert(link != NULL);
+	assert(node != NULL);
+
+	if(*node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1) {
+		if((*link)->next == NULL)
+			return false;
+
+		*link = (*link)->next;
+		*node = (Node*) (*link)->memArea.addr;
+	} else
+		*node += 1;
+
+	return true;
+}
+
+const Node* parser_allocator_start_node(
 const Parser* parser,
 const MemoryChainLink** link) {
 	assert(parser != NULL);
@@ -56,22 +86,54 @@ const MemoryChainLink** link) {
 
 	Node* node;
 
-	if(parser->declarations.first->memArea.count > 1) {
-		*link = parser->declarations.first;
+	if(parser->nodes.first->memArea.count > 1) {
+		*link = parser->nodes.first;
 		node = (Node*) (*link)->memArea.addr + 1;
-	} else {
-		*link = parser->declarations.first->next;
+	} else if(parser->nodes.first->next != NULL) {
+		*link = parser->nodes.first->next;
 		node = (Node*) (*link)->memArea.addr;
-	}
+	} else
+		return NULL;
 
 	return node;
 }
 
-void parser_allocator_link_next(
-const Node* node,
+bool parser_allocator_continue_node(
+const Parser* parser,
+const Node* node) {
+	assert(parser != NULL);
+	assert(node != NULL);
+
+	return node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count;
+}
+
+const Node* parser_allocator_start_declaration(
+const Parser* parser,
 const MemoryChainLink** link) {
-	if(node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1)	
-		*link = (*link)->next;
+	assert(parser != NULL);
+	assert(link != NULL);
+
+	Node* node;
+
+	if(parser->nodes.first->memArea.count > 1) {
+		*link = parser->declarations.first;
+		node = (Node*) (*link)->memArea.addr + 1;
+	} else if(parser->declarations.first->next != NULL) {
+		*link = parser->declarations.first->next;
+		node = (Node*) (*link)->memArea.addr;
+	} else
+		return NULL;
+
+	return node;
+}
+
+bool parser_allocator_continue_declaration(
+const Parser* parser,
+const Node* node) {
+	assert(parser != NULL);
+	assert(node != NULL);
+
+	return node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count;
 }
 
 #undef CHUNK
