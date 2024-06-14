@@ -10,7 +10,7 @@ Parser* parser) {
 	if(token->type != TokenType_PL)
 		return 0;
 
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return -1;
 
 	Node* previous = (Node*) parser->nodes.previous;
@@ -55,7 +55,7 @@ Parser* parser) {
 		&memChain_state);
 
 	do {
-		if(!parser_allocator_node(parser))
+		if(!parser_allocator(parser))
 			return -1;
 	
 		*((Node*) parser->nodes.top) = (Node) {

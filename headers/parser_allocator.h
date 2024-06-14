@@ -7,7 +7,12 @@
 void parser_initialize_allocators(Parser* parser);
 bool parser_create_allocators(Parser* parser);
 void parser_destroy_allocators(Parser* parser);
-bool parser_allocator_node(Parser* parser);
-bool parser_allocator_declaration(Parser* parser);
+bool parser_allocator(Parser* parser);
+const Node* parser_allocator_start(
+	const Parser* parser,
+	const MemoryChainLink** link);
+void parser_allocator_link_next(
+	const Node* node,
+	const MemoryChainLink** link);
 
 #endif

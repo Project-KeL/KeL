@@ -34,7 +34,7 @@ NodeTypeChildType type,
 NodeSubtype subtype,
 const Token* token,
 Parser* parser) {
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {

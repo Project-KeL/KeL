@@ -40,7 +40,7 @@ void parser_destroy_allocators(Parser* parser) {
 	destroy_memory_chain(&parser->nodes);
 }
 
-bool parser_allocator_node(Parser* parser) {
+bool parser_allocator(Parser* parser) {
 	assert(parser != NULL);
 
 	return parser->error_allocator = memory_chain_reserve_data(
@@ -48,12 +48,30 @@ bool parser_allocator_node(Parser* parser) {
 		&parser->nodes);
 }
 
-bool parser_allocator_declaration(Parser* parser) {
+const Node* parser_allocator_start(
+const Parser* parser,
+const MemoryChainLink** link) {
 	assert(parser != NULL);
+	assert(link != NULL);
 
-	return parser->error_allocator = memory_chain_reserve_data(
-		CHUNK,
-		&parser->declarations);
+	Node* node;
+
+	if(parser->declarations.first->memArea.count > 1) {
+		*link = parser->declarations.first;
+		node = (Node*) (*link)->memArea.addr + 1;
+	} else {
+		*link = parser->declarations.first->next;
+		node = (Node*) (*link)->memArea.addr;
+	}
+
+	return node;
+}
+
+void parser_allocator_link_next(
+const Node* node,
+const MemoryChainLink** link) {
+	if(node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1)	
+		*link = (*link)->next;
 }
 
 #undef CHUNK

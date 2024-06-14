@@ -50,7 +50,7 @@ Parser* parser) {
 		&parser->nodes,
 		&memChain_state);
 
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return -1;
 
 	*((Node*) parser->nodes.top) = (Node) {
@@ -66,7 +66,7 @@ Parser* parser) {
 		*node_identification = (Node*) parser->nodes.top;
 
 	while(parser_is_qualifier(tokens + i_qualifier)) {
-		if(!parser_allocator_node(parser))
+		if(!parser_allocator(parser))
 			return -1;
 
 		*((Node*) parser->nodes.top) = (Node) {
@@ -115,7 +115,7 @@ Parser* parser) {
 	if(parser_is_scope_L(tokens + buffer_i))
 		return 1;
 
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return -1;
 
 	if(tokens[buffer_i].type == TokenType_LITERAL) {

@@ -42,7 +42,7 @@ Parser* parser) {
 	if(!parser_is_scope_L(token))
 		return false;
 
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {
@@ -64,7 +64,7 @@ Parser* parser) {
 	if(token->subtype != TokenSubtype_PERIOD)
 		return 0;
 
-	if(!parser_allocator_node(parser))
+	if(!parser_allocator(parser))
 		return -1;
 
 	Node* scope = parser_get_scope_from_period(parser);

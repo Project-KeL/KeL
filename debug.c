@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "debug.h"
+#include "parser_allocator.h"
 
 static void print_info_token(
 const char* code,
@@ -185,17 +186,10 @@ void debug_print_tokens(const Lexer* lexer) {
 
 void debug_print_declarations(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
-	MemoryChainLink* link;
-	const Node* node;
-
-	if(parser->declarations.first->memArea.count > 1) {
-		link = parser->declarations.first;
-		node = (Node*) link->memArea.addr + 1;
-	} else {
-		link = parser->declarations.first->next;
-		node = (Node*) link->memArea.addr;
-	}
-	
+	const MemoryChainLink* link;
+	const Node* node = parser_allocator_start(
+		parser,
+		&link);
 	size_t count = 0;
 	printf("DECLARATIONS:\n");
 
@@ -211,9 +205,9 @@ void debug_print_declarations(const Parser* parser) {
 		const Node* child1 = node->child1;
 
 		do {
-			if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
-				link = link->next;
-
+			parser_allocator_link_next(
+				node,
+				&link);
 			printf("\t\t");
 			print_info_node_type(
 				code,
@@ -239,17 +233,10 @@ void debug_print_declarations(const Parser* parser) {
 
 void debug_print_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
-	MemoryChainLink* link;
-	const Node* node;
-
-	if(parser->nodes.first->memArea.count > 1) {
-		link = parser->nodes.first;
-		node = (Node*) link->memArea.addr + 1;
-	} else {
-		link = parser->nodes.first->next;
-		node = (Node*) link->memArea.addr;
-	}
-
+	const MemoryChainLink* link;
+	const Node* node = parser_allocator_start(
+		parser,
+		&link);
 	size_t count = 0;
 	printf("NODES:\n");
 
@@ -291,9 +278,9 @@ void debug_print_nodes(const Parser* parser) {
 			const Node* child1 = node->child1;
 
 			do {
-				if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
-					link = link->next;
-
+				parser_allocator_link_next(
+					node,
+					&link);
 				printf("\t\t");
 				print_info_node_type(
 					code,
