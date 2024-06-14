@@ -152,8 +152,8 @@ const Node* node) {
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_RETURN_NONE:
 				printf("RETURN NONE\n"); break;
-			case NodeSubtypeChildTypeScoped_RETURN_LOCK:
-				printf("RETURN LOCK <%.*s>\n",
+			case NodeSubtypeChildTypeScoped_RETURN_TYPE:
+				printf("RETURN TYPE <%.*s>\n",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER_NONE:
@@ -162,10 +162,6 @@ const Node* node) {
 				printf("PARAMETER <%.*s>\n",
 					(int) (token->L_end - token->L_start),
 					code + token->L_start); break;
-			case NodeSubtypeChildTypeScoped_PARAMETER_LOCK:
-				printf("PARAMETER LOCK <%.*s>\n",
-					(int) (token->R_end - token->R_start),
-					code + token->R_start); break;
 		} break;
 	}
 }

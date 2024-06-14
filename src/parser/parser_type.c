@@ -213,7 +213,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 		}
 
 		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
-			lock->subtype = NodeSubtypeChildTypeScoped_RETURN_LOCK;
+			lock->subtype = NodeSubtypeChildTypeScoped_RETURN_TYPE;
 // LPARENTHESIS:
 			// handle nested empty parenthesis like in :(())
 			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
