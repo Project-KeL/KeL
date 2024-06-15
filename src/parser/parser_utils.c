@@ -42,6 +42,10 @@ bool parser_is_R_right_parenthesis(const Token* token) {
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
+bool parser_is_command(const Token* token) {
+	return token->type == TokenType_COMMAND;
+}
+
 bool parser_is_qualifier(const Token* token) {
 	return token->type == TokenType_QL
 	    || token->type == TokenType_QR

@@ -11,6 +11,7 @@ bool parser_is_L_right_parenthesis(const Token* token);
 bool parser_is_R_grave_accent(const Token* token);
 bool parser_is_R_left_parenthesis(const Token* token);
 bool parser_is_R_right_parenthesis(const Token* token);
+bool parser_is_command(const Token* token);
 bool parser_is_qualifier(const Token* token);
 bool parser_is_operator_leveling(const Token* token);
 bool parser_is_operator_modifier(const Token* token);

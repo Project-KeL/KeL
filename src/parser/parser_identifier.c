@@ -80,26 +80,24 @@ Parser* parser) {
 		i_qualifier += 1;
 	}
 	// type deduction later
-	NodeSubtypeIdentificationBitScoped bitScoped = if_type_create_nodes(
+	NodeSubtypeIdentificationBitScoped bit_scoped;
+	switch(if_type_create_nodes(
 		&buffer_i,
 		memArea,
-		parser);
-	
-	if(!parser->error_allocator)
-		return -1;
-
-	switch(bitScoped) {
-	case NodeSubtypeIdentificationBitScoped_INVALID:
+		&bit_scoped,
+		parser)) {
+	case -1: return -1;
+	case 0:
 		memory_chain_state_restore(
 			&parser->nodes,
 			&memChain_state);
 		return 0;
-	default:
+	case 1:
 		if(node_identification != NULL)
-			(*node_identification)->subtype |= bitScoped;
+			(*node_identification)->subtype |= bit_scoped;
 		break;
 	}
-
+	
 	*i = buffer_i;
 	return 1;
 }
@@ -113,7 +111,13 @@ Parser* parser) {
 	size_t buffer_i = *i;
 
 	if(parser_is_scope_L(tokens + buffer_i))
-		return 1;
+		return 1; // `.child2` determined in the loop of `create_parser`
+
+	MemoryChainState memChain_state;
+	initialize_memory_chain_state(&memChain_state);
+	memory_chain_state_save(
+		&parser->nodes,
+		&memChain_state);
 
 	if(!parser_allocator(parser))
 		return -1;
@@ -124,8 +128,12 @@ Parser* parser) {
 			.subtype = token_subtype_literal_to_subtype(tokens[buffer_i].subtype),
 			.token = tokens + buffer_i};
 		buffer_i += 1;
-	} else
+	} else {
+		memory_chain_state_restore(
+			&parser->nodes,
+			&memChain_state);
 		return 0;
+	}
 
 	node_identification->child2 = (Node*) parser->nodes.top;
 	*i = buffer_i;
@@ -135,18 +143,19 @@ Parser* parser) {
 int if_identification_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
+Node** node_identification,
 Parser* parser) {
 	assert(i != NULL);
 	assert(memArea != NULL);
+	assert(node_identification != NULL);
 	assert(parser != NULL);
 
 	size_t buffer_i = *i;
-	Node* node_identification = NULL;
 
 	switch(if_declaration_create_nodes(
 		&buffer_i,
 		memArea,
-		&node_identification,
+		node_identification,
 		parser)) {
 	case -1: return -1;
 	case 0: return 0;
@@ -161,17 +170,17 @@ Parser* parser) {
 
 	switch(if_initialization_create_node(
 		&buffer_i,
-		node_identification,
+		*node_identification,
 		parser)) {
 	case -1: return -1;
 	case 0: // declaration case
 		memory_chain_state_restore(
 			&parser->nodes,
 			&memChain_state);
-		node_identification->subtype |= NodeSubtypeIdentificationBitType_DECLARATION;
+		(*node_identification)->subtype |= NodeSubtypeIdentificationBitType_DECLARATION;
 		break;
 	case 1: // initialization case
-		node_identification->subtype |= NodeSubtypeIdentificationBitType_INITIALIZATION;
+		(*node_identification)->subtype |= NodeSubtypeIdentificationBitType_INITIALIZATION;
 		break;
 	}
 

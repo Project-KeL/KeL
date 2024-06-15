@@ -10,7 +10,6 @@ void parser_initialize_allocators(Parser* parser) {
 
 	initialize_memory_chain(&parser->nodes);
 	initialize_memory_chain(&parser->declarations);
-	parser->error_allocator = true;
 }
 
 bool parser_create_allocators(Parser* parser) {
@@ -21,14 +20,14 @@ bool parser_create_allocators(Parser* parser) {
 		sizeof(Node),
 		&parser->nodes)
 	== false)
-		return parser->error_allocator = false;
+		return false;
 
 	if(create_memory_chain(
 		CHUNK,
 		sizeof(Node),
 		&parser->declarations)
 	== false)
-		return parser->error_allocator = false;
+		return false;
 
 	return true;
 }
@@ -43,7 +42,7 @@ void parser_destroy_allocators(Parser* parser) {
 bool parser_allocator(Parser* parser) {
 	assert(parser != NULL);
 
-	return parser->error_allocator = memory_chain_reserve_data(
+	return memory_chain_reserve_data(
 		CHUNK,
 		&parser->nodes);
 }

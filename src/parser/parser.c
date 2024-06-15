@@ -84,7 +84,8 @@ Parser* parser) {
 	parser->lexer = lexer;
 	const Token* tokens = (const Token*) lexer->tokens.addr;
 	size_t i = 1;
-	bool is_scope = false;
+	Node* buffer_node = NULL;
+	Node* buffer_node_previous = NULL;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -111,18 +112,22 @@ Parser* parser) {
 				i,
 				parser)
 			== true) {
+				buffer_node = parser->nodes.top;
+
+				if(buffer_node_previous != NULL
+				&& (buffer_node_previous->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED))
+					buffer_node_previous->child2 = buffer_node;
+
 				i += 1;
 			}
-
-			is_scope = true;
 		} else if(set_error(
 			if_identification_create_nodes(
 				&i,
 				memArea,
+				&buffer_node,
 				parser))
 		== 1) {
-			if(parser_is_scope_L(tokens + i))
-				is_scope = true;
+			// OK
 		} else if(set_error(
 			if_call_create_nodes(
 				&i,
@@ -139,7 +144,9 @@ Parser* parser) {
 			i += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
-		} else if(is_scope) {
+		} else if(buffer_node->type == NodeType_SCOPE_START
+		       || (buffer_node->type == NodeType_IDENTIFICATION
+		        && parser_is_scope_L(tokens + i))) {
 			// OK
 		} else
 			goto DESTROY;
@@ -147,7 +154,7 @@ Parser* parser) {
 		if(error == -1)
 			goto DESTROY;
 
-		is_scope = false;
+		buffer_node_previous = buffer_node;
 	}
 /*
 	if(j == 1)

@@ -104,10 +104,9 @@ typedef enum: uint64_t {
 
 typedef enum: uint64_t {
 #define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitScoped_ ## subtype
-	NODE_SUBTYPE_IDENTIFICATION(INVALID) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
-	NODE_SUBTYPE_IDENTIFICATION(NO) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED, // starts at 1 to simplify parsing
-	NODE_SUBTYPE_IDENTIFICATION(LABEL) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
-	NODE_SUBTYPE_IDENTIFICATION(LABEL_PARAMETERIZED) = 0b11 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
+	NODE_SUBTYPE_IDENTIFICATION(NO) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED, // starts at 1 to simplify parsing
+	NODE_SUBTYPE_IDENTIFICATION(LABEL) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
+	NODE_SUBTYPE_IDENTIFICATION(LABEL_PARAMETERIZED) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
 #undef NODE_SUBTYPE_IDENTIFICATION
 } NodeSubtypeIdentificationBitScoped;
 
@@ -203,8 +202,8 @@ struct Node {
 	uint64_t subtype;
 	union {
 		uint64_t value;
-		void* value_pointer;
-		void (*value_function)();
+		void* value_ptr;
+		void (*value_fn)();
 		const Token* token;};
 	union {
 		Node* child;
@@ -217,7 +216,6 @@ typedef struct {
 	const Lexer* lexer;
 	MemoryChain nodes;
 	MemoryChain declarations; // declarations at file scope
-	bool error_allocator;
 } Parser;
 
 #endif

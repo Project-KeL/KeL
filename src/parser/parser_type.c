@@ -115,18 +115,20 @@ Parser* parser) {
 	return true;
 }
 */
-NodeSubtypeIdentificationBitScoped if_type_create_nodes(
+int if_type_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
+NodeSubtypeIdentificationBitScoped* restrict bit_scoped,
 Parser* parser) {
 	assert(i != NULL);
 	assert(memArea != NULL);
+	assert(bit_scoped != NULL);
 	assert(parser != NULL);
 
 	size_t buffer_i = *i;
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	NodeSubtypeIdentificationBitScoped value = NodeSubtypeIdentificationBitScoped_NO;
+	*bit_scoped = NodeSubtypeIdentificationBitScoped_NO;
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;
 
@@ -168,13 +170,13 @@ TYPE:
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
 				if(parser_is_scope_R(tokens + i_lock))
-					value = NodeSubtypeIdentificationBitScoped_LABEL;
+					*bit_scoped = NodeSubtypeIdentificationBitScoped_LABEL;
 
 				break;
 			}
 		}
 		// lock not alone (good luck)
-		value = NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED;
+		*bit_scoped = NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED;
 
 		while(parser_is_R_left_parenthesis(tokens + buffer_i)) {
 R_LPARENTHESIS:
@@ -217,7 +219,7 @@ R_LPARENTHESIS_SKIP_PARAMETER:
 // LPARENTHESIS:
 			// handle nested empty parenthesis like in :(())
 			if(tokens[buffer_i - 1].subtype == TokenSubtype_LPARENTHESIS)
-				return NodeSubtypeIdentificationBitScoped_INVALID;
+				return 0;
 
 			buffer_i += 1;
 			count_parenthesis_nest += 1;
@@ -259,7 +261,7 @@ READ_PARAMETER:
 				goto TYPE;
 			} else {
 				// a lock must succeed a key at the first nesting level
-				return NodeSubtypeIdentificationBitScoped_INVALID;
+				return 0;
 			}
 		} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
 RPARENTHESIS:
@@ -300,10 +302,10 @@ RPARENTHESIS:
 		} else if(parser_is_lock(tokens + buffer_i)) {
 			goto TYPE;
 		} else {
-			return NodeSubtypeIdentificationBitScoped_INVALID;
+			return 0;
 		}
 	} while(count_parenthesis_nest != 0);
 
 	*i = buffer_i;
-	return value;
+	return 1;
 }

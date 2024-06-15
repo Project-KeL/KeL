@@ -116,14 +116,23 @@ const Node* node) {
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
 	== NodeSubtypeIdentificationBitScoped_LABEL) {
-		printf(" LABEL");
+		printf(" LAB");
 	} else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
 	== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED) {
-		printf(" PARAMETERIZED LABEL");
-	} else if(is_initialization) {
-		printf(" <%.*s>",
-			(int) (node->child2->token->L_end - node->child2->token->L_start),
-			code + node->child2->token->L_start);
+		printf(" PLAB");
+	}
+	
+	if(is_initialization) {
+		if(node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED) {
+			printf(
+				" (SCOPE ID: %p)",
+				node->child2);
+		} else {
+			printf(
+				" <%.*s>",
+				(int) (node->child2->token->L_end - node->child2->token->L_start),
+				code + node->child2->token->L_start);
+		}
 	}
 
 	printf("\n");
@@ -255,9 +264,9 @@ void debug_print_nodes(const Parser* parser) {
 
 		if(node->type == NodeType_MODULE) {
 			if(node->subtype == NodeSubtypeModule_INPUT)
-				printf("IMOD\t");
+				printf("IMOD ");
 			else if(node->subtype == NodeSubtypeModule_OUTPUT)
-				printf("OMOD\t");
+				printf("OMOD ");
 
 			printf("<%.*s>\n",
 				(int) (node->token->L_end - node->token->L_start),
@@ -278,8 +287,10 @@ void debug_print_nodes(const Parser* parser) {
 
 			count += 1;
 		} else if(node->type == NodeType_SCOPE_START) {
-			printf("SCOPE START (%td NODES)\n",
-				node->value - 1);
+			printf(
+				"SCOPE START (%td NODES) ID: %p\n",
+				node->value - 1,
+				node);
 			count += 1;
 		} else if(node->type == NodeType_IDENTIFICATION) {
 			print_info_node_key_identification(
