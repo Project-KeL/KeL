@@ -21,7 +21,6 @@ const Token* token) {
 	case TokenType_R: type = "R  "; break;
 	case TokenType_LR: type = "LR "; break;
 	case TokenType_PL: type = "PL "; break;
-	case TokenType_IDENTIFIER: type = "ID "; break;
 	case TokenType_LITERAL: type = "LIT"; break;
 	}
 
@@ -35,8 +34,10 @@ const Token* token) {
 	|| token->type == TokenType_SPECIAL
 	|| token->type == TokenType_QL
 	|| token->type == TokenType_L
-	|| token->type == TokenType_PL
-	|| token->type == TokenType_IDENTIFIER) {
+	|| token->type == TokenType_PL) {
+		if(token->subtype == TokenSubtype_IDENTIFIER)
+			printf("ID ");
+
 		if(token->subtype == TokenSubtype_MODULE_INPUT) {
 			printf("IMOD\n");
 		} else if(token->subtype == TokenSubtype_SCOPE) {

@@ -90,3 +90,16 @@ bool parser_is_lock(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_NO;
 }
+
+bool parser_is_token_L_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1->type != token2->type)
+		return false;
+
+	return strncmp(
+		code + token1->L_start,
+		code + token2->L_start,
+		token1->L_end - token1->L_start) == 0;
+}

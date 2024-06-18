@@ -7,6 +7,8 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
+// `child1` points to the type and `child2` to the scope if there is an initialization
+ 
 static NodeSubtypeIdentificationBitCommand token_subtype_command_to_subtype(TokenSubtype subtype_token) {
 	switch(subtype_token) {
 	case TokenSubtype_HASH: return NodeSubtypeIdentificationBitCommand_HASH;
@@ -43,7 +45,7 @@ Parser* parser) {
 	subtype |= token_subtype_command_to_subtype(tokens[buffer_i].subtype);
 	buffer_i += 1;
 
-	if(tokens[buffer_i].type != TokenType_IDENTIFIER)
+	if(tokens[buffer_i].subtype != TokenSubtype_IDENTIFIER)
 		return 0;
 
 	memory_chain_state_save(

@@ -41,12 +41,10 @@ typedef enum: uint64_t {
 #define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
 	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
 	NODE_SUBTYPE_CHILD_TYPE(RETURN_TYPE),
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_START),
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_SCOPE_END),
 	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_NONE),
 	NODE_SUBTYPE_CHILD_TYPE(PARAMETER),
 #undef NODE_SUBTYPE_CHILD_TYPE
-} NodeSubtypeChildTypeLock;
+} NodeSubtypeChildTypeScoped;
 
 /*
  * MODULE
@@ -158,11 +156,11 @@ typedef enum: uint64_t {
 */
 
 typedef enum: uint64_t {
-#define NODE_TYPE_CHILD_TYPE(type) NodeTypeChildType_ ## type
-	NODE_TYPE_CHILD_TYPE(NO) = 0,
-	NODE_TYPE_CHILD_TYPE(MODIFIER),
-	NODE_TYPE_CHILD_TYPE(LOCK),
-#undef NODE_TYPE_CHILD_TYPE
+#define NODE_TYPE_CHILD(type) NodeTypeChildType_ ## type
+	NODE_TYPE_CHILD(NO) = 0,
+	NODE_TYPE_CHILD(MODIFIER),
+	NODE_TYPE_CHILD(LOCK),
+#undef NODE_TYPE_CHILD
 } NodeTypeChildType;
 
 typedef enum: uint64_t {

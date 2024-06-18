@@ -602,8 +602,8 @@ Token* token) {
 		return false;
 
 	*token = (Token) {
-		.type = TokenType_IDENTIFIER,
-		.subtype = TokenSubtype_NO,
+		.type = TokenType_L,
+		.subtype = TokenSubtype_IDENTIFIER,
 		.start = start,
 		.end = end};
 	return true;

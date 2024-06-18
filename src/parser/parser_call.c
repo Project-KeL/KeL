@@ -7,6 +7,7 @@
 int if_call_create_nodes(
 size_t* i,
 Parser* parser) {
+	return 0;
 	const char* code = parser->lexer->source->content;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;

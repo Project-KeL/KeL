@@ -20,5 +20,9 @@ bool parser_is_scope_R(const Token* token);
 bool parser_is_special(const Token* token);
 bool parser_is_key(const Token* token);
 bool parser_is_lock(const Token* token);
+bool parser_is_token_L_match(
+	const char* code,
+	const Token* token1,
+	const Token* token2);
 
 #endif

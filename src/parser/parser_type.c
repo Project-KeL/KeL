@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include "lexer.h"
 #include "parser_allocator.h"
 #include "parser_type.h"
@@ -305,6 +306,15 @@ RPARENTHESIS:
 			return 0;
 		}
 	} while(count_parenthesis_nest != 0);
+
+	if(!parser_allocator(parser))
+		return -1;
+	// prevent error while checking types
+	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = true,
+		.type = NodeTypeChild_NO,
+		.subtype = NodeSubtype_NO};
+	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 
 	*i = buffer_i;
 	return 1;

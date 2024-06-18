@@ -86,6 +86,7 @@ Parser* parser) {
 	size_t i = 1;
 	Node* buffer_node = NULL;
 	Node* buffer_node_previous = NULL;
+	Node* parameterized_label_current = NULL;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -115,9 +116,18 @@ Parser* parser) {
 				buffer_node = parser->nodes.top;
 
 				if(buffer_node_previous != NULL
-				&& (buffer_node_previous->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED))
+				&& (buffer_node_previous->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)) {
+					// nested parameterized label
+					if(parameterized_label_current != NULL
+					// declarations are allowed
+					&& (parameterized_label_current->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
+					 != NodeSubtypeIdentificationBitType_DECLARATION)
+						goto DESTROY;
+					// `child2` is set to the scope
 					buffer_node_previous->child2 = buffer_node;
+				}
 
+				parameterized_label_current = buffer_node;
 				i += 1;
 			}
 		} else if(set_error(
@@ -141,6 +151,7 @@ Parser* parser) {
 				i,
 				parser))
 		== 1) {
+			parameterized_label_current = NULL;
 			i += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
