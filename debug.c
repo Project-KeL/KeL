@@ -147,34 +147,39 @@ const Node* node) {
 	switch(node->type) {
 	case NodeType_QUALIFIER:
 		if(node->subtype == TokenType_QL) {
-			printf("QL <%.*s>\n",
+			printf("QL <%.*s>",
 				(int) (token->L_end - token->L_start),
 				code + token->L_start);
 		} else {
-			printf("QR <%.*s>\n",
+			printf("QR <%.*s>",
 				(int) (token->R_end - token->R_start),
 				code + token->R_start);
 		} break;
 	case NodeTypeChildType_LOCK:
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
-				printf("TYPE <%.*s>\n",
+				printf("TYPE <%.*s>",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_RETURN_NONE:
-				printf("RETURN NONE\n"); break;
+				printf("RETURN NONE"); break;
 			case NodeSubtypeChildTypeScoped_RETURN_TYPE:
-				printf("RETURN TYPE <%.*s>\n",
+				printf("RETURN TYPE <%.*s>",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER_NONE:
-				printf("PARAMETER NONE\n"); break;
+				printf("PARAMETER NONE"); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER:
-				printf("PARAMETER <%.*s>\n",
+				printf("PARAMETER <%.*s>",
 					(int) (token->L_end - token->L_start),
 					code + token->L_start); break;
 		} break;
 	}
+
+	if(node->type == NodeType_NO)
+		printf("NULL");
+
+	printf("\n");
 }
 
 void debug_print_tokens(const Lexer* lexer) {
@@ -313,6 +318,7 @@ void debug_print_nodes(const Parser* parser) {
 			} while(child1 != NULL);
 
 			count += 1;
+		} else if(node->type == NodeType_CALL) {
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
 			count += 1;

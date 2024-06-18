@@ -5,6 +5,7 @@
 
 int if_call_create_nodes(
 	size_t* i,
+	const Node* parameterized_label,
 	Parser* parser);
 
 #endif

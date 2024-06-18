@@ -30,7 +30,7 @@ MemoryArea* restrict memArea,
 Parser* parser) {
 	size_t i = 0;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	// the counter is triggered when the first parameterized label is encountered
+	// the counter is triggered when the first initialized parameterized label is encountered
 	size_t count_scope_nest = 0;
 	// to insert declarations in the right place
 	const MemoryChain buffer_memChain = parser->nodes;
@@ -59,7 +59,10 @@ Parser* parser) {
 				&node_identification,
 				parser))
 		== 1) {
-			if((node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+			// is an initialized parameterized label
+			if((node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
+			== NodeSubtypeIdentificationBitType_INITIALIZATION
+			&& (node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
 			== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED)
 				count_scope_nest += 1;
 		} else
@@ -141,6 +144,7 @@ Parser* parser) {
 		} else if(set_error(
 			if_call_create_nodes(
 				&i,
+				parameterized_label_current,
 				parser))
 		== 1) {
 			// OK
