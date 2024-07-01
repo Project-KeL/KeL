@@ -27,5 +27,8 @@ const Node* parser_allocator_start_declaration(
 bool parser_allocator_continue_declaration(
 	const Parser* parser,
 	const Node* node);
+void parser_allocator_node_previous(
+	Node** node,
+	MemoryChainLink* restrict* link);
 
 #endif

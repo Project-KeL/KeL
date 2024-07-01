@@ -105,10 +105,10 @@ const Node* node) {
 
 	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
 	== NodeSubtypeIdentificationBitType_DECLARATION) {
-		printf("DECLARATION");
+		printf("DEC");
 	} else {
 		is_initialization = true;
-		printf("INITIALIZATION:");
+		printf("INI");
 	}
 
 	printf(" <%.*s>",
@@ -215,15 +215,17 @@ void debug_print_declarations(const Parser* parser) {
 		parser,
 		node)
 	== true) {
-		if(node->type == NodeType_NO)
-			break;
-
 		printf("\t");
+
+		if(node->type == NodeType_NO) {
+			printf("NULL\n");
+			goto NEXT;
+		}
 
 		print_info_node_key_identification(
 			parser->lexer->source->content,
 			node);
-		const Node* child1 = node->child1;
+		node = node->child1;
 
 		do {
 			parser_allocator_next_link(
@@ -232,11 +234,10 @@ void debug_print_declarations(const Parser* parser) {
 			printf("\t\t");
 			print_info_node_type(
 				code,
-				child1);
-			node = child1;
-			child1 = node->child1;
-		} while(child1 != NULL);
-
+				node);
+			node = node->child1;
+		} while(node->child1 != NULL);
+NEXT:
 		count += 1;
 
 		if(parser_allocator_next(
@@ -248,6 +249,30 @@ void debug_print_declarations(const Parser* parser) {
 	}
 
 	printf("\nNumber of declarations at file scope: %zu\n", count);
+}
+
+void print_info_node_key_call(
+const char* code,
+const Node* node) {
+	printf("CALL <%.*s>",
+		(int) (node->token->L_end - node->token->L_start),
+		code + node->token->L_start);
+}
+
+void print_info_node_key_call_return_type(
+const char* code,
+const Node* node) {
+	printf("RETURN TYPE <%.*s>",
+		(int) (node->token->L_end - node->token->L_start),
+		code + node->token->L_start);
+}
+
+void print_info_node_argument(
+const char* code,
+const Node* node) {
+	printf("<%.*s>",
+		(int) (node->token->L_end - node->token->L_start),
+		code + node->token->L_start);
 }
 
 void debug_print_nodes(const Parser* parser) {
@@ -319,6 +344,29 @@ void debug_print_nodes(const Parser* parser) {
 
 			count += 1;
 		} else if(node->type == NodeType_CALL) {
+			print_info_node_key_call(
+				code,
+				node);
+			const Node* child1 = node->child1;
+			print_info_node_key_call_return_type(
+				code,
+				child1);
+			child1 = child1->child1;
+
+			do {
+				parser_allocator_next_link(
+					node,
+					&link);
+				printf("\t\t");
+				print_info_node_argument(
+					code,
+					child1);
+				node = child1;
+				child1 = node->child1;
+				count += 1;
+			} while(child1 != NULL);
+
+			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
 			count += 1;

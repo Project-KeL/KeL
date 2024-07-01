@@ -28,6 +28,15 @@ bool parser_create_allocators(Parser* parser) {
 		&parser->declarations)
 	== false)
 		return false;
+	// the first node is null
+	if(!memory_chain_reserve_data(
+		CHUNK,
+		&parser->nodes)
+	|| memory_chain_reserve_data(
+		CHUNK,
+		&parser->declarations)
+	== false)
+		parser_destroy_allocators(parser);
 
 	return true;
 }
@@ -133,6 +142,19 @@ const Node* node) {
 	assert(node != NULL);
 
 	return node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count;
+}
+
+void parser_allocator_node_previous(
+Node** node,
+MemoryChainLink* restrict* link) {
+	assert(link != NULL);
+	assert((*link)->previous != NULL);
+
+	if(*node == (*link)->memArea.addr) {
+		*link = (*link)->previous;
+		*node = (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1;
+	} else
+		*node -= 1;
 }
 
 #undef CHUNK

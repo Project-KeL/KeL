@@ -3,7 +3,7 @@
 
 #include "parser_def.h"
 
-bool if_scope_create_node(
+int if_scope_create_node(
 	size_t i,
 	Parser* parser);
 int if_period_create_node(

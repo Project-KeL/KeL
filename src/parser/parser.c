@@ -32,12 +32,12 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	// the counter is triggered when the first initialized parameterized label is encountered
 	size_t count_scope_nest = 0;
-	// to insert declarations in the right place
+	// switch to insert declarations in the right place
 	const MemoryChain buffer_memChain = parser->nodes;
 	parser->nodes = parser->declarations;
 
 	while(i < parser->lexer->tokens.count - 1) {
-		Node* node_identification;
+		Node* node_identification = NULL;
 
 		if(parser_is_scope_L(tokens + i)) {
 			if(count_scope_nest > 0)
@@ -53,25 +53,26 @@ Parser* parser) {
 
 		if(count_scope_nest == 0
 		&& set_error(
-			if_declaration_create_nodes(
+			if_identification_create_nodes(
+				false,
 				&i,
 				memArea,
 				&node_identification,
 				parser))
 		== 1) {
-			// is an initialized parameterized label
-			if((node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
-			== NodeSubtypeIdentificationBitType_INITIALIZATION
-			&& (node_identification->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-			== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED)
+			if(parser_identification_is_initialization(node_identification)
+			&& parser_identification_is_label_parameterized(node_identification)) {
 				count_scope_nest += 1;
-		} else
+			}
+		} else {
 			i += 1;
+		}	
 
 		if(error == -1)
 			return false;
 	}
 
+	parser->declarations = parser->nodes;
 	parser->nodes = buffer_memChain;
 	return true;
 }
@@ -87,9 +88,11 @@ Parser* parser) {
 	parser->lexer = lexer;
 	const Token* tokens = (const Token*) lexer->tokens.addr;
 	size_t i = 1;
-	Node* buffer_node = NULL;
-	Node* buffer_node_previous = NULL;
-	Node* parameterized_label_current = NULL;
+	size_t count_scope_nest = 0;
+	// `node_previous` is the last node not being a child
+	Node* node_previous = parser->nodes.top;
+	MemoryChainLink* link_parameterized_label_current_scope = NULL;
+	Node* node_label_parameterized_current = NULL;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -108,43 +111,63 @@ Parser* parser) {
 		if(set_error(
 			if_module_create_nodes(
 				&i,
+				&node_previous,
 				parser))
 		== 1) {
 			// OK
 		} else if(parser_is_scope_L(tokens + i)) {
-			while(if_scope_create_node(
+			if(if_scope_create_node(
 				i,
 				parser)
-			== true) {
-				buffer_node = parser->nodes.top;
+			== -1)
+				goto DESTROY;
 
-				if(buffer_node_previous != NULL
-				&& (buffer_node_previous->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)) {
-					// nested parameterized label
-					if(parameterized_label_current != NULL
-					// declarations are allowed
-					&& (parameterized_label_current->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
-					 != NodeSubtypeIdentificationBitType_DECLARATION)
-						goto DESTROY;
-					// `child2` is set to the scope
-					buffer_node_previous->child2 = buffer_node;
-				}
+			count_scope_nest += 1;
+			i += 1;
 
-				parameterized_label_current = buffer_node;
+			if(parser_is_identification(node_previous)
+			&& parser_identification_is_label_parameterized(node_previous)) {
+				// save the link
+				link_parameterized_label_current_scope = parser->nodes.last;
+				// `.child2` is set to the scope
+				node_previous->child2 = parser->nodes.top;
+			}
+
+			while(set_error(
+				if_scope_create_node(
+					i,
+					parser))
+			== 1) {
+				count_scope_nest += 1;
 				i += 1;
 			}
+
+			node_previous = parser->nodes.top;
+			continue; // no semicolon required
 		} else if(set_error(
 			if_identification_create_nodes(
+				true,
 				&i,
 				memArea,
-				&buffer_node,
+				&node_previous,
 				parser))
 		== 1) {
-			// OK
+			// no nested parameterized label
+			if(node_label_parameterized_current != NULL
+			&& parser_identification_is_initialization(node_previous)
+			&& parser_identification_is_label_parameterized(node_previous))
+				goto DESTROY;
+
+			if(parser_identification_is_label_parameterized(node_previous)) {
+				node_label_parameterized_current = node_previous;
+				continue; // no semicolon required
+			}
 		} else if(set_error(
 			if_call_create_nodes(
 				&i,
-				parameterized_label_current,
+				node_label_parameterized_current,
+				link_parameterized_label_current_scope,
+				&node_previous,
 				parser))
 		== 1) {
 			// OK
@@ -155,21 +178,20 @@ Parser* parser) {
 				i,
 				parser))
 		== 1) {
-			parameterized_label_current = NULL;
+			count_scope_nest -= 1;
+
+			if(count_scope_nest == 0)
+				node_label_parameterized_current = NULL;
+
+			node_previous = parser->nodes.top;
 			i += 1;
 		} else if(tokens[i].subtype == TokenSubtype_SEMICOLON) {
 			i += 1;
-		} else if(buffer_node->type == NodeType_SCOPE_START
-		       || (buffer_node->type == NodeType_IDENTIFICATION
-		        && parser_is_scope_L(tokens + i))) {
-			// OK
 		} else
 			goto DESTROY;
 		// error checking
 		if(error == -1)
 			goto DESTROY;
-
-		buffer_node_previous = buffer_node;
 	}
 /*
 	if(j == 1)

@@ -91,15 +91,36 @@ bool parser_is_lock(const Token* token) {
 	    && token->subtype == TokenSubtype_NO;
 }
 
-bool parser_is_token_L_match(
+bool parser_is_code_token_match(
 const char* code,
 const Token* token1,
 const Token* token2) {
-	if(token1->type != token2->type)
+	long int start1;
+	long int start2;
+	long int end1;
+	long int end2;
+
+	if(token1->L_end - token1->L_start == 0) {
+		start1 = token1->L_start;
+		end1 = token1->L_start;
+	} else {
+		start1 = token1->R_start;
+		end1 = token1->R_end;
+	}
+
+	if(token2->L_end - token2->L_start == 0) {
+		start2 = token2->L_start;
+		end2 = token2->L_start;
+	} else {
+		start2 = token2->R_start;
+		end2 = token2->R_end;
+	}
+
+	if(end1 - start1 != end2 - start2)
 		return false;
 
 	return strncmp(
-		code + token1->L_start,
-		code + token2->L_start,
-		token1->L_end - token1->L_start) == 0;
+		code + start1,
+		code + start2,
+		end1 - start1) == 0;
 }

@@ -25,8 +25,10 @@ Parser* parser) {
 
 int if_module_create_nodes(
 size_t* i,
+Node** node_module_last,
 Parser* parser) {
 	assert(i != NULL);
+	assert(node_module_last != NULL);
 	assert(parser != NULL);
 
 	size_t buffer_i = *i;
@@ -65,6 +67,7 @@ Parser* parser) {
 			.token = tokens + buffer_i,
 			.child = NULL};
 		buffer_i += 1;
+		*node_module_last = (Node*) parser->nodes.top;
 		int error;
 
 		while((error = module_bind_child_module(

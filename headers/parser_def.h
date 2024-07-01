@@ -37,6 +37,18 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE_CHILD
 } NodeSubtypeChild;
 
+/*
+ * TYPE
+*/
+
+typedef enum: uint64_t {
+#define NODE_TYPE_CHILD(type) NodeTypeChildType_ ## type
+	NODE_TYPE_CHILD(NO) = 0,
+	NODE_TYPE_CHILD(MODIFIER),
+	NODE_TYPE_CHILD(LOCK),
+#undef NODE_TYPE_CHILD
+} NodeTypeChildType;
+
 typedef enum: uint64_t {
 #define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
 	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
@@ -147,6 +159,7 @@ typedef enum: uint64_t {
 	NODE_TYPE_CHILD(NO) = 0,
 	NODE_TYPE_CHILD(RETURN_UNKNOWN), // may return a type to be deduced or no return
 	NODE_TYPE_CHILD(RETURN_TYPE),
+	NODE_TYPE_CHILD(ARGUMENT_NONE),
 	NODE_TYPE_CHILD(ARGUMENT),
 #undef NODE_TYPE_CHILD
 } NodeTypeChildCall;
@@ -154,14 +167,6 @@ typedef enum: uint64_t {
 /*
  * MODIFIERS (to be done)
 */
-
-typedef enum: uint64_t {
-#define NODE_TYPE_CHILD(type) NodeTypeChildType_ ## type
-	NODE_TYPE_CHILD(NO) = 0,
-	NODE_TYPE_CHILD(MODIFIER),
-	NODE_TYPE_CHILD(LOCK),
-#undef NODE_TYPE_CHILD
-} NodeTypeChildType;
 
 typedef enum: uint64_t {
 #define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeModifier_ ## subtype

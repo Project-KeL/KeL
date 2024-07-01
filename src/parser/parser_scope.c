@@ -3,7 +3,7 @@
 #include "parser_scope.h"
 #include "parser_utils.h"
 
-static Node* parser_get_scope_from_period(Parser* parser) {
+static Node* get_scope_from_period(Parser* parser) {
 	Node* node = (Node*) parser->nodes.top;
 	MemoryChainLink* restrict link = parser->nodes.last;
 	size_t count_scope_nest = 1;
@@ -11,11 +11,9 @@ static Node* parser_get_scope_from_period(Parser* parser) {
 
 	do {
 		// get the last node in the previous memory area
-		if(node == link->memArea.addr) {
-			link = link->previous;
-			node = (Node*) link->memArea.addr + link->memArea.count - 1;
-		} else
-			node -= 1;
+		parser_allocator_node_previous(
+			&node,
+			&link);
 
 		if(!node->is_child) {
 			switch(node->type) {
@@ -32,7 +30,7 @@ static Node* parser_get_scope_from_period(Parser* parser) {
 	return node;
 }
 
-bool if_scope_create_node(
+int if_scope_create_node(
 size_t i,
 Parser* parser) {
 	assert(parser != NULL);
@@ -40,10 +38,10 @@ Parser* parser) {
 	const Token* token = (Token*) parser->lexer->tokens.addr + i;
 
 	if(!parser_is_scope_L(token))
-		return false;
+		return 0;
 
 	if(!parser_allocator(parser))
-		return false;
+		return -1;
 
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = false,
@@ -51,7 +49,7 @@ Parser* parser) {
 		.subtype = NodeSubtypeScope_NO,
 		.value = 0,
 		.child = NULL};
-	return true;
+	return 1;
 }
 
 int if_period_create_node(
@@ -67,7 +65,7 @@ Parser* parser) {
 	if(!parser_allocator(parser))
 		return -1;
 
-	Node* scope = parser_get_scope_from_period(parser);
+	Node* scope = get_scope_from_period(parser);
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = false,
 		.type = NodeType_SCOPE_END,
