@@ -176,7 +176,7 @@ const Node* node) {
 		} break;
 	}
 
-	if(node->type == NodeType_NO)
+	if(node->type == NodeTypeChild_NO)
 		printf("NULL");
 
 	printf("\n");
@@ -254,7 +254,7 @@ NEXT:
 void print_info_node_key_call(
 const char* code,
 const Node* node) {
-	printf("CALL <%.*s>",
+	printf("CALL <%.*s>\n",
 		(int) (node->token->L_end - node->token->L_start),
 		code + node->token->L_start);
 }
@@ -262,17 +262,35 @@ const Node* node) {
 void print_info_node_key_call_return_type(
 const char* code,
 const Node* node) {
+	printf("RETURN TYPE ");
+
+	if(node->type == NodeTypeChildCall_RETURN_UNKNOWN) {
+		printf("UNKNOWN");
+	} else if(node->type == NodeTypeChildCall_RETURN_TYPE) {
 	printf("RETURN TYPE <%.*s>",
 		(int) (node->token->L_end - node->token->L_start),
 		code + node->token->L_start);
+	}
+
+	printf("\n");
 }
 
 void print_info_node_argument(
 const char* code,
 const Node* node) {
-	printf("<%.*s>",
-		(int) (node->token->L_end - node->token->L_start),
-		code + node->token->L_start);
+	switch(node->type) {
+	case NodeTypeChildCall_ARGUMENT_NONE:
+		printf("ARGUMENT NONE"); break;
+	case NodeTypeChildCall_ARGUMENT:
+		printf("<%.*s>",
+			(int) (node->token->L_end - node->token->L_start),
+			code + node->token->L_start); break;
+	}
+
+	if(node->type == NodeTypeChild_NO)
+		printf("NULL");
+
+	printf("\n");
 }
 
 void debug_print_nodes(const Parser* parser) {
@@ -348,6 +366,7 @@ void debug_print_nodes(const Parser* parser) {
 				code,
 				node);
 			const Node* child1 = node->child1;
+			printf("\t\t");
 			print_info_node_key_call_return_type(
 				code,
 				child1);
@@ -366,6 +385,7 @@ void debug_print_nodes(const Parser* parser) {
 				count += 1;
 			} while(child1 != NULL);
 
+			assert(false);
 			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");

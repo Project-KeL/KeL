@@ -11,29 +11,33 @@
 */
 
 static bool is_type_match(
-const Node* node1,
-const Node* node2) {
-	const Node* type1 = node1->child1;
-	const Node* type2 = node2->child1;
-
-	if((node1->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-	!= (node2->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED))
+const char* code,
+const Node* type1,
+const Node* type2) {
+	// comparison of the type of a parameter
+	// the parameters inside the type are ignored
+	if((type1->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+	!= (type2->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED))
 		return false;
 
 	while(true) {
-		if(type1->type != NodeTypeChildType_LOCK
-		|| type2->type != NodeTypeChildType_LOCK)
+		if(type1->type == NodeType_NO
+		|| type2->type == NodeType_NO)
 			break;
 
-		if(type1->subtype != type2->subtype)
+		if(type1->subtype != type2->subtype
+		|| parser_is_code_token_match(
+			code,
+			type1->token,
+			type2->token)
+		== false)
 			return false;
 
-		type1 += 1;
-		type2 += 1;
+		type1 = type1->child1;
+		type2 = type2->child1;
 	}
 
-	return type1->type != NodeTypeChildType_LOCK
-	    && type2->type != NodeTypeChildType_LOCK;
+	return type1->type == type2->type;
 }
 
 static bool is_type_match_scope_file(
@@ -67,7 +71,7 @@ const Node** node_declaration) {
 		if(node_local->type == NodeType_IDENTIFICATION
 		&& parser_is_code_token_match(
 			code,
-			node_local->token,
+			node_local->child1->token,
 			declaration_node->token)
 		== true)
 			goto CHECK;
@@ -77,8 +81,9 @@ const Node** node_declaration) {
 CHECK:
 	*node_declaration = node_local;
 	return is_type_match(
+		code,
 		node_local->child1,
-		declaration_node->child1);
+		declaration_node);
 }
 
 static int if_arguments_create_nodes(
@@ -92,6 +97,8 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	size_t count_argument = 0;
 	const Node* node_declaration = NULL;
+	// skip the return type
+	declaration_node = declaration_node->child1->child1;
 
 	if(tokens[buffer_i].type == TokenType_NO) {
 		return 0;
@@ -122,17 +129,23 @@ Parser* parser) {
 
 				*((Node*) parser->nodes.top) = (Node) {
 					.is_child = true,
+					.token = tokens + buffer_i,
 					.type = NodeTypeChildCall_ARGUMENT};
 				((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 			} else {
 				break;
 			}
 
-			if(tokens[buffer_i].type != TokenSubtype_COMMA)
-				return -1;
-
 			count_argument += 1;
 			buffer_i += 1;
+
+			if(tokens[buffer_i].type != TokenSubtype_COMMA) {
+				if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS
+				|| tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)
+					break;
+
+				return -1;
+			}
 		}
 
 		if(count_argument != count_parameter)
@@ -164,6 +177,9 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
 	uint64_t count_parameter = 0;
+
+	if(tokens[buffer_i].type != TokenType_L)
+		return 0;
 	// search a match with an identifier at file scope
 	const MemoryChainLink* declaration_link;
 	const Node* declaration_node = parser_allocator_start_declaration(
@@ -171,9 +187,6 @@ Parser* parser) {
 		&declaration_link);
 
 	if(declaration_node == NULL)
-		return 0;
-
-	if(tokens[buffer_i].type != TokenType_L)
 		return 0;
 
 	while(parser_allocator_continue_declaration(
@@ -192,16 +205,18 @@ Parser* parser) {
 			declaration_node->token)
 		== true)
 			found = true;
+		// count the parameters
+		const Node* buffer_declaration_node = declaration_node;
 
 		do {
 			parser_allocator_next_link(
-				declaration_node,
+				buffer_declaration_node,
 				&declaration_link);
-			declaration_node = declaration_node->child1;
+			buffer_declaration_node = buffer_declaration_node->child1;
 
-			if(declaration_node->subtype == NodeSubtypeChildTypeScoped_PARAMETER)
+			if(buffer_declaration_node->subtype == NodeSubtypeChildTypeScoped_PARAMETER)
 				count_parameter += 1;
-		} while(declaration_node->child1 != NULL);
+		} while(buffer_declaration_node->child1 != NULL);
 
 		if(found)
 			goto FOUND;
@@ -228,17 +243,27 @@ FOUND:
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = false,
 		.type = NodeType_CALL,
+		.token = tokens + buffer_i,
 		.child1 = NULL,
 		.child2 = NULL};
 	*node_call_last = (Node*) parser->nodes.top;
 	// get the return type
-	declaration_node = declaration_node->child1;
 	buffer_i += 1;
 
 	if(!parser_allocator(parser))
 		return -1;
 
 	if(parser_is_lock(tokens + buffer_i)) {
+		// compare with the expected return type
+		if(declaration_node->child1->type == NodeTypeChildType_LOCK
+		&& declaration_node->child1->subtype == NodeTypeChild_NO
+		&& !parser_is_code_token_match(
+			code,
+			tokens + buffer_i,
+			declaration_node->child1->token)
+		== false)
+			goto RESTORE;
+
 		*((Node*) parser->nodes.top) = (Node) {
 			.is_child = true,
 			.token = tokens + buffer_i,
@@ -278,12 +303,8 @@ LPARENTHESIS:
 		command = NodeSubtypeIdentificationBitCommand_HASH;
 	}
 	// compare with the expected command at the declaration
-	if(command != (declaration_node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)) {
-		memory_chain_state_restore(
-			&parser->nodes,
-			&memChain_state);
-		return 0;
-	}
+	if(command != (declaration_node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND))
+		goto RESTORE;
 	// process arguments
 	switch(if_arguments_create_nodes(
 		&buffer_i,
@@ -293,7 +314,7 @@ LPARENTHESIS:
 		declaration_node,
 		parser)) {
 	case -1: return -1;
-	case 0: return 0;
+	case 0: goto RESTORE;
 	case 1: /* fall through */ break;
 	}
 
@@ -305,6 +326,11 @@ LPARENTHESIS:
 		.type = NodeTypeChild_NO};
 	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 
-	*i = buffer_i + right_parenthesis ? 1 : 0;
+	*i = buffer_i + (right_parenthesis ? 1 : 0);
 	return 1;
+RESTORE:
+	memory_chain_state_restore(
+		&parser->nodes,
+		&memChain_state);
+	return 0;
 }

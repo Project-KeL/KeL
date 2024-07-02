@@ -193,10 +193,11 @@ Parser* parser) {
 		if(error == -1)
 			goto DESTROY;
 	}
-/*
-	if(j == 1)
+	// destroy if there is no nodes
+	if(parser->nodes.count == 1
+	&& parser->nodes.first->memArea.count == 1)
 		goto DESTROY;
-*/
+
 	return true;
 DESTROY:
 	destroy_parser(parser);

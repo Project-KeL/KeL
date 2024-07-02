@@ -28,15 +28,6 @@ bool parser_create_allocators(Parser* parser) {
 		&parser->declarations)
 	== false)
 		return false;
-	// the first node is null
-	if(!memory_chain_reserve_data(
-		CHUNK,
-		&parser->nodes)
-	|| memory_chain_reserve_data(
-		CHUNK,
-		&parser->declarations)
-	== false)
-		parser_destroy_allocators(parser);
 
 	return true;
 }
