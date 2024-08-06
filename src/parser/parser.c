@@ -129,8 +129,11 @@ Parser* parser) {
 			&& parser_identification_is_label_parameterized(node_previous)) {
 				// save the link
 				link_parameterized_label_current_scope = parser->nodes.last;
-				// `.child2` is set to the scope
+				// .child2 is set to the scope
 				node_previous->child2 = parser->nodes.top;
+				// if an initialized parameterized label precedes .child2 is set to the parameterized label
+				if(parser_identification_is_initialization(node_previous))
+					((Node*) parser->nodes.top)->child2 = node_previous;
 			}
 
 			while(set_error(
@@ -165,8 +168,8 @@ Parser* parser) {
 		} else if(set_error(
 			if_call_create_nodes(
 				&i,
-				node_label_parameterized_current,
 				link_parameterized_label_current_scope,
+				node_label_parameterized_current,
 				&node_previous,
 				parser))
 		== 1) {

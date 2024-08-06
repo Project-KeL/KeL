@@ -53,25 +53,25 @@ const Node* node) {
 }
 
 static bool is_type_match_scope_local(
-const Node* node_parameterized_label,
-const MemoryChainLink* link_parameterized_label_scope,
+const Node* node_label_parameterized_scope,
+const MemoryChainLink* link_label_parameterized_scope,
 const Node* declaration_node,
 const Parser* parser,
 const Node** node_declaration) {
 	const char* code = parser->lexer->source->content;
 	const Node* node = (Node*) parser->nodes.top;
-	const Node* node_local = (Node*) node_parameterized_label->child2;
 	// search the declaration of `node`
-	while(node_local != node) {
+	while(node_label_parameterized_scope != node) {
+// printf("HERE: %d,  %d, %d\n", node_label_parameterized_scope == link_label_parameterized_scope->memArea.addr, node_label_parameterized_scope->is_child, node_label_parameterized_scope->type);
 		parser_allocator_next(
 			parser,
-			&link_parameterized_label_scope,
-			&node_local);
+			&link_label_parameterized_scope,
+			&node_label_parameterized_scope);
 
-		if(node_local->type == NodeType_IDENTIFICATION
+		if(node_label_parameterized_scope->type == NodeType_IDENTIFICATION
 		&& parser_is_code_token_match(
 			code,
-			node_local->child1->token,
+			node_label_parameterized_scope->child1->token,
 			declaration_node->token)
 		== true)
 			goto CHECK;
@@ -79,20 +79,40 @@ const Node** node_declaration) {
 
 	return false;
 CHECK:
-	*node_declaration = node_local;
+	*node_declaration = node_label_parameterized_scope;
 	return is_type_match(
 		code,
-		node_local->child1,
+		node_label_parameterized_scope->child1,
 		declaration_node);
 }
 
+static bool call_child_bind_token(
+NodeTypeChildCall type,
+NodeSubtypeChild subtype,
+const Token* token,
+Parser* parser) {
+	if(!parser_allocator(parser))
+		return false;
+
+	*((Node*) parser->nodes.top) = (Node) {
+		.type = type,
+		.subtype = subtype,
+		.token = token,
+		.child1 = NULL,
+		.child2 = NULL};
+	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
+	return true;
+}
+
 static int if_arguments_create_nodes(
+bool right_parenthesis,
 size_t* i,
-const Node* node_parameterized_label,
-const MemoryChainLink* link_parameterized_label_scope,
+const MemoryChainLink* link_label_parameterized_scope,
+const Node* node_label_parameterized_scope,
 uint64_t count_parameter,
 const Node* declaration_node,
 Parser* parser) {
+	return 0;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
 	size_t count_argument = 0;
@@ -100,83 +120,93 @@ Parser* parser) {
 	// skip the return type
 	declaration_node = declaration_node->child1->child1;
 
-	if(tokens[buffer_i].type == TokenType_NO) {
-		return 0;
-	} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS
-	|| tokens[buffer_i].subtype == TokenSubtype_SEMICOLON) {
-		if(!parser_allocator(parser))
+	if((right_parenthesis
+	 && tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
+	|| (!right_parenthesis
+	 && tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)) {
+		if(call_child_bind_token(
+			NodeTypeChildCall_ARGUMENT_NONE,
+			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
+			NULL,
+			parser)
+		== false)
 			return -1;
 
-		*((Node*) parser->nodes.top) = (Node) {
-			.is_child = true,
-			.type = NodeTypeChildCall_ARGUMENT_NONE};
-		((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 		buffer_i += 1;
 	} else {
-		while(tokens[buffer_i].subtype != TokenSubtype_RPARENTHESIS
-		   || tokens[buffer_i].subtype != TokenSubtype_SEMICOLON) {
-			declaration_node = declaration_node->child1; // skip the parameter
+		do {
+			// skip the parameter
+			declaration_node = declaration_node->child1;
 
 			if(is_type_match_scope_local(
-				node_parameterized_label,
-				link_parameterized_label_scope,
+				node_label_parameterized_scope,
+				link_label_parameterized_scope,
 				declaration_node,
 				parser,
 				&node_declaration)
 			== true) {
-				if(!parser_allocator(parser))
+				if(call_child_bind_token(
+					NodeTypeChildCall_ARGUMENT,
+					(NodeSubtypeChild) NodeSubtypeChildCall_NO,
+					tokens + buffer_i,
+					parser)
+				== false)
 					return -1;
-
-				*((Node*) parser->nodes.top) = (Node) {
-					.is_child = true,
-					.token = tokens + buffer_i,
-					.type = NodeTypeChildCall_ARGUMENT};
-				((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 			} else {
-				break;
+				return -1;
 			}
 
 			count_argument += 1;
 			buffer_i += 1;
 
-			if(tokens[buffer_i].type != TokenSubtype_COMMA) {
-				if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS
-				|| tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)
-					break;
-
+			if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
+				buffer_i += 1;
+			} else if((right_parenthesis
+			 && tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
+			|| (!right_parenthesis
+			 && tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)) {
+				break;
+			} else {
 				return -1;
 			}
-		}
-
+		} while(true);
+	
 		if(count_argument != count_parameter)
 			return -1;
 	}
 
-	*i = buffer_i;
+	*i = buffer_i + (right_parenthesis ? 1 : 0);
 	return 1;
 }
 
 int if_call_create_nodes(
 size_t* i,
-const Node* node_parameterized_label,
-const MemoryChainLink* link_parameterized_label_scope,
+const MemoryChainLink* link_label_parameterized_scope,
+const Node* node_label_parameterized_scope,
 Node** node_call_last,
 Parser* parser) {
-	return 0;
 	assert(i != NULL);
-	assert(node_parameterized_label != NULL);
-	assert(link_parameterized_label_scope != NULL);
+	assert(node_label_parameterized_scope != NULL);
+	assert(link_label_parameterized_scope != NULL);
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
 
-	assert(node_parameterized_label->child2 != NULL);
-	assert(node_parameterized_label->child2->type == NodeType_SCOPE_START);
-	assert(link_parameterized_label_scope->memArea.addr == node_parameterized_label->child2);
+	assert(node_label_parameterized_scope->child2 != NULL);
+	assert(node_label_parameterized_scope->child2->type == NodeType_SCOPE_START);
+	// the following assertion is only valid when `CHUNK` is `1`
+	assert(link_label_parameterized_scope->memArea.addr == node_label_parameterized_scope->child2);
 
 	const char* code = parser->lexer->source->content;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
 	uint64_t count_parameter = 0;
+	// go to the body of the scope
+	node_label_parameterized_scope = node_label_parameterized_scope->child2;
+	// get the first instruction after the scope
+	parser_allocator_next(
+		parser,
+		&link_label_parameterized_scope,
+		&node_label_parameterized_scope);
 
 	if(tokens[buffer_i].type != TokenType_L)
 		return 0;
@@ -193,11 +223,8 @@ Parser* parser) {
 		parser,
 		declaration_node)
 	== true) {
-		count_parameter = 0;
 		bool found = false;
-
-		if(declaration_node->type == NodeType_NO)
-			goto NEXT;
+		count_parameter = 0;
 
 		if(parser_is_code_token_match(
 			code,
@@ -220,7 +247,7 @@ Parser* parser) {
 
 		if(found)
 			goto FOUND;
-NEXT:
+
 		if(parser_allocator_next(
 			parser,
 			&declaration_link,
@@ -250,13 +277,10 @@ FOUND:
 	// get the return type
 	buffer_i += 1;
 
-	if(!parser_allocator(parser))
-		return -1;
-
 	if(parser_is_lock(tokens + buffer_i)) {
 		// compare with the expected return type
 		if(declaration_node->child1->type == NodeTypeChildType_LOCK
-		&& declaration_node->child1->subtype == NodeTypeChild_NO
+		&& declaration_node->child1->subtype == NodeSubtypeChild_NO
 		&& !parser_is_code_token_match(
 			code,
 			tokens + buffer_i,
@@ -264,20 +288,25 @@ FOUND:
 		== false)
 			goto RESTORE;
 
-		*((Node*) parser->nodes.top) = (Node) {
-			.is_child = true,
-			.token = tokens + buffer_i,
-			.type = NodeTypeChildCall_RETURN_TYPE};
+		if(call_child_bind_token(
+			NodeTypeChildCall_RETURN_TYPE,
+			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
+			tokens + buffer_i,
+			parser)
+		== false)
+			return -1;
+
 		buffer_i += 1;
 	} else {
-		*((Node*) parser->nodes.top) = (Node) {
-			.is_child = true,
-			.token = NULL,
-			.type = NodeTypeChildCall_RETURN_UNKNOWN};
+		if(call_child_bind_token(
+			NodeTypeChildCall_RETURN_UNKNOWN,
+			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
+			NULL,
+			parser)
+		== false)
+			return -1;
 		// `buffer_i` is well set for the next step
 	}
-
-	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
 	// calling syntax
 	TokenSubtype command;
 	bool right_parenthesis = false;
@@ -307,9 +336,10 @@ LPARENTHESIS:
 		goto RESTORE;
 	// process arguments
 	switch(if_arguments_create_nodes(
+		right_parenthesis,
 		&buffer_i,
-		node_parameterized_label,
-		link_parameterized_label_scope,
+		link_label_parameterized_scope,
+		node_label_parameterized_scope,
 		count_parameter,
 		declaration_node,
 		parser)) {
@@ -318,15 +348,15 @@ LPARENTHESIS:
 	case 1: /* fall through */ break;
 	}
 
-	if(!parser_allocator(parser))
+	if(call_child_bind_token(
+		NodeTypeChildCall_NO,
+		(NodeSubtypeChild) NodeSubtypeChildCall_NO,
+		NULL,
+		parser)
+	== false)
 		return -1;
 
-	*((Node*) parser->nodes.top) = (Node) {
-		.is_child = true,
-		.type = NodeTypeChild_NO};
-	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
-
-	*i = buffer_i + (right_parenthesis ? 1 : 0);
+	*i = buffer_i;
 	return 1;
 RESTORE:
 	memory_chain_state_restore(

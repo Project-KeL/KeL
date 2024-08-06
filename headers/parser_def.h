@@ -164,6 +164,12 @@ typedef enum: uint64_t {
 #undef NODE_TYPE_CHILD
 } NodeTypeChildCall;
 
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_CHILD(subtype) NodeSubtypeChildCall_ ## subtype
+	NODE_SUBTYPE_CHILD(NO) = 0,
+#undef NODE_SUBTYPE_CHILD
+} NodeSubtypeChildCall;
+
 /*
  * MODIFIERS (to be done)
 */

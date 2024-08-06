@@ -48,7 +48,8 @@ Parser* parser) {
 		.type = NodeType_SCOPE_START,
 		.subtype = NodeSubtypeScope_NO,
 		.value = 0,
-		.child = NULL};
+		.child1 = NULL,
+		.child2 = NULL};
 	return 1;
 }
 
@@ -70,6 +71,6 @@ Parser* parser) {
 		.is_child = false,
 		.type = NodeType_SCOPE_END,
 		.subtype = scope->subtype};
-	scope->child = (Node*) parser->nodes.top;
+	scope->child1 = (Node*) parser->nodes.top;
 	return 1;
 }
