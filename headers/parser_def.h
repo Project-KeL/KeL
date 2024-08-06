@@ -215,6 +215,18 @@ struct Node {
 		void (*value_fn)();
 		const Token* token;};
 	union {
+		struct NodeTreeModule {Node* submodule;} Module;
+		struct NodeTreeScopeStart {
+			Node* period;
+			Node* PAL;} ScopeStart;
+		struct NodeTreeScopeEnd {Node* scope;} ScopeEnd;
+		struct NodeTreeQualifier {Node* next;} Qualifier;
+		struct NodeTreeIdentification {
+			Node* type;
+			Node* initialization;} Identification;
+		struct NodeTreeCall {
+			struct Node* PAL;
+			struct Node* arguments;} Call;
 		Node* child;
 		struct {
 			Node* child1;
