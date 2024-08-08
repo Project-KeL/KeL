@@ -191,6 +191,8 @@ Parser* parser) {
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
 
+	assert(node_PAL->is_child == false);
+	assert(node_PAL->type == NodeType_INTRODUCTION);
 	assert(node_PAL->Introduction.initialization != NULL);
 	assert(node_PAL->Introduction.initialization->type == NodeType_SCOPE_START);
 	// the following assertion is only valid when `CHUNK` is `1`

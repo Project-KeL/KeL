@@ -25,10 +25,10 @@ static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_
 static int if_declaration_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
-Node** node_identifier,
+Node** node_introduction,
 Parser* parser) {
 	assert(i != NULL);
-	assert(node_identifier != NULL);
+	assert(node_introduction != NULL);
 	assert(parser != NULL);
 
 	size_t buffer_i = *i;
@@ -66,8 +66,8 @@ Parser* parser) {
 			.initialization = NULL}};
 	buffer_i += 1;
 
-	if(node_identifier != NULL)
-		*node_identifier = (Node*) parser->nodes.top;
+	if(node_introduction != NULL)
+		*node_introduction = (Node*) parser->nodes.top;
 /*
 	while(parser_is_qualifier(tokens + i_qualifier)) {
 		if(!parser_allocator(parser))
@@ -100,8 +100,8 @@ Parser* parser) {
 			&memChain_state);
 		return 0;
 	case 1:
-		if(node_identifier != NULL)
-			(*node_identifier)->subtype |= bit_scoped;
+		if(node_introduction != NULL)
+			(*node_introduction)->subtype |= bit_scoped;
 		break;
 	}
 	
@@ -112,7 +112,7 @@ Parser* parser) {
 static int if_initialization_create_node(
 bool nodes_initialization,
 size_t* i,
-Node* node_identifier,
+Node* node_introduction,
 Parser* parser) {
 	// just parse literals for the moment, expressions later
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
@@ -157,15 +157,15 @@ NODES_NO:
 */
 }
 
-int if_identifier_create_nodes(
+int if_introduction_create_nodes(
 bool nodes_initialization,
 size_t* i,
 MemoryArea* restrict memArea,
-Node** node_identifier,
+Node** node_introduction,
 Parser* parser) {
 	assert(i != NULL);
 	assert(memArea != NULL);
-	assert(node_identifier != NULL);
+	assert(node_introduction != NULL);
 	assert(parser != NULL);
 
 	size_t buffer_i = *i;
@@ -173,7 +173,7 @@ Parser* parser) {
 	switch(if_declaration_create_nodes(
 		&buffer_i,
 		memArea,
-		node_identifier,
+		node_introduction,
 		parser)) {
 	case -1: return -1;
 	case 0: return 0;
@@ -182,14 +182,14 @@ Parser* parser) {
 	switch(if_initialization_create_node(
 		nodes_initialization,
 		&buffer_i,
-		*node_identifier,
+		*node_introduction,
 		parser)) {
 	case -1: return -1;
 	case 0: // declaration case
-		(*node_identifier)->subtype |= NodeSubtypeIntroductionBitType_DECLARATION;
+		(*node_introduction)->subtype |= NodeSubtypeIntroductionBitType_DECLARATION;
 		break;
 	case 1: // initialization case
-		(*node_identifier)->subtype |= NodeSubtypeIntroductionBitType_INITIALIZATION;
+		(*node_introduction)->subtype |= NodeSubtypeIntroductionBitType_INITIALIZATION;
 		break;
 	}
 	// no null token because an identifier must have a type
@@ -197,26 +197,26 @@ Parser* parser) {
 	return 1;
 }
 
-bool parser_is_identifier(const Node* node) {
+bool parser_is_introduction(const Node* node) {
 	return node->type == NodeType_INTRODUCTION;
 }
 
-bool parser_identifier_is_declaration(const Node* node) {
+bool parser_introduction_is_declaration(const Node* node) {
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_DECLARATION;
 }
 
-bool parser_identifier_is_initialization(const Node* node) {
+bool parser_introduction_is_initialization(const Node* node) {
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_INITIALIZATION;
 }
 
-bool parser_identifier_is_label(const Node* node) {
+bool parser_introduction_is_label(const Node* node) {
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 	    == NodeSubtypeIntroductionBitScoped_LABEL;
 }
 
-bool parser_identifier_is_PAL(const Node* node) {
+bool parser_introduction_is_PAL(const Node* node) {
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 		 == NodeSubtypeIntroductionBitScoped_PAL;
 }

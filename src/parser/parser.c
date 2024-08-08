@@ -37,7 +37,7 @@ Parser* parser) {
 	parser->nodes = parser->file_nodes;
 
 	while(i < parser->lexer->tokens.count - 1) {
-		Node* node_identifier = NULL;
+		Node* node_introduction = NULL;
 
 		if(parser_is_scope_L(tokens + i)) {
 			if(count_scope_nest > 0)
@@ -53,15 +53,15 @@ Parser* parser) {
 
 		if(count_scope_nest == 0
 		&& set_error(
-			if_identifier_create_nodes(
+			if_introduction_create_nodes(
 				false,
 				&i,
 				memArea,
-				&node_identifier,
+				&node_introduction,
 				parser))
 		== 1) {
-			if(parser_identifier_is_initialization(node_identifier)
-			&& parser_identifier_is_PAL(node_identifier)) {
+			if(parser_introduction_is_initialization(node_introduction)
+			&& parser_introduction_is_PAL(node_introduction)) {
 				count_scope_nest += 1;
 			}
 		} else {
@@ -126,14 +126,14 @@ Parser* parser) {
 			count_scope_nest += 1;
 			i += 1;
 
-			if(parser_is_identifier(node_previous)
-			&& parser_identifier_is_PAL(node_previous)) {
+			if(parser_is_introduction(node_previous)
+			&& parser_introduction_is_PAL(node_previous)) {
 				// save the link
 				link_PAL_current = parser->nodes.last;
 				// .child2 is set to the scope
 				node_previous->Introduction.initialization = parser->nodes.top;
 				// if an initialized parameterized label precedes .child2 is set to the parameterized label
-				if(parser_identifier_is_initialization(node_previous))
+				if(parser_introduction_is_initialization(node_previous))
 					((Node*) parser->nodes.top)->ScopeStart.PAL = node_previous;
 			}
 
@@ -149,7 +149,7 @@ Parser* parser) {
 			node_previous = (Node*) parser->nodes.top;
 			continue; // no semicolon required
 		} else if(set_error(
-			if_identifier_create_nodes(
+			if_introduction_create_nodes(
 				true,
 				&i,
 				memArea,
@@ -158,11 +158,11 @@ Parser* parser) {
 		== 1) {
 			// no nested parameterized label
 			if(node_PAL_current != NULL
-			&& parser_identifier_is_initialization(node_previous)
-			&& parser_identifier_is_PAL(node_previous))
+			&& parser_introduction_is_initialization(node_previous)
+			&& parser_introduction_is_PAL(node_previous))
 				goto DESTROY;
 
-			if(parser_identifier_is_PAL(node_previous)) {
+			if(parser_introduction_is_PAL(node_previous)) {
 				node_PAL_current = node_previous;
 				continue; // no semicolon required
 			}
