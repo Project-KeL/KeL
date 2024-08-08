@@ -43,9 +43,9 @@ Parser* parser) {
 		.type = type,
 		.subtype = subtype,
 		.token = token,
-		.child1 = NULL,
-		.child2 = NULL};
-	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
+		.child = NULL};
+	// the child is attached to the first child of a node
+	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 	return true;
 }
 /*
@@ -119,7 +119,7 @@ Parser* parser) {
 int if_type_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
-NodeSubtypeIdentificationBitScoped* restrict bit_scoped,
+NodeSubtypeIntroductionBitScoped* restrict bit_scoped,
 Parser* parser) {
 	assert(i != NULL);
 	assert(memArea != NULL);
@@ -129,7 +129,7 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	char* const memory = memArea->addr;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
-	*bit_scoped = NodeSubtypeIdentificationBitScoped_NO;
+	*bit_scoped = NodeSubtypeIntroductionBitScoped_NO;
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;
 
@@ -171,13 +171,13 @@ TYPE:
 			if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS
 			&& count_parenthesis_nest == 0) {
 				if(parser_is_scope_R(tokens + i_lock))
-					*bit_scoped = NodeSubtypeIdentificationBitScoped_LABEL;
+					*bit_scoped = NodeSubtypeIntroductionBitScoped_LABEL;
 
 				break;
 			}
 		}
 		// lock not alone (good luck)
-		*bit_scoped = NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED;
+		*bit_scoped = NodeSubtypeIntroductionBitScoped_PAL;
 
 		while(parser_is_R_left_parenthesis(tokens + buffer_i)) {
 R_LPARENTHESIS:
@@ -314,7 +314,7 @@ RPARENTHESIS:
 		.is_child = true,
 		.type = NodeTypeChild_NO,
 		.subtype = NodeSubtype_NO};
-	((Node*) parser->nodes.previous)->child1 = (Node*) parser->nodes.top;
+	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 
 	*i = buffer_i;
 	return 1;

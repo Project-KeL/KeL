@@ -34,10 +34,10 @@ Parser* parser) {
 	size_t count_scope_nest = 0;
 	// switch to insert declarations in the right place
 	const MemoryChain buffer_memChain = parser->nodes;
-	parser->nodes = parser->declarations;
+	parser->nodes = parser->file_nodes;
 
 	while(i < parser->lexer->tokens.count - 1) {
-		Node* node_identification = NULL;
+		Node* node_identifier = NULL;
 
 		if(parser_is_scope_L(tokens + i)) {
 			if(count_scope_nest > 0)
@@ -53,15 +53,15 @@ Parser* parser) {
 
 		if(count_scope_nest == 0
 		&& set_error(
-			if_identification_create_nodes(
+			if_identifier_create_nodes(
 				false,
 				&i,
 				memArea,
-				&node_identification,
+				&node_identifier,
 				parser))
 		== 1) {
-			if(parser_identification_is_initialization(node_identification)
-			&& parser_identification_is_label_parameterized(node_identification)) {
+			if(parser_identifier_is_initialization(node_identifier)
+			&& parser_identifier_is_PAL(node_identifier)) {
 				count_scope_nest += 1;
 			}
 		} else {
@@ -72,7 +72,7 @@ Parser* parser) {
 			return false;
 	}
 
-	parser->declarations = parser->nodes;
+	parser->file_nodes = parser->nodes;
 	parser->nodes = buffer_memChain;
 	return true;
 }
@@ -91,8 +91,9 @@ Parser* parser) {
 	size_t count_scope_nest = 0;
 	// `node_previous` is the last node not being a child
 	Node* node_previous = parser->nodes.top;
-	MemoryChainLink* link_parameterized_label_current_scope = NULL;
-	Node* node_label_parameterized_current = NULL;
+	// these variables start at the introduction of the current PAL
+	MemoryChainLink* link_PAL_current = NULL;
+	Node* node_PAL_current = NULL;
 
 	if(!parser_scan_errors(lexer))
 		return false;
@@ -125,15 +126,15 @@ Parser* parser) {
 			count_scope_nest += 1;
 			i += 1;
 
-			if(parser_is_identification(node_previous)
-			&& parser_identification_is_label_parameterized(node_previous)) {
+			if(parser_is_identifier(node_previous)
+			&& parser_identifier_is_PAL(node_previous)) {
 				// save the link
-				link_parameterized_label_current_scope = parser->nodes.last;
+				link_PAL_current = parser->nodes.last;
 				// .child2 is set to the scope
-				node_previous->child2 = parser->nodes.top;
+				node_previous->Introduction.initialization = parser->nodes.top;
 				// if an initialized parameterized label precedes .child2 is set to the parameterized label
-				if(parser_identification_is_initialization(node_previous))
-					((Node*) parser->nodes.top)->child2 = node_previous;
+				if(parser_identifier_is_initialization(node_previous))
+					((Node*) parser->nodes.top)->ScopeStart.PAL = node_previous;
 			}
 
 			while(set_error(
@@ -145,10 +146,10 @@ Parser* parser) {
 				i += 1;
 			}
 
-			node_previous = parser->nodes.top;
+			node_previous = (Node*) parser->nodes.top;
 			continue; // no semicolon required
 		} else if(set_error(
-			if_identification_create_nodes(
+			if_identifier_create_nodes(
 				true,
 				&i,
 				memArea,
@@ -156,20 +157,20 @@ Parser* parser) {
 				parser))
 		== 1) {
 			// no nested parameterized label
-			if(node_label_parameterized_current != NULL
-			&& parser_identification_is_initialization(node_previous)
-			&& parser_identification_is_label_parameterized(node_previous))
+			if(node_PAL_current != NULL
+			&& parser_identifier_is_initialization(node_previous)
+			&& parser_identifier_is_PAL(node_previous))
 				goto DESTROY;
 
-			if(parser_identification_is_label_parameterized(node_previous)) {
-				node_label_parameterized_current = node_previous;
+			if(parser_identifier_is_PAL(node_previous)) {
+				node_PAL_current = node_previous;
 				continue; // no semicolon required
 			}
 		} else if(set_error(
 			if_call_create_nodes(
 				&i,
-				link_parameterized_label_current_scope,
-				node_label_parameterized_current,
+				link_PAL_current,
+				node_PAL_current,
 				&node_previous,
 				parser))
 		== 1) {
@@ -184,7 +185,7 @@ Parser* parser) {
 			count_scope_nest -= 1;
 
 			if(count_scope_nest == 0)
-				node_label_parameterized_current = NULL;
+				node_PAL_current = NULL;
 
 			node_previous = parser->nodes.top;
 			i += 1;

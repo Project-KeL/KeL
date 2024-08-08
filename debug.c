@@ -93,18 +93,18 @@ const char* code,
 const Node* node) {
 	bool is_initialization = false;
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
-	== NodeSubtypeIdentificationBitCommand_HASH)
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	== NodeSubtypeIntroductionBitCommand_HASH)
 		printf("# ");
-	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
-	== NodeSubtypeIdentificationBitCommand_AT)
+	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	== NodeSubtypeIntroductionBitCommand_AT)
 		printf("@ ");
-	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND)
-	== NodeSubtypeIdentificationBitCommand_EXCLAMATION_MARK)
+	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	== NodeSubtypeIntroductionBitCommand_EXCLAMATION_MARK)
 		printf("! ");
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
-	== NodeSubtypeIdentificationBitType_DECLARATION) {
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
+	== NodeSubtypeIntroductionBitType_DECLARATION) {
 		printf("DEC");
 	} else {
 		is_initialization = true;
@@ -115,24 +115,24 @@ const Node* node) {
 		(int) (node->token->L_end - node->token->L_start),
 		code + node->token->L_start);
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-	== NodeSubtypeIdentificationBitScoped_LABEL) {
+	if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	== NodeSubtypeIntroductionBitScoped_LABEL) {
 		printf(" LAB");
-	} else if((node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
-	== NodeSubtypeIdentificationBitScoped_LABEL_PARAMETERIZED) {
+	} else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	== NodeSubtypeIntroductionBitScoped_LABEL_PARAMETERIZED) {
 		printf(" PLAB");
 	}
 	
 	if(is_initialization) {
-		if(node->subtype & MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED) {
+		if(node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED) {
 			printf(
 				" (SCOPE ID: %p)",
-				node->child2);
+				node->Introduction.initialization);
 		} else {
 			printf(
 				" <%.*s>",
-				(int) (node->child2->token->L_end - node->child2->token->L_start),
-				code + node->child2->token->L_start);
+				(int) (node->Introduction.initialization->token->L_end - node->Introduction.initialization->token->L_start),
+				code + node->Introduction.initialization->token->L_start);
 		}
 	}
 
@@ -202,7 +202,7 @@ void debug_print_tokens(const Lexer* lexer) {
 void debug_print_declarations(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	const MemoryChainLink* link;
-	const Node* node = parser_allocator_start_declaration(
+	const Node* node = parser_allocator_start_file_node(
 		parser,
 		&link);
 	size_t count = 0;
@@ -211,7 +211,7 @@ void debug_print_declarations(const Parser* parser) {
 	if(node == NULL)
 		return;
 
-	while(parser_allocator_continue_declaration(
+	while(parser_allocator_continue_file_node(
 		parser,
 		node)
 	== true) {
@@ -225,7 +225,7 @@ void debug_print_declarations(const Parser* parser) {
 		print_info_node_key_identification(
 			parser->lexer->source->content,
 			node);
-		node = node->child1;
+		node = node->Introduction.type;
 
 		do {
 			parser_allocator_next_link(
@@ -235,8 +235,8 @@ void debug_print_declarations(const Parser* parser) {
 			print_info_node_type(
 				code,
 				node);
-			node = node->child1;
-		} while(node->child1 != NULL);
+			node = node->Introduction.type;
+		} while(node->Introduction.type != NULL);
 NEXT:
 		count += 1;
 
@@ -318,18 +318,18 @@ void debug_print_nodes(const Parser* parser) {
 			printf("<%.*s>\n",
 				(int) (node->token->L_end - node->token->L_start),
 				code + node->token->L_start);
-			const Node* child = node->child;
+			const Node* next = node->Module.next;
 			count += 1;
 
-			while(child != NULL) {
+			while(next != NULL) {
 				if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
 					link = link->next;
 
 				printf("\t\tSUBMOD <%.*s>\n",
-					(int) (child->token->L_end - child->token->L_start),
-					code + child->token->L_start);
-				node = child;
-				child = child->child;
+					(int) (next->token->L_end - next->token->L_start),
+					code + next->token->L_start);
+				node = next;
+				next = next->Module.next;
 				count += 1;
 			}
 		} else if(node->type == NodeType_SCOPE_START) {
@@ -338,7 +338,7 @@ void debug_print_nodes(const Parser* parser) {
 				node->value - 1,
 				node);
 			count += 1;
-		} else if(node->type == NodeType_IDENTIFICATION) {
+		} else if(node->type == NodeType_IDENTIFIER) {
 			print_info_node_key_identification(
 				code,
 				node);
@@ -353,7 +353,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_type(
 					code,
 					node);
-			} while(node->child1 != NULL);
+			} while(node->Introduction.type != NULL);
 			// null node
 			count += 1;
 		} else if(node->type == NodeType_CALL) {
@@ -380,7 +380,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_argument(
 					code,
 					node);
-			} while(node->child1 != NULL);
+			} while(node->Call.arguments != NULL);
 			// null node
 			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {

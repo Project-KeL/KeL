@@ -9,7 +9,7 @@ void parser_initialize_allocators(Parser* parser) {
 	assert(parser != NULL);
 
 	initialize_memory_chain(&parser->nodes);
-	initialize_memory_chain(&parser->declarations);
+	initialize_memory_chain(&parser->file_nodes);
 }
 
 bool parser_create_allocators(Parser* parser) {
@@ -25,7 +25,7 @@ bool parser_create_allocators(Parser* parser) {
 	if(create_memory_chain(
 		CHUNK,
 		sizeof(Node),
-		&parser->declarations)
+		&parser->file_nodes)
 	== false)
 		return false;
 
@@ -35,7 +35,7 @@ bool parser_create_allocators(Parser* parser) {
 void parser_destroy_allocators(Parser* parser) {
 	assert(parser != NULL);
 
-	destroy_memory_chain(&parser->declarations);
+	destroy_memory_chain(&parser->file_nodes);
 	destroy_memory_chain(&parser->nodes);
 }
 
@@ -106,7 +106,7 @@ const Node* node) {
 	return node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count;
 }
 
-const Node* parser_allocator_start_declaration(
+const Node* parser_allocator_start_file_node(
 const Parser* parser,
 const MemoryChainLink** link) {
 	assert(parser != NULL);
@@ -115,10 +115,10 @@ const MemoryChainLink** link) {
 	Node* node;
 
 	if(parser->nodes.first->memArea.count > 1) {
-		*link = parser->declarations.first;
+		*link = parser->file_nodes.first;
 		node = (Node*) (*link)->memArea.addr + 1;
-	} else if(parser->declarations.first->next != NULL) {
-		*link = parser->declarations.first->next;
+	} else if(parser->file_nodes.first->next != NULL) {
+		*link = parser->file_nodes.first->next;
 		node = (Node*) (*link)->memArea.addr;
 	} else
 		return NULL;
@@ -126,13 +126,13 @@ const MemoryChainLink** link) {
 	return node;
 }
 
-bool parser_allocator_continue_declaration(
+bool parser_allocator_continue_file_node(
 const Parser* parser,
 const Node* node) {
 	assert(parser != NULL);
 	assert(node != NULL);
 
-	return node != (Node*) parser->declarations.last->memArea.addr + parser->declarations.last->memArea.count;
+	return node != (Node*) parser->file_nodes.last->memArea.addr + parser->file_nodes.last->memArea.count;
 }
 
 void parser_allocator_node_previous(

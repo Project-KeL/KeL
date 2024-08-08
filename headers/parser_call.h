@@ -6,8 +6,8 @@
 
 int if_call_create_nodes(
 	size_t* i,
-	const MemoryChainLink* link_label_parameterized_scope,
-	const Node* node_label_parameterized,
+	const MemoryChainLink* link_PAL,
+	const Node* node_PAL,
 	Node** node_call_last,
 	Parser* parser);
 

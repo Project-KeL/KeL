@@ -12,7 +12,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
 	NODE_TYPE(QUALIFIER),
-	NODE_TYPE(IDENTIFICATION), // `.subtype` holds the command, the type of identification and the qualifiers
+	NODE_TYPE(INTRODUCTION), // `.subtype` holds the command, the type of identifier and the qualifiers
 	NODE_TYPE(CALL),
 	NODE_TYPE(LITERAL),
 	NODE_TYPE(EXPRESSION),
@@ -38,27 +38,6 @@ typedef enum: uint64_t {
 } NodeSubtypeChild;
 
 /*
- * TYPE
-*/
-
-typedef enum: uint64_t {
-#define NODE_TYPE_CHILD(type) NodeTypeChildType_ ## type
-	NODE_TYPE_CHILD(NO) = 0,
-	NODE_TYPE_CHILD(MODIFIER),
-	NODE_TYPE_CHILD(LOCK),
-#undef NODE_TYPE_CHILD
-} NodeTypeChildType;
-
-typedef enum: uint64_t {
-#define NODE_SUBTYPE_CHILD_TYPE(subtype) NodeSubtypeChildTypeScoped_ ## subtype
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_NONE) = 1,
-	NODE_SUBTYPE_CHILD_TYPE(RETURN_TYPE),
-	NODE_SUBTYPE_CHILD_TYPE(PARAMETER_NONE),
-	NODE_SUBTYPE_CHILD_TYPE(PARAMETER),
-#undef NODE_SUBTYPE_CHILD_TYPE
-} NodeSubtypeChildTypeScoped;
-
-/*
  * MODULE
 */
 
@@ -71,11 +50,32 @@ typedef enum: uint64_t {
 } NodeSubtypeModule;
 
 /*
+ * TYPE
+*/
+
+typedef enum: uint64_t {
+#define NODE_TYPE_CHILD(type) NodeTypeChildType_ ## type
+	NODE_TYPE_CHILD(NO) = 0,
+	NODE_TYPE_CHILD(MODIFIER),
+	NODE_TYPE_CHILD(LOCK),
+#undef NODE_TYPE_CHILD
+} NodeTypeChildType;
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE_CHILD(subtype) NodeSubtypeChildTypeScoped_ ## subtype
+	NODE_SUBTYPE_CHILD(RETURN_NONE) = 1,
+	NODE_SUBTYPE_CHILD(RETURN_TYPE),
+	NODE_SUBTYPE_CHILD(PARAMETER_NONE),
+	NODE_SUBTYPE_CHILD(PARAMETER),
+#undef NODE_SUBTYPE_CHILD
+} NodeSubtypeChildTypeScoped;
+
+/*
  * SCOPE
 */
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeScope_ ## subtype
+#define NODE_SUBTYPE(subtype) NodeSubtypeScopeStart_ ## subtype
 	NODE_SUBTYPE(NO) = 0,
 	NODE_SUBTYPE(THEN),
 	NODE_SUBTYPE(THEN_NOT),
@@ -83,42 +83,42 @@ typedef enum: uint64_t {
 	NODE_SUBTYPE(THROUGH_NOT),
 	NODE_SUBTYPE(TEST),
 #undef NODE_SUBTYPE
-} NodeSubtypeScope;
+} NodeSubtypeScopeStart;
 
 /*
  * IDENTIFICATION
 */
 
-#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_COMMAND 0b11
+#define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND 0b11
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitCommand_ ## subtype
-	NODE_SUBTYPE_IDENTIFICATION(HASH) = 0b00,
-	NODE_SUBTYPE_IDENTIFICATION(AT) = 0b01,
-	NODE_SUBTYPE_IDENTIFICATION(EXCLAMATION_MARK) = 0b10,
-#undef NODE_SUBTYPE_IDENTIFICATION
-} NodeSubtypeIdentificationBitCommand;
+#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitCommand_ ## subtype
+	NODE_SUBTYPE(HASH) = 0b00,
+	NODE_SUBTYPE(AT) = 0b01,
+	NODE_SUBTYPE(EXCLAMATION_MARK) = 0b10,
+#undef NODE_SUBTYPE
+} NodeSubtypeIntroductionBitCommand;
 
-#define SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE 2
-#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE (0b1 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE)
-
-typedef enum: uint64_t {
-#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitType_ ## subtype
-	NODE_SUBTYPE_IDENTIFICATION(DECLARATION) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE,
-	NODE_SUBTYPE_IDENTIFICATION(INITIALIZATION) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_TYPE,
-#undef NODE_SUBTYPE_IDENTIFICATION
-} NodeSubtypeIdentificationBitType;
-
-#define SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED 3
-#define MASK_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED (0b11 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED)
+#define SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE 2
+#define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE (0b1 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE_IDENTIFICATION(subtype) NodeSubtypeIdentificationBitScoped_ ## subtype
-	NODE_SUBTYPE_IDENTIFICATION(NO) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED, // starts at 1 to simplify parsing
-	NODE_SUBTYPE_IDENTIFICATION(LABEL) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
-	NODE_SUBTYPE_IDENTIFICATION(LABEL_PARAMETERIZED) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_IDENTIFICATION_SCOPED,
-#undef NODE_SUBTYPE_IDENTIFICATION
-} NodeSubtypeIdentificationBitScoped;
+#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitType_ ## subtype
+	NODE_SUBTYPE(DECLARATION) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
+	NODE_SUBTYPE(INITIALIZATION) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
+#undef NODE_SUBTYPE
+} NodeSubtypeIntroductionBitType;
+
+#define SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED 3
+#define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED (0b11 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitScoped_ ## subtype
+	NODE_SUBTYPE(NO) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED, // starts at 1 to simplify parsing
+	NODE_SUBTYPE(LABEL) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
+	NODE_SUBTYPE(PAL) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
+#undef NODE_SUBTYPE
+} NodeSubtypeIntroductionBitScoped;
 
 /*
  * CALLS
@@ -215,28 +215,29 @@ struct Node {
 		void (*value_fn)();
 		const Token* token;};
 	union {
-		struct NodeTreeModule {Node* submodule;} Module;
+		Node* child;
+		struct NodeTreeModule {Node* next;} Module;
+		struct NodeTreeType {Node* next;} Type;
 		struct NodeTreeScopeStart {
 			Node* period;
 			Node* PAL;} ScopeStart;
 		struct NodeTreeScopeEnd {Node* scope;} ScopeEnd;
 		struct NodeTreeQualifier {Node* next;} Qualifier;
-		struct NodeTreeIdentification {
+		struct NodeTreeIdentifier {
 			Node* type;
-			Node* initialization;} Identification;
+			Node* initialization;
+			Node* qualifiers;} Introduction;
 		struct NodeTreeCall {
-			struct Node* PAL;
-			struct Node* arguments;} Call;
-		Node* child;
-		struct {
-			Node* child1;
-			Node* child2;};};
+			Node* PAL;
+			Node* arguments;} Call;
+		struct NodeTreeChildCall {Node* next;} ChildCall;
+	};
 };
 
 typedef struct {
 	const Lexer* lexer;
 	MemoryChain nodes;
-	MemoryChain declarations; // declarations at file scope
+	MemoryChain file_nodes; // declarations at file scope
 } Parser;
 
 #endif

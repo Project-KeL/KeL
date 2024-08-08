@@ -46,10 +46,11 @@ Parser* parser) {
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = false,
 		.type = NodeType_SCOPE_START,
-		.subtype = NodeSubtypeScope_NO,
+		.subtype = NodeSubtypeScopeStart_NO,
 		.value = 0,
-		.child1 = NULL,
-		.child2 = NULL};
+		.ScopeStart = {
+			.period = NULL,
+			.PAL = NULL}};
 	return 1;
 }
 
@@ -71,6 +72,6 @@ Parser* parser) {
 		.is_child = false,
 		.type = NodeType_SCOPE_END,
 		.subtype = scope->subtype};
-	scope->child1 = (Node*) parser->nodes.top;
+	scope->ScopeStart.period = (Node*) parser->nodes.top;
 	return 1;
 }

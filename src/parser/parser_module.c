@@ -13,13 +13,13 @@ Parser* parser) {
 	if(!parser_allocator(parser))
 		return -1;
 
-	Node* previous = (Node*) parser->nodes.previous;
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = true,
 		.type = NodeType_MODULE,
-		.subtype = previous->subtype,
-		.token = token};
-	previous->child = (Node*) parser->nodes.top;
+		.subtype = ((Node*) parser->nodes.previous)->subtype,
+		.token = token,
+		.Module = {.next = NULL}};
+	((Node*) parser->nodes.previous)->Module.next = (Node*) parser->nodes.top;
 	return 1;
 }
 
@@ -65,7 +65,7 @@ Parser* parser) {
 			.type = NodeType_MODULE,
 			.subtype = subtype,
 			.token = tokens + buffer_i,
-			.child = NULL};
+			.Module = {.next = NULL}};
 		buffer_i += 1;
 		*node_module_last = (Node*) parser->nodes.top;
 		int error;

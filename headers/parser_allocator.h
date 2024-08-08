@@ -21,10 +21,10 @@ const Node* parser_allocator_start_node(
 bool parser_allocator_continue_node(
 	const Parser* parser,
 	const Node* node);
-const Node* parser_allocator_start_declaration(
+const Node* parser_allocator_start_file_node(
 	const Parser* parser,
 	const MemoryChainLink** link);
-bool parser_allocator_continue_declaration(
+bool parser_allocator_continue_file_node(
 	const Parser* parser,
 	const Node* node);
 void parser_allocator_node_previous(
