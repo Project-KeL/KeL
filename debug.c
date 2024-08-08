@@ -119,7 +119,7 @@ const Node* node) {
 	== NodeSubtypeIntroductionBitScoped_LABEL) {
 		printf(" LAB");
 	} else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
-	== NodeSubtypeIntroductionBitScoped_LABEL_PARAMETERIZED) {
+	== NodeSubtypeIntroductionBitScoped_PAL) {
 		printf(" PLAB");
 	}
 	
@@ -338,7 +338,7 @@ void debug_print_nodes(const Parser* parser) {
 				node->value - 1,
 				node);
 			count += 1;
-		} else if(node->type == NodeType_IDENTIFIER) {
+		} else if(node->type == NodeType_INTRODUCTION) {
 			print_info_node_key_identification(
 				code,
 				node);
