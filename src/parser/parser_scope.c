@@ -12,8 +12,8 @@ static Node* get_scope_from_period(Parser* parser) {
 	do {
 		// get the last node in the previous memory area
 		parser_allocator_node_previous(
-			&node,
-			&link);
+			&link,
+			&node);
 
 		if(!node->is_child) {
 			switch(node->type) {

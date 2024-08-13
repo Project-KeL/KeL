@@ -88,7 +88,7 @@ const Token* token) {
 	}
 }
 
-static void print_info_node_key_identification(
+static void print_info_node_key_introduction(
 const char* code,
 const Node* node) {
 	bool is_initialization = false;
@@ -199,7 +199,7 @@ void debug_print_tokens(const Lexer* lexer) {
 		lexer->tokens.count);
 }
 
-void debug_print_declarations(const Parser* parser) {
+void debug_print_introductions(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	const MemoryChainLink* link;
 	const Node* node = parser_allocator_start_file_node(
@@ -222,15 +222,15 @@ void debug_print_declarations(const Parser* parser) {
 			goto NEXT;
 		}
 
-		print_info_node_key_identification(
+		print_info_node_key_introduction(
 			parser->lexer->source->content,
 			node);
 		node = node->Introduction.type;
 
 		do {
 			parser_allocator_next_link(
-				node,
-				&link);
+				&link,
+				node);
 			printf("\t\t");
 			print_info_node_type(
 				code,
@@ -248,7 +248,7 @@ NEXT:
 			break;
 	}
 
-	printf("\nNumber of declarations at file scope: %zu\n", count);
+	printf("\nNumber of introductions at file scope: %zu\n", count);
 }
 
 void print_info_node_key_call(
@@ -266,8 +266,8 @@ const Node* node) {
 		printf("RETURN UNKNOWN");
 	} else if(node->type == NodeTypeChildCall_RETURN_TYPE) {
 		printf("RETURN TYPE <%.*s>",
-		(int) (node->token->L_end - node->token->L_start),
-		code + node->token->L_start);
+			(int) (node->token->L_end - node->token->L_start),
+			code + node->token->L_start);
 	}
 
 	printf("\n");
@@ -339,7 +339,7 @@ void debug_print_nodes(const Parser* parser) {
 				node);
 			count += 1;
 		} else if(node->type == NodeType_INTRODUCTION) {
-			print_info_node_key_identification(
+			print_info_node_key_introduction(
 				code,
 				node);
 

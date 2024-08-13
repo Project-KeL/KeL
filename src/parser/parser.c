@@ -37,6 +37,7 @@ Parser* parser) {
 	parser->nodes = parser->file_nodes;
 
 	while(i < parser->lexer->tokens.count - 1) {
+		[[maybe_unused]] MemoryChainLink* link_introduction = NULL;
 		Node* node_introduction = NULL;
 
 		if(parser_is_scope_L(tokens + i)) {
@@ -57,6 +58,7 @@ Parser* parser) {
 				false,
 				&i,
 				memArea,
+				&link_introduction,
 				&node_introduction,
 				parser))
 		== 1) {
@@ -91,6 +93,7 @@ Parser* parser) {
 	size_t count_scope_nest = 0;
 	// `node_previous` is the last node not being a child
 	Node* node_previous = parser->nodes.top;
+	MemoryChainLink* link_previous = NULL;
 	// these variables start at the introduction of the current PAL
 	MemoryChainLink* link_PAL_current = NULL;
 	Node* node_PAL_current = NULL;
@@ -126,13 +129,12 @@ Parser* parser) {
 			count_scope_nest += 1;
 			i += 1;
 
-			if(parser_is_introduction(node_previous)
+			if(node_previous != NULL
+			&& parser_is_introduction(node_previous)
 			&& parser_introduction_is_PAL(node_previous)) {
-				// save the link
-				link_PAL_current = parser->nodes.last;
-				// .child2 is set to the scope
+				// initialization with a scope case
 				node_previous->Introduction.initialization = parser->nodes.top;
-				// if an initialized parameterized label precedes .child2 is set to the parameterized label
+
 				if(parser_introduction_is_initialization(node_previous))
 					((Node*) parser->nodes.top)->ScopeStart.PAL = node_previous;
 			}
@@ -147,22 +149,25 @@ Parser* parser) {
 			}
 
 			node_previous = (Node*) parser->nodes.top;
-			continue; // no semicolon required
+			// a scope can be empty
+			if(tokens[i].subtype != TokenSubtype_PERIOD)
+				continue; // no semicolon required
 		} else if(set_error(
 			if_introduction_create_nodes(
 				true,
 				&i,
 				memArea,
+				&link_previous,
 				&node_previous,
 				parser))
 		== 1) {
-			// no nested parameterized label
-			if(node_PAL_current != NULL
-			&& parser_introduction_is_initialization(node_previous)
-			&& parser_introduction_is_PAL(node_previous))
-				goto DESTROY;
+			if(parser_introduction_is_PAL(node_previous)
+			&& parser_introduction_is_initialization(node_previous)) {
+				// no nested parameterized label
+				if(node_PAL_current != NULL)
+					goto DESTROY;
 
-			if(parser_introduction_is_PAL(node_previous)) {
+				link_PAL_current = link_previous;
 				node_PAL_current = node_previous;
 				continue; // no semicolon required
 			}
@@ -184,8 +189,10 @@ Parser* parser) {
 		== 1) {
 			count_scope_nest -= 1;
 
-			if(count_scope_nest == 0)
+			if(count_scope_nest == 0) {
+				link_PAL_current = NULL;
 				node_PAL_current = NULL;
+			}
 
 			node_previous = parser->nodes.top;
 			i += 1;

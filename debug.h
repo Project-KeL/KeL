@@ -7,7 +7,7 @@
 
 void debug_print_tokens(const Lexer* lexer);
 void debug_print_nodes(const Parser* parser);
-void debug_print_declarations(const Parser* parser);
+void debug_print_introductions(const Parser* parser);
 
 #endif
 #endif

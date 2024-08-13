@@ -95,6 +95,10 @@ bool parser_is_code_token_match(
 const char* code,
 const Token* token1,
 const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL)
+		return false;
+
 	long int start1;
 	long int start2;
 	long int end1;

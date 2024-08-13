@@ -9,6 +9,7 @@ int if_introduction_create_nodes(
 	bool nodes_initialization,
 	size_t* i,
 	MemoryArea* restrict memArea,
+	MemoryChainLink** link_introduction,
 	Node** node_introduction,
 	Parser* parser);
 bool parser_is_introduction(const Node* node);

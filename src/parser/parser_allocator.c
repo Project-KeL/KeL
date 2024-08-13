@@ -48,8 +48,8 @@ bool parser_allocator(Parser* parser) {
 }
 
 void parser_allocator_next_link(
-const Node* node,
-const MemoryChainLink** link) {
+const MemoryChainLink** link,
+const Node* node) {
 	assert(node != NULL);
 	assert(link != NULL);
 
@@ -136,10 +136,11 @@ const Node* node) {
 }
 
 void parser_allocator_node_previous(
-Node** node,
-MemoryChainLink* restrict* link) {
+MemoryChainLink* restrict* link,
+Node** node) {
 	assert(link != NULL);
-	assert((*link)->previous != NULL);
+	assert((*link)->previous != NULL
+		|| (Node*) (*link)->memArea.addr < *node);
 
 	if(*node == (*link)->memArea.addr) {
 		*link = (*link)->previous;

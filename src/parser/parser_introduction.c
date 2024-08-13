@@ -25,6 +25,7 @@ static NodeSubtypeLiteral token_subtype_literal_to_subtype(TokenSubtype subtype_
 static int if_declaration_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
+MemoryChainLink** link_introduction,
 Node** node_introduction,
 Parser* parser) {
 	assert(i != NULL);
@@ -65,9 +66,8 @@ Parser* parser) {
 			.type = NULL,
 			.initialization = NULL}};
 	buffer_i += 1;
-
-	if(node_introduction != NULL)
-		*node_introduction = (Node*) parser->nodes.top;
+	*node_introduction = (Node*) parser->nodes.top;
+	*link_introduction = parser->nodes.last;
 /*
 	while(parser_is_qualifier(tokens + i_qualifier)) {
 		if(!parser_allocator(parser))
@@ -100,8 +100,7 @@ Parser* parser) {
 			&memChain_state);
 		return 0;
 	case 1:
-		if(node_introduction != NULL)
-			(*node_introduction)->subtype |= bit_scoped;
+		(*node_introduction)->subtype |= bit_scoped;
 		break;
 	}
 	
@@ -119,7 +118,7 @@ Parser* parser) {
 	size_t buffer_i = *i;
 
 	if(parser_is_scope_L(tokens + buffer_i))
-		return 1; // `.child2` determined in the loop of `create_parser`
+		return 1; // `Introduction.initialization` is set in `parser.c`
 
 	return 0; // remove later
 /*
@@ -161,6 +160,7 @@ int if_introduction_create_nodes(
 bool nodes_initialization,
 size_t* i,
 MemoryArea* restrict memArea,
+MemoryChainLink** link_introduction,
 Node** node_introduction,
 Parser* parser) {
 	assert(i != NULL);
@@ -173,6 +173,7 @@ Parser* parser) {
 	switch(if_declaration_create_nodes(
 		&buffer_i,
 		memArea,
+		link_introduction,
 		node_introduction,
 		parser)) {
 	case -1: return -1;
@@ -198,25 +199,30 @@ Parser* parser) {
 }
 
 bool parser_is_introduction(const Node* node) {
-	return node->type == NodeType_INTRODUCTION;
+	return node != NULL
+	    && node->type == NodeType_INTRODUCTION;
 }
 
 bool parser_introduction_is_declaration(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
+	return node != NULL
+	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_DECLARATION;
 }
 
 bool parser_introduction_is_initialization(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
+	return node != NULL
+	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_INITIALIZATION;
 }
 
 bool parser_introduction_is_label(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	return node != NULL
+	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 	    == NodeSubtypeIntroductionBitScoped_LABEL;
 }
 
 bool parser_introduction_is_PAL(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
-		 == NodeSubtypeIntroductionBitScoped_PAL;
+	return node != NULL
+	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	    == NodeSubtypeIntroductionBitScoped_PAL;
 }

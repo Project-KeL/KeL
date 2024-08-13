@@ -9,8 +9,8 @@ bool parser_create_allocators(Parser* parser);
 void parser_destroy_allocators(Parser* parser);
 bool parser_allocator(Parser* parser);
 void parser_allocator_next_link(
-	const Node* node,
-	const MemoryChainLink** link);
+	const MemoryChainLink** link,
+	const Node* node);
 bool parser_allocator_next(
 	const Parser* parser,
 	const MemoryChainLink** link,
@@ -28,7 +28,7 @@ bool parser_allocator_continue_file_node(
 	const Parser* parser,
 	const Node* node);
 void parser_allocator_node_previous(
-	Node** node,
-	MemoryChainLink* restrict* link);
+	MemoryChainLink* restrict* link,
+	Node** node);
 
 #endif
