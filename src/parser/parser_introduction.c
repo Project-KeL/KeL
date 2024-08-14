@@ -193,36 +193,60 @@ Parser* parser) {
 		(*node_introduction)->subtype |= NodeSubtypeIntroductionBitType_INITIALIZATION;
 		break;
 	}
-	// no null token because an identifier must have a type
+	// no null token because a type may appear between nodes
+#ifndef NDEBUG
+	parser_is_valid_introduction(*node_introduction);
+#endif
 	*i = buffer_i;
 	return 1;
 }
 
-bool parser_is_introduction(const Node* node) {
-	return node != NULL
-	    && node->type == NodeType_INTRODUCTION;
+bool parser_is_valid_introduction(const Node* node) {
+	assert(node->is_child == false);
+	assert(node->type == NodeType_INTRODUCTION);
+
+	return true;
 }
 
 bool parser_introduction_is_declaration(const Node* node) {
-	return node != NULL
+	assert(node != NULL);
+
+	return node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_DECLARATION;
 }
 
 bool parser_introduction_is_initialization(const Node* node) {
-	return node != NULL
+	assert(node != NULL);
+
+	return node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_INITIALIZATION;
 }
 
 bool parser_introduction_is_label(const Node* node) {
-	return node != NULL
+	assert(node != NULL);
+
+	return node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 	    == NodeSubtypeIntroductionBitScoped_LABEL;
 }
 
 bool parser_introduction_is_PAL(const Node* node) {
-	return node != NULL
-	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	assert(node != NULL);
+
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 	    == NodeSubtypeIntroductionBitScoped_PAL;
+}
+
+Node* parser_introduction_get_introduction_type(Node* node) {
+	assert(parser_is_valid_introduction(node));
+
+	return node->Introduction.type;
+}
+
+Node* parser_introduction_get_initialization(Node* node) {
+	assert(parser_is_valid_introduction(node));
+
+	return node->Introduction.initialization;
 }

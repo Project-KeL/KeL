@@ -130,7 +130,7 @@ Parser* parser) {
 			i += 1;
 
 			if(node_previous != NULL
-			&& parser_is_introduction(node_previous)
+			&& parser_is_valid_introduction(node_previous)
 			&& parser_introduction_is_PAL(node_previous)) {
 				// initialization with a scope case
 				node_previous->Introduction.initialization = parser->nodes.top;

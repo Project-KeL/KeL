@@ -46,6 +46,9 @@ Parser* parser) {
 		.child = NULL};
 	// the child is attached to the first child of a node
 	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
+#ifndef NDEBUG
+	parser_is_valid_type((Node*) parser->nodes.top);
+#endif
 	return true;
 }
 /*
@@ -315,7 +318,24 @@ RPARENTHESIS:
 		.type = NodeTypeChild_NO,
 		.subtype = NodeSubtype_NO};
 	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
-
 	*i = buffer_i;
 	return 1;
+}
+
+bool parser_is_valid_type(Node* node) {
+	assert(node->is_child == true);
+	assert(node->type == NodeTypeChildType_LOCK);
+	assert(node->subtype == NodeSubtypeChildType_NO
+	    || node->subtype == NodeSubtypeChildTypeScoped_RETURN_NONE
+	    || node->subtype == NodeSubtypeChildTypeScoped_RETURN_TYPE
+	    || node->subtype == NodeSubtypeChildTypeScoped_PARAMETER_NONE
+	    || node->subtype == NodeSubtypeChildTypeScoped_PARAMETER);
+
+	return true;
+}
+
+Node* parser_type_get_next(Node* node) {
+	assert(parser_is_valid_type(node));
+
+	return node->Type.next;
 }

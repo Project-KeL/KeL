@@ -393,3 +393,41 @@ RESTORE:
 		&memChain_state);
 	return 0;
 }
+
+bool parser_is_valid_call(const Node* node) {
+	assert(node->is_child == false);
+	assert(node->type == NodeType_CALL);
+
+	return true;
+}
+
+bool parser_call_is_time_compile(const Node* node) {
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+	    == NodeSubtypeCallBitTime_COMPILE;
+}
+
+bool parser_call_is_time_binary(const Node* node) {
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+	    == NodeSubtypeCallBitTime_BINARY;
+}
+
+bool parser_call_is_time_run(const Node* node) {
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+	    == NodeSubtypeCallBitTime_RUN;
+}
+
+bool parser_call_is_return(const Node* node) {
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN)
+	    == NodeSubtypeCallBitReturn_TRUE;
+}
+
+bool parser_call_is_return_deduce(const Node* node) {
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
+		== NodeSubtypeCallBitReturnDeduce_TRUE;
+}
+
+Node* parser_call_get_PAL(Node* node) {
+	assert(parser_is_valid_type(node));
+
+	return node->Call.PAL;
+}

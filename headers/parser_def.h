@@ -62,6 +62,12 @@ typedef enum: uint64_t {
 } NodeTypeChildType;
 
 typedef enum: uint64_t {
+#define NODE_SUBTYPE_CHILD(subtype) NodeSubtypeChildType_ ## subtype
+	NODE_SUBTYPE_CHILD(NO),
+#undef NODE_SUBTYPE_CHILD
+} NodeSubtypeChildType;
+
+typedef enum: uint64_t {
 #define NODE_SUBTYPE_CHILD(subtype) NodeSubtypeChildTypeScoped_ ## subtype
 	NODE_SUBTYPE_CHILD(RETURN_NONE) = 1,
 	NODE_SUBTYPE_CHILD(RETURN_TYPE),
@@ -92,32 +98,32 @@ typedef enum: uint64_t {
 #define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND 0b11
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitCommand_ ## subtype
-	NODE_SUBTYPE(HASH) = 0b00,
-	NODE_SUBTYPE(AT) = 0b01,
-	NODE_SUBTYPE(EXCLAMATION_MARK) = 0b10,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeIntroductionBitCommand_ ## subtype
+	NODE_SUBTYPE_BIT(HASH) = 0b00,
+	NODE_SUBTYPE_BIT(AT) = 0b01,
+	NODE_SUBTYPE_BIT(EXCLAMATION_MARK) = 0b10,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeIntroductionBitCommand;
 
 #define SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE 2
 #define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE (0b1 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitType_ ## subtype
-	NODE_SUBTYPE(DECLARATION) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
-	NODE_SUBTYPE(INITIALIZATION) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeIntroductionBitType_ ## subtype
+	NODE_SUBTYPE_BIT(DECLARATION) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
+	NODE_SUBTYPE_BIT(INITIALIZATION) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeIntroductionBitType;
 
 #define SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED 3
 #define MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED (0b11 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeIntroductionBitScoped_ ## subtype
-	NODE_SUBTYPE(NO) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED, // starts at 1 to simplify parsing
-	NODE_SUBTYPE(LABEL) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
-	NODE_SUBTYPE(PAL) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeIntroductionBitScoped_ ## subtype
+	NODE_SUBTYPE_BIT(NO) = 0b00 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
+	NODE_SUBTYPE_BIT(LABEL) = 0b01 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
+	NODE_SUBTYPE_BIT(PAL) = 0b10 << SHIFT_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeIntroductionBitScoped;
 
 /*
@@ -127,31 +133,31 @@ typedef enum: uint64_t {
 #define MASK_BIT_NODE_SUBTYPE_CALL_TIME 0b11
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitTime_ ## subtype
-	NODE_SUBTYPE(BINARY) = 0b00,
-	NODE_SUBTYPE(COMPILE) = 0b01,
-	NODE_SUBTYPE(RUN) = 0b10,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeCallBitTime_ ## subtype
+	NODE_SUBTYPE_BIT(COMPILE) = 0b00,
+	NODE_SUBTYPE_BIT(BINARY) = 0b01,
+	NODE_SUBTYPE_BIT(RUN) = 0b10,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeCallBitTime;
 
 #define SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN 2
 #define MASK_BIT_NODE_SUBTYPE_CALL_RETURN (0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitReturn_ ## subtype
-	NODE_SUBTYPE(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
-	NODE_SUBTYPE(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeCallBitReturn_ ## subtype
+	NODE_SUBTYPE_BIT(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
+	NODE_SUBTYPE_BIT(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeCallBitReturn; // the type of the returned value is explicit?
 
 #define SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE 3
 #define MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE (0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
 
 typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeCallBitReturnDeduce_ ## subtype
-	NODE_SUBTYPE(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
-	NODE_SUBTYPE(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
-#undef NODE_SUBTYPE
+#define NODE_SUBTYPE_BIT(subtype) NodeSubtypeCallBitReturnDeduce_ ## subtype
+	NODE_SUBTYPE_BIT(FALSE) = 0b0 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
+	NODE_SUBTYPE_BIT(TRUE) = 0b1 << SHIFT_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE,
+#undef NODE_SUBTYPE_BIT
 } NodeSubtypeCallBitReturnDeduce; // the true case will be used during parsing expressions only
 
 typedef enum: uint64_t {

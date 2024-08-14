@@ -10,5 +10,12 @@ int if_call_create_nodes(
 	const Node* node_PAL,
 	Node** node_call_last,
 	Parser* parser);
+bool parser_is_valid_call(const Node* node);
+bool parser_call_is_time_compile(const Node* node);
+bool parser_call_is_time_binary(const Node* node);
+bool parser_call_is_time_run(const Node* node);
+bool parser_call_is_return(const Node* node);
+bool parser_call_is_return_deduce(const Node* node);
+Node* parser_call_get_PAL(Node* node);
 
 #endif
