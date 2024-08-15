@@ -91,6 +91,12 @@ typedef enum: uint64_t {
 #undef NODE_SUBTYPE
 } NodeSubtypeScopeStart;
 
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeScopeEnd_ ## subtype
+	NODE_SUBTYPE(NO),
+#undef NODE_SUBTYPE
+} NodeSubtypeScopeEnd;
+
 /*
  * IDENTIFICATION
 */
@@ -225,9 +231,9 @@ struct Node {
 		struct NodeTreeModule {Node* next;} Module;
 		struct NodeTreeType {Node* next;} Type;
 		struct NodeTreeScopeStart {
-			Node* period;
+			Node* scope_end;
 			Node* PAL;} ScopeStart;
-		struct NodeTreeScopeEnd {Node* scope;} ScopeEnd;
+		struct NodeTreeScopeEnd {Node* scope_start;} ScopeEnd;
 		struct NodeTreeQualifier {Node* next;} Qualifier;
 		struct NodeTreeIdentifier {
 			Node* type;

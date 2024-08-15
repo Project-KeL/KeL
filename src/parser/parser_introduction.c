@@ -201,9 +201,13 @@ Parser* parser) {
 	return 1;
 }
 
+bool parser_is_introduction(const Node* node) {
+	return node->is_child == false
+        && node->type == NodeType_INTRODUCTION;
+}
+
 bool parser_is_valid_introduction(const Node* node) {
-	assert(node->is_child == false);
-	assert(node->type == NodeType_INTRODUCTION);
+	assert(parser_is_introduction(node));
 
 	return true;
 }
@@ -239,13 +243,29 @@ bool parser_introduction_is_PAL(const Node* node) {
 	    == NodeSubtypeIntroductionBitScoped_PAL;
 }
 
-Node* parser_introduction_get_introduction_type(Node* node) {
+void parser_introduction_set_type(
+Node* node,
+Node* type) {
+	assert(parser_is_valid_introduction(node));
+	
+	node->Introduction.type = type;
+}
+
+void parser_introduction_set_initialization(
+Node* node,
+Node* initialization) {
+	assert(parser_is_valid_introduction(node));
+
+	node->Introduction.initialization = initialization;
+}
+
+const Node* parser_introduction_get_type(const Node* node) {
 	assert(parser_is_valid_introduction(node));
 
 	return node->Introduction.type;
 }
 
-Node* parser_introduction_get_initialization(Node* node) {
+const Node* parser_introduction_get_initialization(const Node* node) {
 	assert(parser_is_valid_introduction(node));
 
 	return node->Introduction.initialization;

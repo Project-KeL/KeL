@@ -12,12 +12,19 @@ int if_introduction_create_nodes(
 	MemoryChainLink** link_introduction,
 	Node** node_introduction,
 	Parser* parser);
+bool parser_is_introduction(const Node* node);
 bool parser_is_valid_introduction(const Node* node);
 bool parser_introduction_is_declaration(const Node* node);
 bool parser_introduction_is_initialization(const Node* node);
 bool parser_introduction_is_label(const Node* node);
 bool parser_introduction_is_PAL(const Node* node);
-Node* parser_introduction_get_introduction_type(Node* node);
-Node* parser_introduction_get_initialization(Node* node);
+void parser_introduction_set_type(
+	Node* node,
+	Node* type);
+void parser_introduction_set_initialization(
+	Node* node,
+	Node* initialization);
+const Node* parser_introduction_get_type(const Node* node);
+const Node* parser_introduction_get_initialization(const Node* node);
 
 #endif

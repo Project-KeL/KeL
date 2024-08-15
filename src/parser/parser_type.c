@@ -322,7 +322,7 @@ RPARENTHESIS:
 	return 1;
 }
 
-bool parser_is_valid_type(Node* node) {
+bool parser_is_type(const Node* node) {
 	assert(node->is_child == true);
 	assert(node->type == NodeTypeChildType_LOCK);
 	assert(node->subtype == NodeSubtypeChildType_NO
@@ -334,7 +334,21 @@ bool parser_is_valid_type(Node* node) {
 	return true;
 }
 
-Node* parser_type_get_next(Node* node) {
+bool parser_is_valid_type(const Node* node) {
+	assert(parser_is_type(node));
+
+	return true;
+}
+
+void parser_type_set_next(
+Node* node,
+Node* next) {
+	assert(parser_is_valid_type(node));
+
+	node->Type.next = next;
+}
+
+const Node* parser_type_get_next(const Node* node) {
 	assert(parser_is_valid_type(node));
 
 	return node->Type.next;

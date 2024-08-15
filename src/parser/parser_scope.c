@@ -3,7 +3,7 @@
 #include "parser_scope.h"
 #include "parser_utils.h"
 
-static Node* get_scope_from_period(Parser* parser) {
+static Node* get_scope_start_from_scope_end(Parser* parser) {
 	Node* node = (Node*) parser->nodes.top;
 	MemoryChainLink* restrict link = parser->nodes.last;
 	size_t count_scope_nest = 1;
@@ -30,7 +30,7 @@ static Node* get_scope_from_period(Parser* parser) {
 	return node;
 }
 
-int if_scope_create_node(
+int if_scope_start_create_node(
 size_t i,
 Parser* parser) {
 	assert(parser != NULL);
@@ -49,12 +49,44 @@ Parser* parser) {
 		.subtype = NodeSubtypeScopeStart_NO,
 		.value = 0,
 		.ScopeStart = {
-			.period = NULL,
+			.scope_end = NULL,
 			.PAL = NULL}};
+#ifndef NDEBUG
+	assert(parser_is_valid_scope_start((const Node*) parser->nodes.top));
+#endif
 	return 1;
 }
 
-int if_period_create_node(
+bool parser_is_scope_start(const Node* node) {
+	return !node->is_child
+	    && node->type == NodeType_SCOPE_START
+        && (node->subtype == NodeSubtypeScopeStart_NO
+	     || node->subtype == NodeSubtypeScopeStart_THEN
+	     || node->subtype == NodeSubtypeScopeStart_THEN_NOT
+	     || node->subtype == NodeSubtypeScopeStart_THROUGH
+	     || node->subtype == NodeSubtypeScopeStart_THROUGH_NOT
+	     || node->subtype == NodeSubtypeScopeStart_TEST);
+}
+
+bool parser_is_valid_scope_start(const Node* node) {
+	assert(parser_is_scope_start(node));
+	
+	return true;
+}
+
+Node** parser_scope_start_get_scope_end(Node* node) {
+	assert(parser_is_valid_scope_start(node));
+
+	return &node->ScopeStart.scope_end;
+}
+
+Node** parser_scope_start_get_PAL(Node* node) {
+	assert(parser_is_valid_scope_start(node));
+
+	return &node->ScopeStart.PAL;
+}
+
+int if_scope_end_create_node(
 size_t i,
 Parser* parser) {
 	assert(parser != NULL);
@@ -67,11 +99,39 @@ Parser* parser) {
 	if(!parser_allocator(parser))
 		return -1;
 
-	Node* scope = get_scope_from_period(parser);
+	Node* scope = get_scope_start_from_scope_end(parser);
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = false,
 		.type = NodeType_SCOPE_END,
 		.subtype = scope->subtype};
-	scope->ScopeStart.period = (Node*) parser->nodes.top;
+	*parser_scope_start_get_scope_end(get_scope_start_from_scope_end(parser)) = (Node*) parser->nodes.top;
+#ifndef NDEBUG
+	parser_is_valid_scope_end((const Node*) parser->nodes.top);
+#endif
 	return 1;
+}
+
+bool parser_is_scope_end(const Node* node) {
+	return !node->is_child
+	    && node->type == NodeType_SCOPE_END;
+}
+
+bool parser_is_valid_scope_end(const Node* node) {
+	assert(parser_is_scope_end(node));
+
+	return true;
+}
+
+void parser_scope_end_set_scope_start(
+Node* node,
+Node* scope_start) {
+	assert(parser_is_valid_scope_end(node));
+
+	node->ScopeEnd.scope_start = scope_start;
+}
+
+const Node* parser_scope_end_get_scope_start(const Node* node) {
+	assert(parser_is_valid_scope_end(node));
+
+	return node->ScopeEnd.scope_start;
 }

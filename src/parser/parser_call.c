@@ -41,8 +41,8 @@ const Node* type2) {
 				return false;
 		}
 NEXT:
-		type1 = type1->Type.next;
-		type2 = type2->Type.next;
+		type1 = parser_type_get_next(type1);
+		type2 = parser_type_get_next(type2);
 	}
 
 	return true; 
@@ -102,12 +102,12 @@ const Node** node_introduction) {
 	return false;
 CHECK_TYPE:
 	*node_introduction = node_PAL_scope;
-	file_node = file_node->Introduction.type->Type.next;
+	file_node = parser_type_get_next(parser_introduction_get_type(file_node));
 
 	for(;
 	count_argument != 0;
 	count_argument -= 1) {
-		file_node = file_node->Type.next;
+		file_node = parser_type_get_next(file_node);
 	}
 
 	assert(file_node != NULL);
@@ -116,7 +116,7 @@ CHECK_TYPE:
 	return is_type_match(
 		code,
 		file_node,
-		node_PAL_scope->Introduction.type);
+		parser_introduction_get_type(node_PAL_scope));
 }
 
 static bool call_child_bind_token(
@@ -231,8 +231,8 @@ Parser* parser) {
 	&& node_PAL_scope != NULL) {
 		assert(node_PAL_scope->is_child == false);
 		assert(node_PAL_scope->type == NodeType_INTRODUCTION);
-		assert(node_PAL_scope->Introduction.initialization != NULL);
-		assert(node_PAL_scope->Introduction.initialization->type == NodeType_SCOPE_START);
+		assert(parser_introduction_get_initialization(node_PAL_scope) != NULL);
+		assert(parser_introduction_get_initialization(node_PAL_scope)->type == NodeType_SCOPE_START);
 		assert((Node*) link_PAL_scope->memArea.addr <= node_PAL_scope
 			&& node_PAL_scope < (Node*) link_PAL_scope->memArea.addr + link_PAL_scope->memArea.count);
 	}
@@ -264,10 +264,10 @@ Parser* parser) {
 			// count the parameters
 			assert(file_node->type == NodeType_INTRODUCTION);
 
-			const Node* buffer_file_node = file_node->Introduction.type;
+			const Node* buffer_file_node = parser_introduction_get_type(file_node);
 
 			do {
-				buffer_file_node = buffer_file_node->Type.next;
+				buffer_file_node = parser_type_get_next(buffer_file_node);
 				
 				assert(buffer_file_node->is_child);
 
@@ -305,13 +305,13 @@ FOUND:
 	buffer_i += 1;
 
 	if(parser_is_lock(tokens + buffer_i)) {
-		if(!parser_is_lock(file_node->Introduction.type->token))
+		if(!parser_is_lock(parser_introduction_get_type(file_node)->token))
 			return 0;
 		// compare with the expected return type
 		if(parser_is_code_token_match(
 			code,
 			tokens + buffer_i,
-			file_node->Introduction.type->token)
+			parser_introduction_get_type(file_node)->token)
 		== false)
 			goto RESTORE;
 

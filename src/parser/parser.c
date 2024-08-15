@@ -120,7 +120,7 @@ Parser* parser) {
 		== 1) {
 			// OK
 		} else if(parser_is_scope_L(tokens + i)) {
-			if(if_scope_create_node(
+			if(if_scope_start_create_node(
 				i,
 				parser)
 			== -1)
@@ -133,14 +133,16 @@ Parser* parser) {
 			&& parser_is_valid_introduction(node_previous)
 			&& parser_introduction_is_PAL(node_previous)) {
 				// initialization with a scope case
-				node_previous->Introduction.initialization = parser->nodes.top;
+				parser_introduction_set_initialization(
+					node_previous,
+					(Node*) parser->nodes.top);
 
 				if(parser_introduction_is_initialization(node_previous))
-					((Node*) parser->nodes.top)->ScopeStart.PAL = node_previous;
+					*parser_scope_start_get_PAL((Node*) parser->nodes.top) = node_previous;
 			}
 
 			while(set_error(
-				if_scope_create_node(
+				if_scope_start_create_node(
 					i,
 					parser))
 			== 1) {
@@ -183,7 +185,7 @@ Parser* parser) {
 		}
 		// check end of scope (period) or end of instruction (semicolon)
 		if(set_error(
-			if_period_create_node(
+			if_scope_end_create_node(
 				i,
 				parser))
 		== 1) {
