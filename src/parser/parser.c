@@ -138,7 +138,9 @@ Parser* parser) {
 					(Node*) parser->nodes.top);
 
 				if(parser_introduction_is_initialization(node_previous))
-					*parser_scope_start_get_PAL((Node*) parser->nodes.top) = node_previous;
+					parser_scope_start_set_PAL(
+						(Node*) parser->nodes.top,
+						node_previous);
 			}
 
 			while(set_error(

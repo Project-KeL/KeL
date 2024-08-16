@@ -121,7 +121,6 @@ CHECK_TYPE:
 
 static bool call_child_bind_token(
 NodeTypeChildCall type,
-NodeSubtypeChild subtype,
 const Token* token,
 Parser* parser) {
 	if(!parser_allocator(parser))
@@ -129,10 +128,13 @@ Parser* parser) {
 
 	*((Node*) parser->nodes.top) = (Node) {
 		.type = type,
-		.subtype = subtype,
+		.subtype = (NodeSubtype) NodeSubtypeChildCall_NO,
 		.token = token,
 		.ChildCall = {.next = NULL}};
 	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
+#ifndef NDEBUG
+	parser_call_is_valid_child((const Node*) parser->nodes.top);
+#endif
 	return true;
 }
 
@@ -157,7 +159,6 @@ Parser* parser) {
 		// no argument case
 		if(call_child_bind_token(
 			NodeTypeChildCall_ARGUMENT_NONE,
-			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
 			NULL,
 			parser)
 		== false)
@@ -185,7 +186,6 @@ Parser* parser) {
 			== true) {
 				if(call_child_bind_token(
 					NodeTypeChildCall_ARGUMENT,
-					(NodeSubtypeChild) NodeSubtypeChildCall_NO,
 					node_introduction->token,
 					parser)
 				== false)
@@ -317,7 +317,6 @@ FOUND:
 
 		if(call_child_bind_token(
 			NodeTypeChildCall_RETURN_TYPE,
-			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
 			tokens + buffer_i,
 			parser)
 		== false)
@@ -328,7 +327,6 @@ FOUND:
 		if(call_child_bind_token(
 			// unknown because of the type deducing
 			NodeTypeChildCall_RETURN_UNKNOWN,
-			(NodeSubtypeChild) NodeSubtypeChildCall_NO,
 			NULL,
 			parser)
 		== false)
@@ -379,12 +377,13 @@ LPARENTHESIS:
 
 	if(call_child_bind_token(
 		NodeTypeChildCall_NO,
-		(NodeSubtypeChild) NodeSubtypeChildCall_NO,
 		NULL,
 		parser)
 	== false)
 		return -1;
-
+#ifndef NDEBUG
+	parser_is_valid_call(*node_call_last);
+#endif
 	*i = buffer_i;
 	return 1;
 RESTORE:
@@ -394,9 +393,13 @@ RESTORE:
 	return 0;
 }
 
+bool parser_is_call(const Node* node) {
+	return !node->is_child
+	    && node->type == NodeType_CALL;
+}
+
 bool parser_is_valid_call(const Node* node) {
-	assert(node->is_child == false);
-	assert(node->type == NodeType_CALL);
+	assert(parser_is_call(node));
 
 	return true;
 }
@@ -426,8 +429,32 @@ bool parser_call_is_return_deduce(const Node* node) {
 		== NodeSubtypeCallBitReturnDeduce_TRUE;
 }
 
-Node* parser_call_get_PAL(Node* node) {
-	assert(parser_is_valid_type(node));
+void parser_call_set_PAL(
+Node* node,
+Node* PAL) {
+#ifndef NDEBUG
+	parser_is_valid_call(node);
+#endif
+	node->Call.PAL = PAL;
+}
 
+const Node* parser_call_get_PAL(const Node* node) {
+#ifndef NDEBUG
+	parser_is_valid_type(node);
+#endif
 	return node->Call.PAL;
+}
+
+bool parser_call_is_child(const Node* node) {
+	return node->is_child
+	    && (node->type == NodeTypeChildCall_RETURN_UNKNOWN
+	     || node->type == NodeTypeChildCall_RETURN_TYPE
+	     || node->type == NodeTypeChildCall_ARGUMENT_NONE
+	     || node->type == NodeTypeChildCall_ARGUMENT);
+}
+
+bool parser_call_is_valid_child(const Node* child) {
+	assert(parser_call_is_child(child));
+
+	return true;
 }

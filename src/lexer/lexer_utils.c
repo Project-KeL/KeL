@@ -148,7 +148,7 @@ char c2) {
 		return false;
 }
 // name of a colon word
-bool lexer_is_valid_name(
+bool lexer_is_name(
 const char* string,
 long int start,
 long int end) {

@@ -88,7 +88,9 @@ Parser* parser) {
 
 		buffer_i += 1;
 	} while(tokens[buffer_i].type == TokenType_L);
-
+#ifndef NDEBUG
+	parser_is_valid_module(*node_module_last);
+#endif
 	*i = buffer_i;
 	return 1;
 RETURN_0:
@@ -96,4 +98,34 @@ RETURN_0:
 		&parser->nodes,
 		&memChain_state);
 	return 0;
+}
+
+bool parser_is_module(const Node* node) {
+	return !node->is_child
+	    && node->type == NodeType_MODULE
+	    && (node->subtype == NodeSubtypeModule_INPUT
+	     || node->subtype == NodeSubtypeModule_OUTPUT);
+}
+
+bool parser_is_valid_module(const Node* node) {
+	assert(parser_is_module(node));
+
+	return true;
+}
+
+void parser_module_set_next(
+Node* node,
+Node* next) {
+#ifndef NDEBUG
+	parser_is_valid_module(node);
+	parser_is_valid_module(next);
+#endif
+	node->Module.next = next;
+}
+
+const Node* parser_module_get_next(const Node* node) {
+#ifndef NDEBUG
+	parser_is_valid_module(node);
+#endif
+	return node->Module.next;
 }

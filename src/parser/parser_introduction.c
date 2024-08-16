@@ -246,27 +246,32 @@ bool parser_introduction_is_PAL(const Node* node) {
 void parser_introduction_set_type(
 Node* node,
 Node* type) {
-	assert(parser_is_valid_introduction(node));
-	
+#ifndef NDEBUG
+	parser_is_valid_introduction(node);
+	parser_is_valid_type(type);
+#endif
 	node->Introduction.type = type;
 }
 
 void parser_introduction_set_initialization(
 Node* node,
 Node* initialization) {
-	assert(parser_is_valid_introduction(node));
-
+#ifndef NDEBUG
+	parser_is_valid_introduction(node);
+#endif
 	node->Introduction.initialization = initialization;
 }
 
 const Node* parser_introduction_get_type(const Node* node) {
-	assert(parser_is_valid_introduction(node));
-
+#ifndef NDEBUG
+	parser_is_valid_introduction(node);
+#endif
 	return node->Introduction.type;
 }
 
 const Node* parser_introduction_get_initialization(const Node* node) {
-	assert(parser_is_valid_introduction(node));
-
+#ifndef NDEBUG
+	parser_is_valid_introduction(node);
+#endif
 	return node->Introduction.initialization;
 }

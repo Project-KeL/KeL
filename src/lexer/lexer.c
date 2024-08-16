@@ -188,7 +188,7 @@ Lexer* lexer) {
 	|| code[start - 1] == ':'
 	|| (code[*end] == ':'
 	 && isalpha(code[*end + 1]))
-	|| lexer_is_valid_name(
+	|| lexer_is_name(
 		code,
 		start,
 		*end)
@@ -347,7 +347,7 @@ Lexer* lexer) {
 			&buffer_end);
 	}
 
-	if(lexer_is_valid_name(
+	if(lexer_is_name(
 		code,
 		start,
 		buffer_end)
@@ -448,7 +448,7 @@ Lexer* lexer) {
 	Token* tokens = (Token*) lexer->tokens.addr;
 
 	if(tokens[i - 1].type == TokenType_COMMAND
-	|| !lexer_is_valid_name(
+	|| !lexer_is_name(
 		code,
 		start,
 		*end)
@@ -462,7 +462,7 @@ Lexer* lexer) {
 		&R_start,
 		&R_end);
 
-	if(lexer_is_valid_name(
+	if(lexer_is_name(
 		code,
 		R_start,
 		R_end)
@@ -571,7 +571,7 @@ Token* token) {
 		&start,
 		&buffer_end);
 
-	if(lexer_is_valid_name(
+	if(lexer_is_name(
 		code,
 		start,
 		buffer_end)
@@ -594,7 +594,7 @@ const char* code,
 long int start,
 long int end,
 Token* token) {
-	if(lexer_is_valid_name(
+	if(lexer_is_name(
 		code,
 		start,
 		end)

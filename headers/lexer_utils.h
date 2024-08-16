@@ -19,7 +19,7 @@ bool lexer_is_special(char c);
 bool lexer_delimiter_match(
 	char c1,
 	char c2);
-bool lexer_is_valid_name(
+bool lexer_is_name(
 	const char* string,
 	long int start,
 	long int end);

@@ -343,13 +343,16 @@ bool parser_is_valid_type(const Node* node) {
 void parser_type_set_next(
 Node* node,
 Node* next) {
-	assert(parser_is_valid_type(node));
-
+#ifndef NDEBUG
+	parser_is_valid_type(node);
+	parser_is_valid_type(next);
+#endif
 	node->Type.next = next;
 }
 
 const Node* parser_type_get_next(const Node* node) {
-	assert(parser_is_valid_type(node));
-
+#ifndef NDEBUG
+	parser_is_valid_type(node);
+#endif
 	return node->Type.next;
 }
