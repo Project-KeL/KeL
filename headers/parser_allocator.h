@@ -18,13 +18,13 @@ bool parser_allocator_next(
 const Node* parser_allocator_start_node(
 	const Parser* parser,
 	const MemoryChainLink** link);
-bool parser_allocator_continue_node(
+[[deprecated]] bool parser_allocator_continue_node(
 	const Parser* parser,
 	const Node* node);
 const Node* parser_allocator_start_file_node(
 	const Parser* parser,
 	const MemoryChainLink** link);
-bool parser_allocator_continue_file_node(
+[[deprecated]] bool parser_allocator_continue_file_node(
 	const Parser* parser,
 	const Node* node);
 void parser_allocator_node_previous(

@@ -102,7 +102,7 @@ const MemoryChainLink** link) {
 	return node;
 }
 
-bool parser_allocator_continue_node(
+[[deprecated]] bool parser_allocator_continue_node(
 const Parser* parser,
 const Node* node) {
 	assert(parser != NULL);
@@ -131,7 +131,7 @@ const MemoryChainLink** link) {
 	return node;
 }
 
-bool parser_allocator_continue_file_node(
+[[deprecated]] bool parser_allocator_continue_file_node(
 const Parser* parser,
 const Node* node) {
 	assert(parser != NULL);

@@ -205,7 +205,7 @@ void debug_print_tokens(const Lexer* lexer) {
 		lexer->tokens.count);
 }
 
-void debug_print_introductions(const Parser* parser) {
+void debug_print_file_nodes(const Parser* parser) {
 	const char* code = parser->lexer->source->content;
 	const MemoryChainLink* link;
 	const Node* node = parser_allocator_start_file_node(

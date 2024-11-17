@@ -76,9 +76,11 @@ Parser* parser) {
 
 	parser->file_nodes = parser->nodes;
 	parser->nodes = buffer_memChain;
+#ifndef NDEBUG
 	// swap counters
 	parser->count_file_nodes = parser->count_nodes;
 	parser->count_nodes = 0;
+#endif
 	return true;
 }
 
