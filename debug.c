@@ -211,22 +211,16 @@ void debug_print_introductions(const Parser* parser) {
 	const Node* node = parser_allocator_start_file_node(
 		parser,
 		&link);
-	size_t count = 0;
 	printf("DECLARATIONS:\n");
 
 	if(node == NULL)
 		return;
 
-	while(parser_allocator_continue_file_node(
-		parser,
-		node)
-	== true) {
+	do {
 		printf("\t");
 
-		if(node->type == NodeType_NO) {
+		if(node->type == NodeType_NO)
 			printf("NULL\n");
-			goto NEXT;
-		}
 
 		print_info_node_key_introduction(
 			parser->lexer->source->content,
@@ -236,34 +230,23 @@ void debug_print_introductions(const Parser* parser) {
 			&link,
 			&node);
 
-		if(node->type == NodeType_NO)
-			goto NEXT;
-
-		count += 1;
-
 		do {
 			parser_allocator_next(
 				parser,
 				&link,
 				&node);
-			count += 1;
 			printf("\t\t");
 			print_info_node_type(
 				code,
 				node);
 		} while(node->type != NodeType_NO);
-NEXT:
-		count += 1;
+	} while(parser_allocator_next(
+		parser,
+		&link,
+		&node)
+	== true);
 
-		if(parser_allocator_next(
-			parser,
-			&link,
-			&node)
-		== false)
-			break;
-	}
-
-	printf("\nNumber of introductions at file scope: %zu\n", count);
+	printf("\nNumber of introductions at file scope: %zu\n", parser->count_file_nodes);
 }
 
 void print_info_node_key_call(
@@ -312,16 +295,12 @@ void debug_print_nodes(const Parser* parser) {
 	const Node* node = parser_allocator_start_node(
 		parser,
 		&link);
-	size_t count = 0;
 	printf("NODES:\n");
 
 	if(node == NULL)
 		return;
 
-	while(parser_allocator_continue_node(
-		parser,
-		node)
-	== true) {
+	do {
 		printf("\t");
 
 		if(node->type == NodeType_MODULE) {
@@ -339,7 +318,6 @@ void debug_print_nodes(const Parser* parser) {
 				(int) (node->token->L_end - node->token->L_start),
 				code + node->token->L_start);
 			const Node* tail = parser_module_get_tail(node);
-			count += 1;
 
 			while(tail != NULL) {
 				parser_allocator_next(
@@ -351,14 +329,12 @@ void debug_print_nodes(const Parser* parser) {
 					code + tail->token->L_start);
 				node = tail;
 				tail = parser_module_get_tail(tail);
-				count += 1;
 			}
 		} else if(node->type == NodeType_SCOPE_START) {
 			printf(
 				"SCOPE START (%td NODES) ID: %p\n",
 				node->value - 1,
 				node);
-			count += 1;
 		} else if(node->type == NodeType_INTRODUCTION) {
 			print_info_node_key_introduction(
 				code,
@@ -367,21 +343,17 @@ void debug_print_nodes(const Parser* parser) {
 				parser,
 				&link,
 				&node);
-			count += 1;
 
 			do {
 				parser_allocator_next(
 					parser,
 					&link,
 					&node);
-				count += 1;
 				printf("\t\t");
 				print_info_node_type(
 					code,
 					node);
 			} while(parser_introduction_get_type(node) != NULL);
-			// null node
-			count += 1;
 		} else if(node->type == NodeType_CALL) {
 			print_info_node_key_call(
 				code,
@@ -390,7 +362,6 @@ void debug_print_nodes(const Parser* parser) {
 				parser,
 				&link,
 				&node);
-			count += 1;
 			printf("\t\t");
 			print_info_node_key_call_return_type(
 				code,
@@ -401,41 +372,33 @@ void debug_print_nodes(const Parser* parser) {
 					parser,
 					&link,
 					&node);	
-				count += 1;
 				printf("\t\t");
 				print_info_node_argument(
 					code,
 					node);
 			} while(parser_call_get_tail(node) != NULL);
 			// null node
-			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
-			count += 1;
 		} else if(node->type == NodeType_LITERAL) {
 			print_info_token(
 				code,
 				node->token);
-			count += 1;
 		} else {
 			printf(
 				"%" PRIu64 ", %" PRIu64 "\n",
 				node->type,
 				node->subtype);
-			count += 1;
 		}
-
-		if(parser_allocator_next(
-			parser,
-			&link,
-			&node)
-		== false)
-			break;
-	}
+	} while(parser_allocator_next(
+		parser,
+		&link,
+		&node)
+	== true);
 
 	printf(
 		"\nNumber of nodes: %zu.\n",
-		count);
+		parser->count_nodes);
 }
 
 #endif

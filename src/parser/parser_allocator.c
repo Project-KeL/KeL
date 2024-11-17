@@ -28,7 +28,10 @@ bool parser_create_allocators(Parser* parser) {
 		&parser->file_nodes)
 	== false)
 		return false;
-
+#ifndef NDEBUG
+	parser->count_nodes = 0;
+	parser->count_file_nodes = 0;
+#endif
 	return true;
 }
 
@@ -41,7 +44,9 @@ void parser_destroy_allocators(Parser* parser) {
 
 bool parser_allocator(Parser* parser) {
 	assert(parser != NULL);
-
+#ifndef NDEBUG
+	parser->count_nodes += 1;
+#endif
 	return memory_chain_reserve_data(
 		CHUNK,
 		&parser->nodes);
