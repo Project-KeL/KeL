@@ -50,8 +50,8 @@ bool parser_allocator(Parser* parser) {
 void parser_allocator_next_link(
 const MemoryChainLink** link,
 const Node* node) {
-	assert(node != NULL);
 	assert(link != NULL);
+	assert(node != NULL);
 
 	if(node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1)	
 		*link = (*link)->next;

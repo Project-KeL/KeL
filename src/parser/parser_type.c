@@ -43,12 +43,8 @@ Parser* parser) {
 		.type = type,
 		.subtype = subtype,
 		.token = token,
-		.child = NULL};
-	// the child is attached to the first child of a node
-	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
-#ifndef NDEBUG
-	parser_is_valid_type((Node*) parser->nodes.top);
-#endif
+		.nodes = {[NODE_INDEX_TYPE_TAIL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_TYPE_TAIL] = (Node*) parser->nodes.top;
 	return true;
 }
 /*
@@ -136,11 +132,21 @@ Parser* parser) {
 	// if the current scope has at least one parameter memArea->addr[count_parenthesis_nest] is set to 1
 	size_t count_parenthesis_nest = 0;
 
+	if(!parser_allocator(parser))
+		return -1;
+
+	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = false,
+		.type = NodeType_TYPE,
+		.subtype = NodeSubtype_NO,
+		.token = NULL,
+		.nodes = {[NODE_INDEX_TYPE_TAIL] = NULL}};
+
 	if(parser_is_R_left_parenthesis(tokens + buffer_i))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
 
 	do {
-		Node* lock;
+		Node* lock = NULL;
 TYPE:
 		// lock alone
 		
@@ -317,42 +323,30 @@ RPARENTHESIS:
 		.is_child = true,
 		.type = NodeTypeChild_NO,
 		.subtype = NodeSubtype_NO};
-	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
 	*i = buffer_i;
 	return 1;
 }
 
 bool parser_is_type(const Node* node) {
-	assert(node->is_child == true);
-	assert(node->type == NodeTypeChildType_LOCK);
-	assert(node->subtype == NodeSubtypeChildType_NO
-	    || node->subtype == NodeSubtypeChildTypeScoped_RETURN_NONE
-	    || node->subtype == NodeSubtypeChildTypeScoped_RETURN_TYPE
-	    || node->subtype == NodeSubtypeChildTypeScoped_PARAMETER_NONE
-	    || node->subtype == NodeSubtypeChildTypeScoped_PARAMETER);
+	assert(node != NULL);
 
-	return true;
+	return !node->is_child
+	    && node->type == NodeType_TYPE
+	    && node->subtype == NodeSubtype_NO
+	    && node->token == NULL;
 }
 
-bool parser_is_valid_type(const Node* node) {
-	assert(parser_is_type(node));
+void parser_type_set_tail(
+Node* type,
+Node* tail) {
+	assert(type != NULL);
+	assert(tail != NULL);
 
-	return true;
+	type->nodes[NODE_INDEX_TYPE_TAIL] = tail;
 }
 
-void parser_type_set_next(
-Node* node,
-Node* next) {
-#ifndef NDEBUG
-	parser_is_valid_type(node);
-	parser_is_valid_type(next);
-#endif
-	node->Type.next = next;
-}
+Node* parser_type_get_tail(const Node* type) {
+	assert(type != NULL);
 
-const Node* parser_type_get_next(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_type(node);
-#endif
-	return node->Type.next;
+	return type->nodes[NODE_INDEX_TYPE_TAIL];
 }

@@ -17,8 +17,8 @@ static Node* get_scope_start_from_scope_end(Parser* parser) {
 
 		if(!node->is_child) {
 			switch(node->type) {
-			case NodeType_SCOPE_END: count_scope_nest += 1; break;
 			case NodeType_SCOPE_START: count_scope_nest -= 1; break;
+			case NodeType_SCOPE_END: count_scope_nest += 1; break;
 			}
 		}
 
@@ -48,16 +48,15 @@ Parser* parser) {
 		.type = NodeType_SCOPE_START,
 		.subtype = NodeSubtypeScopeStart_NO,
 		.value = 0,
-		.ScopeStart = {
-			.scope_end = NULL,
-			.PAL = NULL}};
-#ifndef NDEBUG
-	parser_is_valid_scope_start((const Node*) parser->nodes.top);
-#endif
+		.nodes = {
+			[NODE_INDEX_SCOPE_START_SCOPE_END] = NULL,
+			[NODE_INDEX_SCOPE_START_PAL] = NULL}};
 	return 1;
 }
 
 bool parser_is_scope_start(const Node* node) {
+	assert(node != NULL);
+
 	return !node->is_child
 	    && node->type == NodeType_SCOPE_START
         && (node->subtype == NodeSubtypeScopeStart_NO
@@ -68,43 +67,34 @@ bool parser_is_scope_start(const Node* node) {
 	     || node->subtype == NodeSubtypeScopeStart_TEST);
 }
 
-bool parser_is_valid_scope_start(const Node* node) {
-	assert(parser_is_scope_start(node));
-	
-	return true;
-}
-
 void parser_scope_start_set_scope_end(
-Node* node,
+Node* scope_start,
 Node* scope_end) {
-#ifndef NDEBUG
-	parser_is_valid_scope_start(node);
-	parser_is_valid_scope_end(scope_end);
-#endif
-	node->ScopeStart.scope_end = scope_end;
+	assert(scope_start != NULL);
+	assert(scope_end != NULL);
+
+	scope_start->nodes[NODE_INDEX_SCOPE_START_SCOPE_END] = scope_end;
 }
 
 void parser_scope_start_set_PAL(
-Node* node,
+Node* scope_start,
 Node* PAL) {
-#ifndef NDEBUG
-	parser_is_valid_scope_start(node);
-#endif
-	node->ScopeStart.PAL = PAL;
+	assert(scope_start != NULL);
+	assert(PAL != NULL);
+
+	scope_start->nodes[NODE_INDEX_SCOPE_START_PAL] = PAL;
 }
 
-const Node* parser_scope_start_get_scope_end(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_scope_start(node);
-#endif
-	return node->ScopeStart.scope_end;
+const Node* parser_scope_start_get_scope_end(const Node* scope_start) {
+	assert(scope_start  != NULL);
+
+	return scope_start->nodes[NODE_INDEX_SCOPE_START_SCOPE_END];
 }
 
-const Node* parser_scope_start_get_PAL(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_scope_start(node);
-#endif
-	return node->ScopeStart.PAL;
+const Node* parser_scope_start_get_PAL(const Node* scope_start) {
+	assert(scope_start != NULL);
+
+	return scope_start->nodes[NODE_INDEX_SCOPE_START_PAL];
 }
 
 int if_scope_end_create_node(
@@ -128,36 +118,27 @@ Parser* parser) {
 	parser_scope_start_set_scope_end(
 		scope,
 		(Node*) parser->nodes.top);
-#ifndef NDEBUG
-	parser_is_valid_scope_end((const Node*) parser->nodes.top);
-#endif
 	return 1;
 }
 
 bool parser_is_scope_end(const Node* node) {
+	assert(node != NULL);
+
 	return !node->is_child
 	    && node->type == NodeType_SCOPE_END;
 }
 
-bool parser_is_valid_scope_end(const Node* node) {
-	assert(parser_is_scope_end(node));
-
-	return true;
-}
-
 void parser_scope_end_set_scope_start(
-Node* node,
+Node* scope_end,
 Node* scope_start) {
-#ifndef NDEBUG
-	parser_is_valid_scope_end(node);
-	parser_is_valid_scope_start(scope_start);
-#endif
-	node->ScopeEnd.scope_start = scope_start;
+	assert(scope_end != NULL);
+	assert(scope_start != NULL);
+
+	scope_end->nodes[NODE_INDEX_SCOPE_END_SCOPE_START] = scope_start;
 }
 
-const Node* parser_scope_end_get_scope_start(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_scope_end(node);
-#endif
-	return node->ScopeEnd.scope_start;
+Node* parser_scope_end_get_scope_start(const Node* scope_end) {
+	assert(scope_end != NULL);
+
+	return scope_end->nodes[NODE_INDEX_SCOPE_END_SCOPE_START]; 
 }

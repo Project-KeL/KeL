@@ -38,7 +38,7 @@ Parser* parser) {
 	NodeSubtype subtype = NodeSubtype_NO;
 	MemoryChainState memChain_state;
 	initialize_memory_chain_state(&memChain_state);
-
+	// skip qualifiers for the moment
 	while(parser_is_qualifier(tokens + buffer_i)) buffer_i += 1;
 
 	if(tokens[buffer_i].type != TokenType_COMMAND)
@@ -62,12 +62,12 @@ Parser* parser) {
 		.type = NodeType_INTRODUCTION,
 		.subtype = subtype,
 		.token = tokens + buffer_i,
-		.Introduction = {
-			.type = NULL,
-			.initialization = NULL}};
+		.nodes = {
+			[NODE_INDEX_INTRODUCTION_TYPE] = NULL,
+			[NODE_INDEX_INTRODUCTION_INITIALIZATION] = NULL}};
 	buffer_i += 1;
+	*link_introduction = (MemoryChainLink*) parser->nodes.last;
 	*node_introduction = (Node*) parser->nodes.top;
-	*link_introduction = parser->nodes.last;
 /*
 	while(parser_is_qualifier(tokens + i_qualifier)) {
 		if(!parser_allocator(parser))
@@ -88,6 +88,7 @@ Parser* parser) {
 */
 	// type deduction later
 	NodeSubtypeIntroductionBitScoped bit_scoped;
+
 	switch(if_type_create_nodes(
 		&buffer_i,
 		memArea,
@@ -118,7 +119,7 @@ Parser* parser) {
 	size_t buffer_i = *i;
 
 	if(parser_is_scope_L(tokens + buffer_i))
-		return 1; // `Introduction.initialization` is set in `parser.c`
+		return 1;
 
 	return 0; // remove later
 /*
@@ -194,22 +195,15 @@ Parser* parser) {
 		break;
 	}
 	// no null token because a type may appear between nodes
-#ifndef NDEBUG
-	parser_is_valid_introduction(*node_introduction);
-#endif
 	*i = buffer_i;
 	return 1;
 }
 
 bool parser_is_introduction(const Node* node) {
-	return node->is_child == false
+	assert(node != NULL);
+
+	return !node->is_child
         && node->type == NodeType_INTRODUCTION;
-}
-
-bool parser_is_valid_introduction(const Node* node) {
-	assert(parser_is_introduction(node));
-
-	return true;
 }
 
 bool parser_introduction_is_declaration(const Node* node) {
@@ -244,34 +238,29 @@ bool parser_introduction_is_PAL(const Node* node) {
 }
 
 void parser_introduction_set_type(
-Node* node,
+Node* introduction,
 Node* type) {
-#ifndef NDEBUG
-	parser_is_valid_introduction(node);
-	parser_is_valid_type(type);
-#endif
-	node->Introduction.type = type;
+	assert(introduction != NULL);
+
+	introduction->nodes[NODE_INDEX_INTRODUCTION_TYPE] = type;
 }
 
 void parser_introduction_set_initialization(
-Node* node,
+Node* introduction,
 Node* initialization) {
-#ifndef NDEBUG
-	parser_is_valid_introduction(node);
-#endif
-	node->Introduction.initialization = initialization;
+	assert(introduction != NULL);
+
+	introduction->nodes[NODE_INDEX_INTRODUCTION_INITIALIZATION] = initialization;
 }
 
-const Node* parser_introduction_get_type(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_introduction(node);
-#endif
-	return node->Introduction.type;
+Node* parser_introduction_get_type(const Node* introduction) {
+	assert(introduction != NULL);
+
+	return introduction->nodes[NODE_INDEX_INTRODUCTION_TYPE];
 }
 
-const Node* parser_introduction_get_initialization(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_introduction(node);
-#endif
-	return node->Introduction.initialization;
+Node* parser_introduction_get_initialization(const Node* introduction) {
+	assert(introduction != NULL);
+
+	return introduction->nodes[NODE_INDEX_INTRODUCTION_INITIALIZATION];
 }

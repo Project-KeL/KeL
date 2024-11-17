@@ -112,14 +112,7 @@ Parser* parser) {
 
 	while(i < lexer->tokens.count - 1) {
 		// create nodes
-		if(set_error(
-			if_module_create_nodes(
-				&i,
-				&node_previous,
-				parser))
-		== 1) {
-			// OK
-		} else if(parser_is_scope_L(tokens + i)) {
+		if(parser_is_scope_L(tokens + i)) {
 			if(if_scope_start_create_node(
 				i,
 				parser)
@@ -130,7 +123,7 @@ Parser* parser) {
 			i += 1;
 
 			if(node_previous != NULL
-			&& parser_is_valid_introduction(node_previous)
+			&& parser_is_introduction(node_previous)
 			&& parser_introduction_is_PAL(node_previous)) {
 				// initialization with a scope case
 				parser_introduction_set_initialization(
@@ -183,6 +176,13 @@ Parser* parser) {
 				&node_previous,
 				parser))
 		== 1) {
+			// OK
+		} else if(set_error(
+			if_module_create_nodes(
+				&i,
+				&node_previous,
+				parser))
+		== 1) {	
 			// OK
 		}
 		// check end of scope (period) or end of instruction (semicolon)

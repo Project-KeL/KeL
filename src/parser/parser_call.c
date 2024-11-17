@@ -41,8 +41,8 @@ const Node* type2) {
 				return false;
 		}
 NEXT:
-		type1 = parser_type_get_next(type1);
-		type2 = parser_type_get_next(type2);
+		type1 = parser_type_get_tail(type1);
+		type2 = parser_type_get_tail(type2);
 	}
 
 	return true; 
@@ -102,12 +102,13 @@ const Node** node_introduction) {
 	return false;
 CHECK_TYPE:
 	*node_introduction = node_PAL_scope;
-	file_node = parser_type_get_next(parser_introduction_get_type(file_node));
+	file_node = parser_type_get_tail(
+		parser_introduction_get_type(file_node));
 
 	for(;
 	count_argument != 0;
 	count_argument -= 1) {
-		file_node = parser_type_get_next(file_node);
+		file_node = parser_type_get_tail(file_node);
 	}
 
 	assert(file_node != NULL);
@@ -130,11 +131,10 @@ Parser* parser) {
 		.type = type,
 		.subtype = (NodeSubtype) NodeSubtypeChildCall_NO,
 		.token = token,
-		.ChildCall = {.next = NULL}};
-	((Node*) parser->nodes.previous)->child = (Node*) parser->nodes.top;
-#ifndef NDEBUG
-	parser_call_is_valid_child((const Node*) parser->nodes.top);
-#endif
+		.nodes = {
+			[NODE_INDEX_CALL_TAIL] = NULL,
+			[NODE_INDEX_CALL_PAL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_CALL_TAIL] = (Node*) parser->nodes.previous;
 	return true;
 }
 
@@ -267,7 +267,7 @@ Parser* parser) {
 			const Node* buffer_file_node = parser_introduction_get_type(file_node);
 
 			do {
-				buffer_file_node = parser_type_get_next(buffer_file_node);
+				buffer_file_node = parser_type_get_tail(buffer_file_node);
 				
 				assert(buffer_file_node->is_child);
 
@@ -297,9 +297,9 @@ FOUND:
 		.is_child = false,
 		.type = NodeType_CALL,
 		.token = tokens + buffer_i,
-		.Call = {
-			.PAL = NULL,
-			.arguments = NULL}};
+		.nodes = {
+			[NODE_INDEX_CALL_TAIL] = NULL,
+			[NODE_INDEX_CALL_PAL] = NULL}};
 	*node_call_last = (Node*) parser->nodes.top;
 	// get the return type
 	buffer_i += 1;
@@ -381,9 +381,7 @@ LPARENTHESIS:
 		parser)
 	== false)
 		return -1;
-#ifndef NDEBUG
-	parser_is_valid_call(*node_call_last);
-#endif
+
 	*i = buffer_i;
 	return 1;
 RESTORE:
@@ -398,63 +396,57 @@ bool parser_is_call(const Node* node) {
 	    && node->type == NodeType_CALL;
 }
 
-bool parser_is_valid_call(const Node* node) {
-	assert(parser_is_call(node));
-
-	return true;
-}
-
-bool parser_call_is_time_compile(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+bool parser_call_is_time_compile(const Node* call) {
+	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_COMPILE;
 }
 
-bool parser_call_is_time_binary(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+bool parser_call_is_time_binary(const Node* call) {
+	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_BINARY;
 }
 
-bool parser_call_is_time_run(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
+bool parser_call_is_time_run(const Node* call) {
+	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_RUN;
 }
 
-bool parser_call_is_return(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN)
+bool parser_call_is_return(const Node* call) {
+	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN)
 	    == NodeSubtypeCallBitReturn_TRUE;
 }
 
-bool parser_call_is_return_deduce(const Node* node) {
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
+bool parser_call_is_return_deduce(const Node* call) {
+	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
 		== NodeSubtypeCallBitReturnDeduce_TRUE;
 }
 
+void parser_call_set_tail(
+Node* call,
+Node* tail) {
+	assert(call != NULL);
+	assert(tail != NULL);
+
+	call->nodes[NODE_INDEX_CALL_TAIL] = tail;
+}
+
 void parser_call_set_PAL(
-Node* node,
+Node* call,
 Node* PAL) {
-#ifndef NDEBUG
-	parser_is_valid_call(node);
-#endif
-	node->Call.PAL = PAL;
+	assert(call != NULL);
+	assert(PAL != NULL);
+
+	call->nodes[NODE_INDEX_CALL_PAL] = PAL;
 }
 
-const Node* parser_call_get_PAL(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_type(node);
-#endif
-	return node->Call.PAL;
+const Node* parser_call_get_tail(const Node* call) {
+	assert(call != NULL);
+
+	return call->nodes[NODE_INDEX_CALL_TAIL];
 }
 
-bool parser_call_is_child(const Node* node) {
-	return node->is_child
-	    && (node->type == NodeTypeChildCall_RETURN_UNKNOWN
-	     || node->type == NodeTypeChildCall_RETURN_TYPE
-	     || node->type == NodeTypeChildCall_ARGUMENT_NONE
-	     || node->type == NodeTypeChildCall_ARGUMENT);
-}
+const Node* parser_call_get_PAL(const Node* call) {
+	assert(call != NULL);
 
-bool parser_call_is_valid_child(const Node* child) {
-	assert(parser_call_is_child(child));
-
-	return true;
+	return call->nodes[NODE_INDEX_CALL_PAL];
 }

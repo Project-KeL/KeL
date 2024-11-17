@@ -9,10 +9,10 @@ int if_type_create_nodes(
 	MemoryArea* restrict memArea,
 	NodeSubtypeIntroductionBitScoped* restrict bit_scoped,
 	Parser* parser); 
-bool parser_is_valid_type(const Node* node);
-void parser_type_set_next(
-	Node* node,
-	Node* next);
-const Node* parser_type_get_next(const Node* node);
+bool parser_is_type(const Node* node);
+void parser_type_set_tail(
+	Node* type,
+	Node* tail);
+Node* parser_type_get_tail(const Node* type);
 
 #endif

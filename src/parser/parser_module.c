@@ -1,25 +1,20 @@
 #include <assert.h>
 #include "parser_allocator.h"
 #include "parser_module.h"
-
-static int module_bind_child_module(
+#include <stdio.h>
+static int module_bind_child_token(
 size_t i,
 Parser* parser) {
-	const Token* token = (const Token*) parser->lexer->tokens.addr + i;
-
-	if(token->type != TokenType_PL)
-		return 0;
-
 	if(!parser_allocator(parser))
 		return -1;
 
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = true,
-		.type = NodeType_MODULE,
+		.type = NodeType_NO,
 		.subtype = ((Node*) parser->nodes.previous)->subtype,
-		.token = token,
-		.Module = {.next = NULL}};
-	((Node*) parser->nodes.previous)->Module.next = (Node*) parser->nodes.top;
+		.token = (const Token*) parser->lexer->tokens.addr + i,
+		.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_MODULE_TAIL] = (Node*) parser->nodes.top;
 	return 1;
 }
 
@@ -34,22 +29,19 @@ Parser* parser) {
 	size_t buffer_i = *i;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 
-	if(tokens[buffer_i].subtype != TokenSubtype_MODULE_INPUT
-	&& tokens[buffer_i].subtype != TokenSubtype_MODULE_OUTPUT)
+	if(tokens[buffer_i].type != TokenType_L)
 		return 0;
 
 	NodeSubtypeModule subtype;
 
 	if(tokens[buffer_i].subtype == TokenSubtype_MODULE_INPUT)
 		subtype = NodeSubtypeModule_INPUT;
-	else
+	else if(tokens[buffer_i].subtype == TokenSubtype_MODULE_OUTPUT)
 		subtype = NodeSubtypeModule_OUTPUT;
-
-	buffer_i += 1;
-
-	if(tokens[buffer_i].type != TokenType_L)
+	else
 		return 0;
 
+	buffer_i += 1;
 	MemoryChainState memChain_state;
 	initialize_memory_chain_state(&memChain_state);
 	memory_chain_state_save(
@@ -64,19 +56,24 @@ Parser* parser) {
 			.is_child = false,
 			.type = NodeType_MODULE,
 			.subtype = subtype,
-			.token = tokens + buffer_i,
-			.Module = {.next = NULL}};
-		buffer_i += 1;
+			.token = NULL,
+			.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
 		*node_module_last = (Node*) parser->nodes.top;
-		int error;
 
-		while((error = module_bind_child_module(
+		switch(module_bind_child_token(
 			buffer_i,
-			parser))
-		== 1) {
-			switch(error) {
+			parser)) {
+		case -1: return -1;
+		case 1: /* fall through*/;
+		}
+
+		buffer_i += 1;
+
+		while(tokens[buffer_i].type == TokenType_PL) {
+			switch(module_bind_child_token(
+				buffer_i,
+				parser)) {
 			case -1: return -1;
-			case 0: goto RETURN_0;
 			case 1: /* fall through */;
 			}
 
@@ -88,9 +85,7 @@ Parser* parser) {
 
 		buffer_i += 1;
 	} while(tokens[buffer_i].type == TokenType_L);
-#ifndef NDEBUG
-	parser_is_valid_module(*node_module_last);
-#endif
+
 	*i = buffer_i;
 	return 1;
 RETURN_0:
@@ -107,25 +102,17 @@ bool parser_is_module(const Node* node) {
 	     || node->subtype == NodeSubtypeModule_OUTPUT);
 }
 
-bool parser_is_valid_module(const Node* node) {
-	assert(parser_is_module(node));
+void parser_module_set_tail(
+Node* module,
+Node* tail) {
+	assert(module != NULL);
+	assert(tail != NULL);
 
-	return true;
+	module->nodes[NODE_INDEX_MODULE_TAIL] = tail;
 }
 
-void parser_module_set_next(
-Node* node,
-Node* next) {
-#ifndef NDEBUG
-	parser_is_valid_module(node);
-	parser_is_valid_module(next);
-#endif
-	node->Module.next = next;
-}
+const Node* parser_module_get_tail(const Node* module) {
+	assert(module != NULL);
 
-const Node* parser_module_get_next(const Node* node) {
-#ifndef NDEBUG
-	parser_is_valid_module(node);
-#endif
-	return node->Module.next;
+	return module->nodes[NODE_INDEX_MODULE_TAIL];
 }

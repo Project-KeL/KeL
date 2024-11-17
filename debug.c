@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include "debug.h"
 #include "parser_allocator.h"
+#include "parser_call.h"
+#include "parser_introduction.h"
+#include "parser_module.h"
+#include "parser_type.h"
 
 static void print_info_token(
 const char* code,
@@ -123,16 +127,18 @@ const Node* node) {
 		printf(" PLAB");
 	}
 	
+	Node* initialization = node->nodes[NODE_INDEX_INTRODUCTION_INITIALIZATION];
+
 	if(is_initialization) {
 		if(node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED) {
 			printf(
 				" (SCOPE ID: %p)",
-				node->Introduction.initialization);
+				initialization);
 		} else {
 			printf(
 				" <%.*s>",
-				(int) (node->Introduction.initialization->token->L_end - node->Introduction.initialization->token->L_start),
-				code + node->Introduction.initialization->token->L_start);
+				(int) (initialization->token->L_end - initialization->token->L_start),
+				code + initialization->token->L_start);
 		}
 	}
 
@@ -225,18 +231,27 @@ void debug_print_introductions(const Parser* parser) {
 		print_info_node_key_introduction(
 			parser->lexer->source->content,
 			node);
-		node = node->Introduction.type;
+		parser_allocator_next(
+			parser,
+			&link,
+			&node);
+
+		if(node->type == NodeType_NO)
+			goto NEXT;
+
+		count += 1;
 
 		do {
-			parser_allocator_next_link(
+			parser_allocator_next(
+				parser,
 				&link,
-				node);
+				&node);
+			count += 1;
 			printf("\t\t");
 			print_info_node_type(
 				code,
 				node);
-			node = node->Introduction.type;
-		} while(node->Introduction.type != NULL);
+		} while(node->type != NodeType_NO);
 NEXT:
 		count += 1;
 
@@ -310,6 +325,11 @@ void debug_print_nodes(const Parser* parser) {
 		printf("\t");
 
 		if(node->type == NodeType_MODULE) {
+			parser_allocator_next(
+				parser,
+				&link,
+				&node);
+
 			if(node->subtype == NodeSubtypeModule_INPUT)
 				printf("IMOD ");
 			else if(node->subtype == NodeSubtypeModule_OUTPUT)
@@ -318,18 +338,19 @@ void debug_print_nodes(const Parser* parser) {
 			printf("<%.*s>\n",
 				(int) (node->token->L_end - node->token->L_start),
 				code + node->token->L_start);
-			const Node* next = node->Module.next;
+			const Node* tail = parser_module_get_tail(node);
 			count += 1;
 
-			while(next != NULL) {
-				if(node == (Node*) link->memArea.addr + link->memArea.count - 1)
-					link = link->next;
-
+			while(tail != NULL) {
+				parser_allocator_next(
+					parser,
+					&link,
+					&node);
 				printf("\t\tSUBMOD <%.*s>\n",
-					(int) (next->token->L_end - next->token->L_start),
-					code + next->token->L_start);
-				node = next;
-				next = next->Module.next;
+					(int) (tail->token->L_end - tail->token->L_start),
+					code + tail->token->L_start);
+				node = tail;
+				tail = parser_module_get_tail(tail);
 				count += 1;
 			}
 		} else if(node->type == NodeType_SCOPE_START) {
@@ -342,6 +363,11 @@ void debug_print_nodes(const Parser* parser) {
 			print_info_node_key_introduction(
 				code,
 				node);
+			parser_allocator_next(
+				parser,
+				&link,
+				&node);
+			count += 1;
 
 			do {
 				parser_allocator_next(
@@ -353,7 +379,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_type(
 					code,
 					node);
-			} while(node->Introduction.type != NULL);
+			} while(parser_introduction_get_type(node) != NULL);
 			// null node
 			count += 1;
 		} else if(node->type == NodeType_CALL) {
@@ -380,7 +406,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_argument(
 					code,
 					node);
-			} while(node->Call.arguments != NULL);
+			} while(parser_call_get_tail(node) != NULL);
 			// null node
 			count += 1;
 		} else if(node->type == NodeType_SCOPE_END) {

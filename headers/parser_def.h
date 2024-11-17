@@ -12,6 +12,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(SCOPE_START), // `.child` holds the ending scope node
 	NODE_TYPE(SCOPE_END),
 	NODE_TYPE(QUALIFIER),
+	NODE_TYPE(TYPE),
 	NODE_TYPE(INTRODUCTION), // `.subtype` holds the command, the type of identifier and the qualifiers
 	NODE_TYPE(CALL),
 	NODE_TYPE(LITERAL),
@@ -36,18 +37,6 @@ typedef enum: uint64_t {
 	NODE_SUBTYPE_CHILD(NO) = 0,
 #undef NODE_SUBTYPE_CHILD
 } NodeSubtypeChild;
-
-/*
- * MODULE
-*/
-
-typedef enum: uint64_t {
-#define NODE_SUBTYPE(subtype) NodeSubtypeModule_ ## subtype
-	NODE_SUBTYPE(NO) = 0,
-	NODE_SUBTYPE(INPUT),
-	NODE_SUBTYPE(OUTPUT),
-#undef NODE_SUBTYPE
-} NodeSubtypeModule;
 
 /*
  * TYPE
@@ -212,8 +201,55 @@ typedef enum: uint64_t {
 	NODE_SUBTYPE(NUMBER) = TokenSubtype_LITERAL_NUMBER,
 	NODE_SUBTYPE(CHARACTER) = TokenSubtype_LITERAL_CHARACTER,
 	NODE_SUBTYPE(STRING) = TokenSubtype_LITERAL_STRING,
-#undef NODE_SUBTYPE_LITERAL
+#undef NODE_SUBTYPE
 } NodeSubtypeLiteral;
+
+/*
+ * MODULE
+*/
+
+typedef enum: uint64_t {
+#define NODE_SUBTYPE(subtype) NodeSubtypeModule_ ## subtype
+	NODE_SUBTYPE(NO) = 0,
+	NODE_SUBTYPE(INPUT),
+	NODE_SUBTYPE(OUTPUT),
+#undef NODE_SUBTYPE
+} NodeSubtypeModule;
+
+#define NODE_INDEX_TYPE_CHILD 0
+
+#define NODE_INDEX_CHILD_TYPE_CHILD 0
+
+#define NODE_INDEX_SCOPE_START_SCOPE_END 0
+#define NODE_INDEX_SCOPE_START_PAL 1
+
+#define NODE_INDEX_SCOPE_END_SCOPE_START 0
+
+#define NODE_INDEX_QUALIFIER_NEXT 0
+
+#define NODE_INDEX_INTRODUCTION_TYPE 0
+#define NODE_INDEX_INTRODUCTION_INITIALIZATION 1
+
+#define NODE_INDEX_CALL_CHILD 0
+#define NODE_INDEX_CALL_PAL 1
+
+#define NODE_INDEX_CHILD_CALL_CHILD 0
+
+#define NODE_CHILD_CALL_CHILD 0
+
+#define NODE_INDEX_MODULE_CHILD 0
+
+#define NODE_INDEX_CHILD_MODULE_CHILD 0
+
+#define NODE_INDEX_COUNT 3
+
+static_assert(NODE_INDEX_TYPE_CHILD == NODE_INDEX_CHILD_TYPE_CHILD);
+static_assert(NODE_INDEX_CALL_CHILD == NODE_INDEX_CHILD_CALL_CHILD);
+static_assert(NODE_INDEX_MODULE_CHILD == NODE_INDEX_CHILD_MODULE_CHILD);
+
+#define NODE_INDEX_TYPE_TAIL NODE_INDEX_TYPE_CHILD
+#define NODE_INDEX_CALL_TAIL NODE_INDEX_CALL_CHILD
+#define NODE_INDEX_MODULE_TAIL NODE_INDEX_MODULE_CHILD
 
 typedef struct Node Node;
 
@@ -226,24 +262,7 @@ struct Node {
 		void* value_ptr;
 		void (*value_fn)();
 		const Token* token;};
-	union {
-		Node* child;
-		struct NodeTreeModule {Node* next;} Module;
-		struct NodeTreeType {Node* next;} Type;
-		struct NodeTreeScopeStart {
-			Node* scope_end;
-			Node* PAL;} ScopeStart;
-		struct NodeTreeScopeEnd {Node* scope_start;} ScopeEnd;
-		struct NodeTreeQualifier {Node* next;} Qualifier;
-		struct NodeTreeIdentifier {
-			Node* type;
-			Node* initialization;
-			Node* qualifiers;} Introduction;
-		struct NodeTreeCall {
-			Node* PAL;
-			Node* arguments;} Call;
-		struct NodeTreeChildCall {Node* next;} ChildCall;
-	};
+	Node* nodes[NODE_INDEX_COUNT];
 };
 
 typedef struct {
