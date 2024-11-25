@@ -218,13 +218,10 @@ void debug_print_file_nodes(const Parser* parser) {
 
 	do {
 		printf("\t");
-
-		if(node->type == NodeType_NO)
-			printf("NULL\n");
-
 		print_info_node_key_introduction(
-			parser->lexer->source->content,
+			code,
 			node);
+		// skip the type node
 		parser_allocator_next(
 			parser,
 			&link,
@@ -353,7 +350,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_type(
 					code,
 					node);
-			} while(parser_introduction_get_type(node) != NULL);
+			} while(node->type != NodeType_NO);
 		} else if(node->type == NodeType_CALL) {
 			print_info_node_key_call(
 				code,
