@@ -10,6 +10,6 @@ int if_module_create_nodes(
 void parser_module_set_tail(
 	Node* module,
 	Node* tail);
-const Node* parser_module_get_tail(const Node* module);
+Node* parser_module_get_tail(const Node* module);
 
 #endif

@@ -111,7 +111,7 @@ Node* tail) {
 	module->nodes[NODE_INDEX_MODULE_TAIL] = tail;
 }
 
-const Node* parser_module_get_tail(const Node* module) {
+Node* parser_module_get_tail(const Node* module) {
 	assert(module != NULL);
 
 	return module->nodes[NODE_INDEX_MODULE_TAIL];
