@@ -97,22 +97,20 @@ const char* code,
 const Node* node) {
 	bool is_initialization = false;
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
-	== NodeSubtypeIntroductionBitCommand_HASH)
+	if(parser_introduction_is_command_hash(node))
 		printf("# ");
-	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
-	== NodeSubtypeIntroductionBitCommand_AT)
+	else if(parser_introduction_is_command_at(node))
 		printf("@ ");
-	else if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
-	== NodeSubtypeIntroductionBitCommand_EXCLAMATION_MARK)
+	else if(parser_introduction_is_command_exclamation_mark(node))
 		printf("! ");
 
-	if((node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
-	== NodeSubtypeIntroductionBitType_DECLARATION) {
+	if(parser_introduction_is_declaration(node)) {
 		printf("DEC");
-	} else {
+	} else if(parser_introduction_is_initialization(node)) {
 		is_initialization = true;
 		printf("INI");
+	} else {
+		assert(false);
 	}
 
 	printf(" <%.*s>",
@@ -153,24 +151,28 @@ const Node* node) {
 	switch(node->type) {
 	case NodeType_QUALIFIER:
 		if(node->subtype == TokenType_QL) {
-			printf("QL <%.*s>",
+			printf(
+				"QL <%.*s>",
 				(int) (token->L_end - token->L_start),
 				code + token->L_start);
 		} else {
-			printf("QR <%.*s>",
+			printf(
+				"QR <%.*s>",
 				(int) (token->R_end - token->R_start),
 				code + token->R_start);
 		} break;
 	case NodeTypeChildType_LOCK:
 		switch(node->subtype) {
 			case NodeSubtypeChild_NO:
-				printf("TYPE <%.*s>",
+				printf(
+					"TYPE <%.*s>",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_RETURN_NONE:
 				printf("RETURN NONE"); break;
 			case NodeSubtypeChildTypeScoped_RETURN_TYPE:
-				printf("RETURN TYPE <%.*s>",
+				printf(
+					"RETURN TYPE <%.*s>",
 					(int) (token->R_end - token->R_start),
 					code + token->R_start); break;
 			case NodeSubtypeChildTypeScoped_PARAMETER_NONE:
@@ -202,7 +204,7 @@ void debug_print_tokens(const Lexer* lexer) {
 
 	printf(
 		"\nNumber of tokens: %zu.\n",
-		lexer->tokens.count);
+		lexer->tokens.count); 
 }
 
 void debug_print_file_nodes(const Parser* parser) {
@@ -221,7 +223,7 @@ void debug_print_file_nodes(const Parser* parser) {
 		print_info_node_key_introduction(
 			code,
 			node);
-		// skip the type node
+		// skip the node of the type
 		parser_allocator_next(
 			parser,
 			&link,
@@ -241,9 +243,12 @@ void debug_print_file_nodes(const Parser* parser) {
 		parser,
 		&link,
 		&node)
-	== true);
+	// until there is no more introductions at file scope
+	&& node->type != NodeType_NO);
 
-	printf("\nNumber of introductions at file scope: %zu\n", parser->count_file_nodes);
+	printf(
+		"\nNumber of introductions at file scope: %zu\n",
+		parser->count_file_nodes);
 }
 
 void print_info_node_key_call(
@@ -311,7 +316,8 @@ void debug_print_nodes(const Parser* parser) {
 			else if(node->subtype == NodeSubtypeModule_OUTPUT)
 				printf("OMOD ");
 
-			printf("<%.*s>\n",
+			printf(
+				"<%.*s>\n",
 				(int) (node->token->L_end - node->token->L_start),
 				code + node->token->L_start);
 			const Node* tail = parser_module_get_tail(node);
@@ -321,7 +327,8 @@ void debug_print_nodes(const Parser* parser) {
 					parser,
 					&link,
 					&node);
-				printf("\t\tSUBMOD <%.*s>\n",
+				printf(
+					"\t\tSUBMOD <%.*s>\n",
 					(int) (tail->token->L_end - tail->token->L_start),
 					code + tail->token->L_start);
 				node = tail;
@@ -336,6 +343,7 @@ void debug_print_nodes(const Parser* parser) {
 			print_info_node_key_introduction(
 				code,
 				node);
+			printf("\t\tTYPE\n");
 			parser_allocator_next(
 				parser,
 				&link,
@@ -374,7 +382,6 @@ void debug_print_nodes(const Parser* parser) {
 					code,
 					node);
 			} while(parser_call_get_tail(node) != NULL);
-			// null node
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
 		} else if(node->type == NodeType_LITERAL) {
@@ -392,10 +399,11 @@ void debug_print_nodes(const Parser* parser) {
 		&link,
 		&node)
 	== true);
-
+	// (number of memory area - 1) * size of a chunk
+	// + what remains in the last memory area
 	printf(
 		"\nNumber of nodes: %zu.\n",
-		parser->count_nodes);
+		parser->nodes.count * parser->nodes.first->memArea.count);
 }
 
 #endif

@@ -37,7 +37,7 @@ Parser* parser) {
 	parser->nodes = parser->file_nodes;
 
 	while(i < parser->lexer->tokens.count - 1) {
-		[[maybe_unused]] MemoryChainLink* link_introduction = NULL;
+		MemoryChainLink* link_introduction = NULL;
 		Node* node_introduction = NULL;
 
 		if(parser_is_scope_L(tokens + i)) {
@@ -62,6 +62,9 @@ Parser* parser) {
 				&node_introduction,
 				parser))
 		== 1) {
+#ifndef NDEBUG
+			parser->count_file_nodes += 1;
+#endif
 			if(parser_introduction_is_initialization(node_introduction)
 			&& parser_introduction_is_PAL(node_introduction)) {
 				count_scope_nest += 1;
@@ -76,11 +79,6 @@ Parser* parser) {
 
 	parser->file_nodes = parser->nodes;
 	parser->nodes = buffer_memChain;
-#ifndef NDEBUG
-	// swap counters
-	parser->count_file_nodes = parser->count_nodes;
-	parser->count_nodes = 0;
-#endif
 	return true;
 }
 

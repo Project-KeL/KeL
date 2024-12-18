@@ -209,7 +209,7 @@ bool parser_is_introduction(const Node* node) {
 bool parser_introduction_is_declaration(const Node* node) {
 	assert(node != NULL);
 
-	return node->is_child
+	return !node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_DECLARATION;
 }
@@ -217,7 +217,7 @@ bool parser_introduction_is_declaration(const Node* node) {
 bool parser_introduction_is_initialization(const Node* node) {
 	assert(node != NULL);
 
-	return node->is_child
+	return !node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_TYPE)
 	    == NodeSubtypeIntroductionBitType_INITIALIZATION;
 }
@@ -225,7 +225,7 @@ bool parser_introduction_is_initialization(const Node* node) {
 bool parser_introduction_is_label(const Node* node) {
 	assert(node != NULL);
 
-	return node->is_child
+	return !node->is_child
 	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
 	    == NodeSubtypeIntroductionBitScoped_LABEL;
 }
@@ -233,8 +233,30 @@ bool parser_introduction_is_label(const Node* node) {
 bool parser_introduction_is_PAL(const Node* node) {
 	assert(node != NULL);
 
-	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
-	    == NodeSubtypeIntroductionBitScoped_PAL;
+	return !node->is_child
+	    && (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_SCOPED)
+	     == NodeSubtypeIntroductionBitScoped_PAL;
+}
+
+bool parser_introduction_is_command_hash(const Node* node) {
+	assert(node != NULL);
+
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	    == NodeSubtypeIntroductionBitCommand_HASH;
+}
+
+bool parser_introduction_is_command_at(const Node* node) {
+	assert(node != NULL);
+
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	    == NodeSubtypeIntroductionBitCommand_AT;
+}
+
+bool parser_introduction_is_command_exclamation_mark(const Node* node) {
+	assert(node != NULL);
+
+	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
+	    == NodeSubtypeIntroductionBitCommand_EXCLAMATION_MARK;
 }
 
 void parser_introduction_set_type(

@@ -64,7 +64,7 @@ Parser* parser) {
 			buffer_i,
 			parser)) {
 		case -1: return -1;
-		case 1: /* fall through*/;
+		case 1: /* fall through */;
 		}
 
 		buffer_i += 1;

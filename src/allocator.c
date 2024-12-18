@@ -218,7 +218,7 @@ const MemoryChainState* memChain_state) {
 	assert(memChain_state != NULL);
 	assert(memChain_state->buffer_count != 0);
 	assert(memChain_state->buffer_top != NULL);
-	
+
 	while(memChain->count != memChain_state->buffer_count)
 		memory_chain_destroy_memory_area_last(memChain);
 

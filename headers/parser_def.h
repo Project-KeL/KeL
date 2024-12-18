@@ -270,7 +270,6 @@ typedef struct {
 	MemoryChain nodes;
 	MemoryChain file_nodes; // declarations at file scope
 #ifndef NDEBUG
-	uint64_t count_nodes;
 	uint64_t count_file_nodes;
 #endif
 } Parser;

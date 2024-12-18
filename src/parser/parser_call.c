@@ -223,6 +223,7 @@ const MemoryChainLink* link_PAL_scope,
 const Node* node_PAL_scope,
 Node** node_call_last,
 Parser* parser) {
+	return 0;
 	assert(i != NULL);
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
