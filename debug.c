@@ -228,8 +228,9 @@ void debug_print_file_nodes(const Parser* parser) {
 			parser,
 			&link,
 			&node);
+		const Node* tail = parser_type_get_tail(node);
 
-		do {
+		while(tail != NULL) {
 			parser_allocator_next(
 				parser,
 				&link,
@@ -237,8 +238,9 @@ void debug_print_file_nodes(const Parser* parser) {
 			printf("\t\t");
 			print_info_node_type(
 				code,
-				node);
-		} while(node->type != NodeType_NO);
+				tail);
+			tail = parser_type_get_tail(tail);
+		}
 	} while(parser_allocator_next(
 		parser,
 		&link,
@@ -331,7 +333,6 @@ void debug_print_nodes(const Parser* parser) {
 					"\t\tSUBMOD <%.*s>\n",
 					(int) (tail->token->L_end - tail->token->L_start),
 					code + tail->token->L_start);
-				node = tail;
 				tail = parser_module_get_tail(tail);
 			}
 		} else if(node->type == NodeType_SCOPE_START) {
@@ -343,22 +344,24 @@ void debug_print_nodes(const Parser* parser) {
 			print_info_node_key_introduction(
 				code,
 				node);
-			printf("\t\tTYPE\n");
 			parser_allocator_next(
 				parser,
 				&link,
 				&node);
+			printf("\t\tTYPE\n");
+			const Node* tail = parser_type_get_tail(node);
 
-			do {
+			while(tail != NULL) {
 				parser_allocator_next(
 					parser,
 					&link,
 					&node);
-				printf("\t\t");
+				printf("\t\t\t");
 				print_info_node_type(
 					code,
-					node);
-			} while(node->type != NodeType_NO);
+					tail);
+				tail = parser_module_get_tail(tail);
+			}
 		} else if(node->type == NodeType_CALL) {
 			print_info_node_key_call(
 				code,

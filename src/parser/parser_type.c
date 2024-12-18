@@ -316,13 +316,6 @@ RPARENTHESIS:
 		}
 	} while(count_parenthesis_nest != 0);
 
-	if(!parser_allocator(parser))
-		return -1;
-	// prevent error while checking types
-	*((Node*) parser->nodes.top) = (Node) {
-		.is_child = true,
-		.type = NodeTypeChild_NO,
-		.subtype = NodeSubtype_NO};
 	*i = buffer_i;
 	return 1;
 }
