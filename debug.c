@@ -335,11 +335,6 @@ void debug_print_nodes(const Parser* parser) {
 		printf("\t");
 
 		if(node->type == NodeType_MODULE) {
-			parser_allocator_next(
-				parser,
-				&link,
-				&node);
-
 			if(node->subtype == NodeSubtypeModule_INPUT)
 				printf("IMOD ");
 			else if(node->subtype == NodeSubtypeModule_OUTPUT)
@@ -369,7 +364,7 @@ void debug_print_nodes(const Parser* parser) {
 				parser,
 				&link,
 				&node);
-			printf("\t\tTYPE\n");
+			printf("\t\t[TYPE]\n");
 			print_info_node_full_tail(
 				code,
 				parser,

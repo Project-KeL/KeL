@@ -2,6 +2,7 @@
 #include "parser_allocator.h"
 #include "parser_module.h"
 #include <stdio.h>
+
 static int module_bind_child_token(
 size_t i,
 Parser* parser) {
@@ -10,8 +11,8 @@ Parser* parser) {
 
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = true,
-		.type = NodeType_NO,
-		.subtype = ((Node*) parser->nodes.previous)->subtype,
+		.type = ((Node*) parser->nodes.previous)->subtype,
+		.subtype = NodeType_NO,
 		.token = (const Token*) parser->lexer->tokens.addr + i,
 		.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
 	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_MODULE_TAIL] = (Node*) parser->nodes.top;
@@ -56,17 +57,9 @@ Parser* parser) {
 			.is_child = false,
 			.type = NodeType_MODULE,
 			.subtype = subtype,
-			.token = NULL,
+			.token = tokens + buffer_i,
 			.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
 		*node_module_last = (Node*) parser->nodes.top;
-
-		switch(module_bind_child_token(
-			buffer_i,
-			parser)) {
-		case -1: return -1;
-		case 1: /* fall through */;
-		}
-
 		buffer_i += 1;
 
 		while(tokens[buffer_i].type == TokenType_PL) {
@@ -80,10 +73,12 @@ Parser* parser) {
 			buffer_i += 1;
 		}
 
-		if(tokens[buffer_i].subtype != TokenSubtype_COMMA)
-			break;
-
-		buffer_i += 1;
+		if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
+			buffer_i += 1;
+		} else if(tokens[buffer_i].subtype != TokenSubtype_PERIOD
+		       && tokens[buffer_i].subtype != TokenSubtype_SEMICOLON) {
+			goto RETURN_0;
+		}
 	} while(tokens[buffer_i].type == TokenType_L);
 
 	*i = buffer_i;
