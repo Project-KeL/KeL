@@ -223,7 +223,6 @@ const MemoryChainLink* link_PAL_scope,
 const Node* node_PAL_scope,
 Node** node_call_last,
 Parser* parser) {
-	return 0;
 	assert(i != NULL);
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
@@ -263,18 +262,15 @@ Parser* parser) {
 			file_node->token)
 		== true) {
 			// count the parameters
-			assert(file_node->type == NodeType_INTRODUCTION);
-
 			const Node* buffer_file_node = parser_introduction_get_type(file_node);
+			buffer_file_node = parser_type_get_tail(buffer_file_node);
 
-			do {
-				buffer_file_node = parser_type_get_tail(buffer_file_node);
-				
-				assert(buffer_file_node->is_child);
-
+			while(buffer_file_node != NULL) {
 				if(buffer_file_node->subtype == NodeSubtypeChildTypeScoped_PARAMETER)
 					count_parameter += 1;
-			} while(buffer_file_node->type != NodeType_NO);
+
+				buffer_file_node = parser_type_get_tail(buffer_file_node);
+			}
 
 			goto FOUND;
 		}
@@ -285,6 +281,7 @@ Parser* parser) {
 
 	return 0;
 FOUND:
+	return 0;
 	MemoryChainState memChain_state;
 	initialize_memory_chain_state(&memChain_state);
 	memory_chain_state_save(
@@ -307,14 +304,14 @@ FOUND:
 
 	if(parser_is_lock(tokens + buffer_i)) {
 		if(!parser_is_lock(parser_introduction_get_type(file_node)->token))
-			return 0;
+			goto RETURN_0;
 		// compare with the expected return type
 		if(parser_is_code_token_match(
 			code,
 			tokens + buffer_i,
 			parser_introduction_get_type(file_node)->token)
 		== false)
-			goto RESTORE;
+			goto RETURN_0;
 
 		if(call_child_bind_token(
 			NodeTypeChildCall_RETURN_TYPE,
@@ -348,7 +345,7 @@ FOUND:
 		// this syntax is valid only for the `@` command
 		if((file_node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
 		!= NodeSubtypeIntroductionBitCommand_AT)
-			return 0;
+			goto RETURN_0;
 
 		command = NodeSubtypeIntroductionBitCommand_AT;
 LPARENTHESIS:
@@ -361,7 +358,7 @@ LPARENTHESIS:
 	}
 	// compare with the expected command at file scope
 	if(command != (file_node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND))
-		goto RESTORE;
+		goto RETURN_0;
 	// process arguments
 	switch(if_arguments_create_nodes(
 		right_parenthesis,
@@ -372,7 +369,7 @@ LPARENTHESIS:
 		file_node,
 		parser)) {
 	case -1: return -1;
-	case 0: goto RESTORE;
+	case 0: goto RETURN_0;
 	case 1: /* fall through */ break;
 	}
 
@@ -385,7 +382,7 @@ LPARENTHESIS:
 
 	*i = buffer_i;
 	return 1;
-RESTORE:
+RETURN_0:
 	memory_chain_state_restore(
 		&parser->nodes,
 		&memChain_state);

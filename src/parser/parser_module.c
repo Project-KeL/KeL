@@ -12,7 +12,7 @@ Parser* parser) {
 	*((Node*) parser->nodes.top) = (Node) {
 		.is_child = true,
 		.type = ((Node*) parser->nodes.previous)->subtype,
-		.subtype = NodeType_NO,
+		.subtype = NodeSubtype_NO,
 		.token = (const Token*) parser->lexer->tokens.addr + i,
 		.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
 	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_MODULE_TAIL] = (Node*) parser->nodes.top;

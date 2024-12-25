@@ -172,6 +172,13 @@ Parser* parser) {
 				continue; // no semicolon required
 			}
 		} else if(set_error(
+			if_module_create_nodes(
+				&i,
+				&node_previous,
+				parser))
+		== 1) {	
+			// OK
+		} else if(set_error(
 			if_call_create_nodes(
 				&i,
 				link_PAL_current,
@@ -179,13 +186,6 @@ Parser* parser) {
 				&node_previous,
 				parser))
 		== 1) {
-			// OK
-		} else if(set_error(
-			if_module_create_nodes(
-				&i,
-				&node_previous,
-				parser))
-		== 1) {	
 			// OK
 		}
 		// check end of scope (period) or end of instruction (semicolon)

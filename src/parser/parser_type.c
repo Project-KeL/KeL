@@ -119,6 +119,7 @@ int if_type_create_nodes(
 size_t* i,
 MemoryArea* restrict memArea,
 NodeSubtypeIntroductionBitScoped* restrict bit_scoped,
+Node** node_type_last,
 Parser* parser) {
 	assert(i != NULL);
 	assert(memArea != NULL);
@@ -141,6 +142,9 @@ Parser* parser) {
 		.subtype = NodeSubtype_NO,
 		.token = NULL,
 		.nodes = {[NODE_INDEX_TYPE_TAIL] = NULL}};
+
+	if(node_type_last != NULL)
+		*node_type_last = (Node*) parser->nodes.top;
 
 	if(parser_is_R_left_parenthesis(tokens + buffer_i))
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
