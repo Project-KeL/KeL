@@ -16,13 +16,13 @@ bool parser_call_is_time_binary(const Node* call);
 bool parser_call_is_time_run(const Node* call);
 bool parser_call_is_return(const Node* call);
 bool parser_call_is_return_deduce(const Node* call);
-void parser_call_set_tail(
+[[deprecated]] void parser_call_set_tail(
 	Node* call,
 	Node* tail);
 void parser_call_set_PAL(
 	Node* call,
 	Node* PAL);
-const Node* parser_call_get_tail(const Node* call);
+[[deprecated]] const Node* parser_call_get_tail(const Node* call);
 const Node* parser_call_get_PAL(const Node* call);
 
 #endif

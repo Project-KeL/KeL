@@ -43,8 +43,8 @@ Parser* parser) {
 		.type = type,
 		.subtype = subtype,
 		.token = token,
-		.nodes = {[NODE_INDEX_TYPE_TAIL] = NULL}};
-	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_TYPE_TAIL] = (Node*) parser->nodes.top;
+		.nodes = {[NODE_INDEX_TAIL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_TAIL] = (Node*) parser->nodes.top;
 	return true;
 }
 /*
@@ -141,7 +141,7 @@ Parser* parser) {
 		.type = NodeType_TYPE,
 		.subtype = NodeSubtype_NO,
 		.token = NULL,
-		.nodes = {[NODE_INDEX_TYPE_TAIL] = NULL}};
+		.nodes = {[NODE_INDEX_TAIL] = NULL}};
 
 	if(node_type_last != NULL)
 		*node_type_last = (Node*) parser->nodes.top;
@@ -325,25 +325,25 @@ RPARENTHESIS:
 }
 
 bool parser_is_type(const Node* node) {
-	assert(node != NULL);
-
-	return !node->is_child
+	return node != NULL
+	    && !node->is_child
 	    && node->type == NodeType_TYPE
 	    && node->subtype == NodeSubtype_NO
 	    && node->token == NULL;
 }
 
-void parser_type_set_tail(
+[[deprecated]] void parser_type_set_tail(
 Node* type,
 Node* tail) {
-	assert(type != NULL);
-	assert(tail != NULL);
+	assert(parser_is_type(type));
 
-	type->nodes[NODE_INDEX_TYPE_TAIL] = tail;
+	type->nodes[NODE_INDEX_TAIL] = tail;
 }
 
-Node* parser_type_get_tail(const Node* type) {
-	assert(type != NULL);
+[[deprecated]] Node* parser_type_get_tail(const Node* type) {
+	assert(parser_is_type(type));
 
-	return type->nodes[NODE_INDEX_TYPE_TAIL];
+	return type->nodes[NODE_INDEX_TAIL];
 }
+
+

@@ -214,9 +214,9 @@ const MemoryChainLink** link,
 const Node** node,
 void (*function_print)(
 	const char* code,
-	const Node* node),
-Node* (*function_get_tail)(const Node* node)) {
-	const Node* tail = function_get_tail(*node);
+	const Node* node))
+{
+	const Node* tail = parser_node_get_tail(*node);
 
 	while(tail != NULL) {
 		parser_allocator_next(
@@ -227,7 +227,7 @@ Node* (*function_get_tail)(const Node* node)) {
 		function_print(
 			code,
 			tail);
-		tail = function_get_tail(tail);
+		tail = parser_node_get_tail(tail);
 	}
 }
 
@@ -257,8 +257,7 @@ void debug_print_file_nodes(const Parser* parser) {
 			parser,
 			&link,
 			&node,
-			print_info_node_type,
-			parser_type_get_tail);
+			print_info_node_type);
 	} while(parser_allocator_next(
 		parser,
 		&link,
@@ -349,8 +348,7 @@ void debug_print_nodes(const Parser* parser) {
 				parser,
 				&link,
 				&node,
-				print_info_submodule,
-				parser_module_get_tail);
+				print_info_submodule);
 		} else if(node->type == NodeType_SCOPE_START) {
 			printf(
 				"SCOPE START (%td NODES) ID: %p\n",
@@ -370,8 +368,7 @@ void debug_print_nodes(const Parser* parser) {
 				parser,
 				&link,
 				&node,
-				print_info_node_type,
-				parser_type_get_tail);
+				print_info_node_type);
 		} else if(node->type == NodeType_CALL) {
 			print_info_node_key_call(
 				code,
@@ -394,7 +391,7 @@ void debug_print_nodes(const Parser* parser) {
 				print_info_node_argument(
 					code,
 					node);
-			} while(parser_call_get_tail(node) != NULL);
+			} while(parser_node_get_tail(node) != NULL);
 		} else if(node->type == NodeType_SCOPE_END) {
 			printf("SCOPE END\n");
 		} else if(node->type == NodeType_LITERAL) {

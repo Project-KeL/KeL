@@ -11,9 +11,9 @@ int if_type_create_nodes(
 	Node** node_type_last,
 	Parser* parser); 
 bool parser_is_type(const Node* node);
-void parser_type_set_tail(
+[[deprecated]] void parser_type_set_tail(
 	Node* type,
 	Node* tail);
-Node* parser_type_get_tail(const Node* type);
+[[deprecated]] Node* parser_type_get_tail(const Node* type);
 
 #endif

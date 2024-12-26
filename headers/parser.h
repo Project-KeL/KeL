@@ -12,5 +12,9 @@ bool create_parser(
 	MemoryArea* restrict memArea,
 	Parser* parser);
 void destroy_parser(Parser* parser);
+void parser_node_set_tail(
+	Node* node,
+	Node* tail);
+Node* parser_node_get_tail(const Node* node);
 
 #endif

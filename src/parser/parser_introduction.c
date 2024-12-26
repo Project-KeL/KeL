@@ -205,14 +205,12 @@ Parser* parser) {
 }
 
 bool parser_is_introduction(const Node* node) {
-	assert(node != NULL);
-
-	return !node->is_child
+	return node != NULL
+	    && !node->is_child
         && node->type == NodeType_INTRODUCTION;
 }
 
 bool parser_introduction_is_declaration(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return !node->is_child
@@ -221,7 +219,6 @@ bool parser_introduction_is_declaration(const Node* node) {
 }
 
 bool parser_introduction_is_initialization(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return !node->is_child
@@ -230,7 +227,6 @@ bool parser_introduction_is_initialization(const Node* node) {
 }
 
 bool parser_introduction_is_label(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return !node->is_child
@@ -239,7 +235,6 @@ bool parser_introduction_is_label(const Node* node) {
 }
 
 bool parser_introduction_is_PAL(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return !node->is_child
@@ -248,7 +243,6 @@ bool parser_introduction_is_PAL(const Node* node) {
 }
 
 bool parser_introduction_is_command_hash(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
@@ -256,7 +250,6 @@ bool parser_introduction_is_command_hash(const Node* node) {
 }
 
 bool parser_introduction_is_command_at(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
@@ -264,7 +257,6 @@ bool parser_introduction_is_command_at(const Node* node) {
 }
 
 bool parser_introduction_is_command_exclamation_mark(const Node* node) {
-	assert(node != NULL);
 	assert(parser_is_introduction(node));
 
 	return (node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
@@ -274,7 +266,6 @@ bool parser_introduction_is_command_exclamation_mark(const Node* node) {
 void parser_introduction_set_type(
 Node* introduction,
 Node* type) {
-	assert(introduction != NULL);
 	assert(parser_is_introduction(introduction));
 #ifndef NDEBUG
 	if(type != NULL)
@@ -286,21 +277,18 @@ Node* type) {
 void parser_introduction_set_initialization(
 Node* introduction,
 Node* initialization) {
-	assert(introduction != NULL);
 	assert(parser_is_introduction(introduction));
 
 	introduction->nodes[NODE_INDEX_INTRODUCTION_INITIALIZATION] = initialization;
 }
 
 Node* parser_introduction_get_type(const Node* introduction) {
-	assert(introduction != NULL);
 	assert(parser_is_introduction(introduction));
 
 	return introduction->nodes[NODE_INDEX_INTRODUCTION_TYPE];
 }
 
 Node* parser_introduction_get_initialization(const Node* introduction) {
-	assert(introduction != NULL);
 	assert(parser_is_introduction(introduction));
 
 	return introduction->nodes[NODE_INDEX_INTRODUCTION_INITIALIZATION];

@@ -229,3 +229,17 @@ void destroy_parser(Parser* parser) {
 	parser_destroy_allocators(parser);
 	initialize_parser(parser);
 }
+
+void parser_node_set_tail(
+Node* node,
+Node* tail) {
+	assert(node != NULL);
+
+	node->nodes[NODE_INDEX_TAIL] = tail;
+}
+
+Node* parser_node_get_tail(const Node* node) {
+	assert(node != NULL);
+
+	return node->nodes[NODE_INDEX_TAIL];
+}

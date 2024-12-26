@@ -132,9 +132,9 @@ Parser* parser) {
 		.subtype = (NodeSubtype) NodeSubtypeChildCall_NO,
 		.token = token,
 		.nodes = {
-			[NODE_INDEX_CALL_TAIL] = NULL,
-			[NODE_INDEX_CALL_PAL] = NULL}};
-	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_CALL_TAIL] = (Node*) parser->nodes.previous;
+			[NODE_INDEX_CALL_PAL] = NULL,
+			[NODE_INDEX_TAIL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_TAIL] = (Node*) parser->nodes.previous;
 	return true;
 }
 
@@ -296,8 +296,8 @@ FOUND:
 		.type = NodeType_CALL,
 		.token = tokens + buffer_i,
 		.nodes = {
-			[NODE_INDEX_CALL_TAIL] = NULL,
-			[NODE_INDEX_CALL_PAL] = NULL}};
+			[NODE_INDEX_CALL_PAL] = NULL,
+			[NODE_INDEX_TAIL] = NULL}};
 	*node_call_last = (Node*) parser->nodes.top;
 	// get the return type
 	buffer_i += 1;
@@ -390,61 +390,73 @@ RETURN_0:
 }
 
 bool parser_is_call(const Node* node) {
-	return !node->is_child
+	return node != NULL
+        && !node->is_child
 	    && node->type == NodeType_CALL;
 }
 
 bool parser_call_is_time_compile(const Node* call) {
+	assert(parser_is_call(call));
+
 	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_COMPILE;
 }
 
 bool parser_call_is_time_binary(const Node* call) {
+	assert(parser_is_call(call));
+
 	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_BINARY;
 }
 
 bool parser_call_is_time_run(const Node* call) {
+	assert(parser_is_call(call));
+
 	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_TIME)
 	    == NodeSubtypeCallBitTime_RUN;
 }
 
 bool parser_call_is_return(const Node* call) {
+	assert(parser_is_call(call));
+
 	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN)
 	    == NodeSubtypeCallBitReturn_TRUE;
 }
 
 bool parser_call_is_return_deduce(const Node* call) {
+	assert(parser_is_call(call));
+
 	return (call->subtype & MASK_BIT_NODE_SUBTYPE_CALL_RETURN_DEDUCE)
 		== NodeSubtypeCallBitReturnDeduce_TRUE;
 }
 
-void parser_call_set_tail(
+[[deprecated]] void parser_call_set_tail(
 Node* call,
 Node* tail) {
-	assert(call != NULL);
-	assert(tail != NULL);
+	assert(parser_is_call(call));
 
-	call->nodes[NODE_INDEX_CALL_TAIL] = tail;
+	call->nodes[NODE_INDEX_TAIL] = tail;
 }
 
 void parser_call_set_PAL(
 Node* call,
 Node* PAL) {
-	assert(call != NULL);
-	assert(PAL != NULL);
-
+	assert(parser_is_call(call));
+#ifndef NDEBUG
+	if(PAL != NULL)
+		assert(parser_introduction_is_PAL(PAL));
+#endif
 	call->nodes[NODE_INDEX_CALL_PAL] = PAL;
 }
 
-const Node* parser_call_get_tail(const Node* call) {
-	assert(call != NULL);
+[[deprecated]] const Node* parser_call_get_tail(const Node* call) {
+	assert(parser_is_call(call));
 
-	return call->nodes[NODE_INDEX_CALL_TAIL];
+	return call->nodes[NODE_INDEX_TAIL];
 }
 
 const Node* parser_call_get_PAL(const Node* call) {
-	assert(call != NULL);
+	assert(parser_is_call(call));
 
 	return call->nodes[NODE_INDEX_CALL_PAL];
 }

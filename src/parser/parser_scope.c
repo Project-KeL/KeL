@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "parser_allocator.h"
+#include "parser_introduction.h"
 #include "parser_scope.h"
 #include "parser_utils.h"
 
@@ -55,9 +56,8 @@ Parser* parser) {
 }
 
 bool parser_is_scope_start(const Node* node) {
-	assert(node != NULL);
-
-	return !node->is_child
+	return node != NULL
+	    && !node->is_child
 	    && node->type == NodeType_SCOPE_START
         && (node->subtype == NodeSubtypeScopeStart_NO
 	     || node->subtype == NodeSubtypeScopeStart_THEN
@@ -70,8 +70,8 @@ bool parser_is_scope_start(const Node* node) {
 void parser_scope_start_set_scope_end(
 Node* scope_start,
 Node* scope_end) {
-	assert(scope_start != NULL);
-	assert(scope_end != NULL);
+	assert(parser_is_scope_start(scope_start));
+	assert(parser_is_scope_end(scope_end));
 
 	scope_start->nodes[NODE_INDEX_SCOPE_START_SCOPE_END] = scope_end;
 }
@@ -79,20 +79,20 @@ Node* scope_end) {
 void parser_scope_start_set_PAL(
 Node* scope_start,
 Node* PAL) {
-	assert(scope_start != NULL);
-	assert(PAL != NULL);
+	assert(parser_is_scope_start(scope_start));
+	assert(parser_introduction_is_PAL(PAL));
 
 	scope_start->nodes[NODE_INDEX_SCOPE_START_PAL] = PAL;
 }
 
 const Node* parser_scope_start_get_scope_end(const Node* scope_start) {
-	assert(scope_start  != NULL);
+	assert(parser_is_scope_start(scope_start));
 
 	return scope_start->nodes[NODE_INDEX_SCOPE_START_SCOPE_END];
 }
 
 const Node* parser_scope_start_get_PAL(const Node* scope_start) {
-	assert(scope_start != NULL);
+	assert(parser_is_scope_start(scope_start));
 
 	return scope_start->nodes[NODE_INDEX_SCOPE_START_PAL];
 }
@@ -122,17 +122,16 @@ Parser* parser) {
 }
 
 bool parser_is_scope_end(const Node* node) {
-	assert(node != NULL);
-
-	return !node->is_child
+	return node != NULL
+	    && !node->is_child
 	    && node->type == NodeType_SCOPE_END;
 }
 
 void parser_scope_end_set_scope_start(
 Node* scope_end,
 Node* scope_start) {
-	assert(scope_end != NULL);
-	assert(scope_start != NULL);
+	assert(parser_is_scope_end(scope_end));
+	assert(parser_is_scope_start(scope_start));
 
 	scope_end->nodes[NODE_INDEX_SCOPE_END_SCOPE_START] = scope_start;
 }

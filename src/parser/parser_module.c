@@ -14,8 +14,8 @@ Parser* parser) {
 		.type = ((Node*) parser->nodes.previous)->subtype,
 		.subtype = NodeSubtype_NO,
 		.token = (const Token*) parser->lexer->tokens.addr + i,
-		.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
-	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_MODULE_TAIL] = (Node*) parser->nodes.top;
+		.nodes = {[NODE_INDEX_TAIL] = NULL}};
+	((Node*) parser->nodes.previous)->nodes[NODE_INDEX_TAIL] = (Node*) parser->nodes.top;
 	return 1;
 }
 
@@ -58,7 +58,7 @@ Parser* parser) {
 			.type = NodeType_MODULE,
 			.subtype = subtype,
 			.token = tokens + buffer_i,
-			.nodes = {[NODE_INDEX_MODULE_TAIL] = NULL}};
+			.nodes = {[NODE_INDEX_TAIL] = NULL}};
 		*node_module_last = (Node*) parser->nodes.top;
 		buffer_i += 1;
 
@@ -91,23 +91,23 @@ RETURN_0:
 }
 
 bool parser_is_module(const Node* node) {
-	return !node->is_child
+	return node != NULL
+	    && !node->is_child
 	    && node->type == NodeType_MODULE
 	    && (node->subtype == NodeSubtypeModule_INPUT
 	     || node->subtype == NodeSubtypeModule_OUTPUT);
 }
 
-void parser_module_set_tail(
+[[deprecated]] void parser_module_set_tail(
 Node* module,
 Node* tail) {
-	assert(module != NULL);
-	assert(tail != NULL);
+	assert(parser_is_module(module));
 
-	module->nodes[NODE_INDEX_MODULE_TAIL] = tail;
+	module->nodes[NODE_INDEX_TAIL] = tail;
 }
 
-Node* parser_module_get_tail(const Node* module) {
-	assert(module != NULL);
+[[deprecated]] Node* parser_module_get_tail(const Node* module) {
+	assert(parser_is_module(module));
 
-	return module->nodes[NODE_INDEX_MODULE_TAIL];
+	return module->nodes[NODE_INDEX_TAIL];
 }
