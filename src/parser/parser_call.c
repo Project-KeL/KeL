@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <string.h>
+#include "parser.h"
 #include "parser_allocator.h"
 #include "parser_call.h"
 #include "parser_introduction.h"
@@ -41,8 +42,8 @@ const Node* type2) {
 				return false;
 		}
 NEXT:
-		type1 = parser_type_get_tail(type1);
-		type2 = parser_type_get_tail(type2);
+		type1 = parser_node_get_tail(type1);
+		type2 = parser_node_get_tail(type2);
 	}
 
 	return true; 
@@ -102,13 +103,13 @@ const Node** node_introduction) {
 	return false;
 CHECK_TYPE:
 	*node_introduction = node_PAL_scope;
-	file_node = parser_type_get_tail(
+	file_node = parser_node_get_tail(
 		parser_introduction_get_type(file_node));
 
 	for(;
 	count_argument != 0;
 	count_argument -= 1) {
-		file_node = parser_type_get_tail(file_node);
+		file_node = parser_node_get_tail(file_node);
 	}
 
 	assert(file_node != NULL);
@@ -176,6 +177,7 @@ Parser* parser) {
 				file_node,
 				&node_introduction)
 			== true) {
+				// OK
 			} else if(is_match_scope_local(
 				count_argument,
 				link_PAL_scope,
@@ -263,13 +265,13 @@ Parser* parser) {
 		== true) {
 			// count the parameters
 			const Node* buffer_file_node = parser_introduction_get_type(file_node);
-			buffer_file_node = parser_type_get_tail(buffer_file_node);
+			buffer_file_node = parser_node_get_tail(buffer_file_node);
 
 			while(buffer_file_node != NULL) {
 				if(buffer_file_node->subtype == NodeSubtypeChildTypeScoped_PARAMETER)
 					count_parameter += 1;
 
-				buffer_file_node = parser_type_get_tail(buffer_file_node);
+				buffer_file_node = parser_node_get_tail(buffer_file_node);
 			}
 
 			goto FOUND;
@@ -281,7 +283,6 @@ Parser* parser) {
 
 	return 0;
 FOUND:
-	return 0;
 	MemoryChainState memChain_state;
 	initialize_memory_chain_state(&memChain_state);
 	memory_chain_state_save(
