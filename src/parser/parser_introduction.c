@@ -36,8 +36,6 @@ Parser* parser) {
 	size_t i_qualifier = buffer_i;
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	NodeSubtype subtype = NodeSubtype_NO;
-	MemoryChainState memChain_state;
-	initialize_memory_chain_state(&memChain_state);
 	// skip qualifiers for the moment
 	while(parser_is_qualifier(tokens + buffer_i)) buffer_i += 1;
 
@@ -50,6 +48,8 @@ Parser* parser) {
 	if(tokens[buffer_i].subtype != TokenSubtype_IDENTIFIER)
 		return 0;
 
+	MemoryChainState memChain_state;
+	initialize_memory_chain_state(&memChain_state);
 	memory_chain_state_save(
 		&parser->nodes,
 		&memChain_state);
@@ -267,10 +267,8 @@ void parser_introduction_set_type(
 Node* introduction,
 Node* type) {
 	assert(parser_is_introduction(introduction));
-#ifndef NDEBUG
-	if(type != NULL)
-		assert(parser_is_type(type));
-#endif
+	assert(parser_is_type(type));
+
 	introduction->nodes[NODE_INDEX_INTRODUCTION_TYPE] = type;
 }
 

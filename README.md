@@ -11,8 +11,8 @@ KeL (for **Keys & Locks**) is intended to be a low-level programming language wi
 imod sys;
 
 [entry] #main scope
-    sys.out `Hello, world!`;
-    sys.exit SUCCESS;
+    sys.out(`Hello, world!`);
+    sys.exit(SUCCESS);
 .
 ```
 

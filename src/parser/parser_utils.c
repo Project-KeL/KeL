@@ -91,6 +91,88 @@ bool parser_is_lock(const Token* token) {
 	    && token->subtype == TokenSubtype_NO;
 }
 
+bool parser_is_code_token_side_L_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL
+	|| token1->L_end - token1->L_start != token2->L_end - token2->L_start)
+		return false;
+
+	return strncmp(
+		code + token1->L_start,
+		code + token2->L_start,
+		token1->L_end - token1->L_start) == 0;
+}
+
+bool parser_is_code_token_side_R_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL
+	|| token1->R_end - token1->R_start != token2->R_end - token2->R_start)
+		return false;
+
+	return strncmp(
+		code + token1->R_start,
+		code + token2->R_start,
+		token1->R_end - token1->R_start) == 0;
+}
+
+bool parser_is_code_token_L_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL
+	|| token1->type != TokenType_L
+	|| token2->type != TokenType_L)
+		return false;
+
+	return strncmp(
+		code + token1->L_start,
+		code + token2->L_start,
+		token1->L_end - token1->L_start) == 0;
+}
+
+bool parser_is_code_token_R_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL
+	|| token1->type != TokenType_R
+	|| token2->type != TokenType_R)
+		return false;
+
+	return strncmp(
+		code + token1->R_start,
+		code + token2->R_start,
+		token1->R_end - token1->R_start) == 0;
+}
+
+bool parser_is_code_token_LR_match(
+const char* code,
+const Token* token1,
+const Token* token2) {
+	if(token1 == NULL
+	|| token2 == NULL
+	|| token1->type != TokenType_LR
+	|| token2->type != TokenType_LR)
+		return false;
+
+	return parser_is_code_token_L_match(
+		code,
+		token1,
+		token2)
+	    && parser_is_code_token_R_match(
+		code,
+		token1,
+		token2);
+}
+
 bool parser_is_code_token_match(
 const char* code,
 const Token* token1,
@@ -104,7 +186,7 @@ const Token* token2) {
 	long int end1;
 	long int end2;
 
-	if(token1->L_end - token1->L_start == 0) {
+	if(token1->L_end == token1->L_start) {
 		start1 = token1->L_start;
 		end1 = token1->L_start;
 	} else {
@@ -112,7 +194,7 @@ const Token* token2) {
 		end1 = token1->R_end;
 	}
 
-	if(token2->L_end - token2->L_start == 0) {
+	if(token2->L_end == token2->L_start) {
 		start2 = token2->L_start;
 		end2 = token2->L_start;
 	} else {

@@ -75,7 +75,7 @@ const Token* token) {
 			(int) (token->L_end - token->L_start),
 			code + token->L_start,
 			(int) (token->R_end - token->R_start),
-			code + token->L_start);
+			code + token->R_start);
 	} else if(token->type == TokenType_LITERAL) {
 		switch(token->subtype) {
 		case TokenSubtype_LITERAL_NUMBER:
@@ -285,8 +285,8 @@ const Node* node) {
 		printf("RETURN UNKNOWN");
 	} else if(node->type == NodeTypeChildCall_RETURN_TYPE) {
 		printf("RETURN TYPE <%.*s>",
-			(int) (node->token->L_end - node->token->L_start),
-			code + node->token->L_start);
+			(int) (node->token->R_end - node->token->R_start),
+			code + node->token->R_start);
 	}
 
 	printf("\n");

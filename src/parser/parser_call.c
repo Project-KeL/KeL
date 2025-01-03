@@ -140,7 +140,6 @@ Parser* parser) {
 }
 
 static int if_arguments_create_nodes(
-bool right_parenthesis,
 size_t* i,
 const MemoryChainLink* link_PAL_scope,
 const Node* node_PAL_scope,
@@ -153,21 +152,14 @@ Parser* parser) {
 	// the introduction of the variable we are looking for
 	const Node* node_introduction = NULL;
 	
-	if((right_parenthesis
-	 && tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
-	|| (!right_parenthesis
-	 && tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)) {
-		// no argument case
+	if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
 		if(call_child_bind_token(
 			NodeTypeChildCall_ARGUMENT_NONE,
 			NULL,
 			parser)
 		== false)
 			return -1;
-
-		buffer_i += 1;
 	} else {
-		// argument case
 		while(true) {
 			if(is_match_parameter(
 				count_argument,
@@ -201,10 +193,7 @@ Parser* parser) {
 
 			if(tokens[buffer_i].subtype == TokenSubtype_COMMA) {
 				buffer_i += 1;
-			} else if((right_parenthesis
-			 && tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS)
-			|| (!right_parenthesis
-			 && tokens[buffer_i].subtype == TokenSubtype_SEMICOLON)) {
+			} else if(tokens[buffer_i].subtype == TokenSubtype_RPARENTHESIS) {
 				break;
 			} else {
 				return -1;
@@ -215,7 +204,7 @@ Parser* parser) {
 			return -1;
 	}
 
-	*i = buffer_i + (right_parenthesis ? 1 : 0);
+	*i = buffer_i + 1; // skip the right parenthesis
 	return 1;
 }
 
@@ -225,6 +214,7 @@ const MemoryChainLink* link_PAL_scope,
 const Node* node_PAL_scope,
 Node** node_call_last,
 Parser* parser) {
+	return 0;
 	assert(i != NULL);
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
@@ -243,8 +233,9 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.addr;
 	size_t buffer_i = *i;
 	uint64_t count_parameter = 0;
-	
-	if(tokens[buffer_i].type != TokenType_L)
+	// `fn` or `fn:type` syntax
+	if(tokens[buffer_i].type != TokenType_L
+	&& tokens[buffer_i].type != TokenType_LR)
 		return 0;
 	// search a match with an identifier at file scope
 	const MemoryChainLink* file_link = NULL;
@@ -256,9 +247,7 @@ Parser* parser) {
 		return 0;
 
 	do {
-		count_parameter = 0;
-
-		if(parser_is_code_token_match(
+		if(parser_is_code_token_side_L_match(
 			code,
 			tokens + buffer_i,
 			file_node->token)
@@ -288,7 +277,7 @@ FOUND:
 	memory_chain_state_save(
 		&parser->nodes,
 		&memChain_state);
-
+	
 	if(!parser_allocator(parser))
 		return -1;
 
@@ -300,69 +289,31 @@ FOUND:
 			[NODE_INDEX_CALL_PAL] = NULL,
 			[NODE_INDEX_TAIL] = NULL}};
 	*node_call_last = (Node*) parser->nodes.top;
-	// get the return type
-	buffer_i += 1;
-
-	if(parser_is_lock(tokens + buffer_i)) {
-		if(!parser_is_lock(parser_introduction_get_type(file_node)->token))
-			goto RETURN_0;
-		// compare with the expected return type
-		if(parser_is_code_token_match(
-			code,
-			tokens + buffer_i,
-			parser_introduction_get_type(file_node)->token)
-		== false)
-			goto RETURN_0;
-
+	// check if the return type is explicit
+	if(tokens[buffer_i].type == TokenType_LR) {
 		if(call_child_bind_token(
 			NodeTypeChildCall_RETURN_TYPE,
 			tokens + buffer_i,
 			parser)
 		== false)
 			return -1;
-
-		buffer_i += 1;
 	} else {
 		if(call_child_bind_token(
-			// unknown because of the type deducing
 			NodeTypeChildCall_RETURN_UNKNOWN,
-			NULL,
+			tokens + buffer_i,
 			parser)
 		== false)
 			return -1;
-		// `buffer_i` is well set for the next step
 	}
-	// calling syntax
-	NodeSubtypeIntroductionBitCommand command;
-	bool right_parenthesis = false;
 
-	if(parser_is_command(tokens + buffer_i)) {
-		command = parser_identifier_token_subtype_TO_node_subtype_introduction_bit_command(tokens[buffer_i].subtype);
-		buffer_i += 1;
+	buffer_i += 1;
 
-		if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS)
-			goto LPARENTHESIS;
-	} else if(tokens[buffer_i].subtype == TokenSubtype_LPARENTHESIS) {
-		// this syntax is valid only for the `@` command
-		if((file_node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND)
-		!= NodeSubtypeIntroductionBitCommand_AT)
-			goto RETURN_0;
-
-		command = NodeSubtypeIntroductionBitCommand_AT;
-LPARENTHESIS:
-		right_parenthesis = true;
-		buffer_i += 1;
-	} else {
-		// it is a CPL by default
-		command = NodeSubtypeIntroductionBitCommand_HASH;
-		buffer_i += 1;
-	}
-	// compare with the expected command at file scope
-	if(command != (file_node->subtype & MASK_BIT_NODE_SUBTYPE_INTRODUCTION_COMMAND))
+	if(tokens[buffer_i].subtype != TokenSubtype_LPARENTHESIS)
 		goto RETURN_0;
+
+	buffer_i += 1;
 	// process arguments
 	switch(if_arguments_create_nodes(
-		right_parenthesis,
 		&buffer_i,
 		link_PAL_scope,
 		node_PAL_scope,
@@ -373,13 +324,6 @@ LPARENTHESIS:
 	case 0: goto RETURN_0;
 	case 1: /* fall through */ break;
 	}
-
-	if(call_child_bind_token(
-		NodeTypeChildCall_NO,
-		NULL,
-		parser)
-	== false)
-		return -1;
 
 	*i = buffer_i;
 	return 1;
