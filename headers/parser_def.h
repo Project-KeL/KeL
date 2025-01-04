@@ -158,6 +158,7 @@ typedef enum: uint64_t {
 typedef enum: uint64_t {
 #define NODE_TYPE_CHILD(type) NodeTypeChildCall_ ## type
 	NODE_TYPE_CHILD(NO) = 0,
+	NODE_TYPE_CHILD(RETURN_NONE),
 	NODE_TYPE_CHILD(RETURN_UNKNOWN), // may return a type to be deduced or no return
 	NODE_TYPE_CHILD(RETURN_TYPE),
 	NODE_TYPE_CHILD(ARGUMENT_NONE),

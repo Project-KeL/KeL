@@ -129,6 +129,7 @@ Parser* parser) {
 		return false;
 
 	*((Node*) parser->nodes.top) = (Node) {
+		.is_child = true,
 		.type = type,
 		.subtype = (NodeSubtype) NodeSubtypeChildCall_NO,
 		.token = token,
@@ -214,7 +215,6 @@ const MemoryChainLink* link_PAL_scope,
 const Node* node_PAL_scope,
 Node** node_call_last,
 Parser* parser) {
-	return 0;
 	assert(i != NULL);
 	assert(node_call_last != NULL);
 	assert(parser != NULL);
@@ -294,6 +294,14 @@ FOUND:
 		if(call_child_bind_token(
 			NodeTypeChildCall_RETURN_TYPE,
 			tokens + buffer_i,
+			parser)
+		== false)
+			return -1;
+	} else if(parser_is_R_left_parenthesis(tokens + buffer_i + 1)) {
+		// fn:() case
+		if(call_child_bind_token(
+			NodeTypeChildCall_RETURN_NONE,
+			NULL,
 			parser)
 		== false)
 			return -1;
@@ -387,10 +395,8 @@ void parser_call_set_PAL(
 Node* call,
 Node* PAL) {
 	assert(parser_is_call(call));
-#ifndef NDEBUG
-	if(PAL != NULL)
-		assert(parser_introduction_is_PAL(PAL));
-#endif
+	assert(parser_introduction_is_PAL(PAL));
+
 	call->nodes[NODE_INDEX_CALL_PAL] = PAL;
 }
 

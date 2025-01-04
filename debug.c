@@ -283,6 +283,8 @@ const char* code,
 const Node* node) {
 	if(node->type == NodeTypeChildCall_RETURN_UNKNOWN) {
 		printf("RETURN UNKNOWN");
+	} else if(node->type == NodeTypeChildCall_RETURN_NONE) {
+		printf("RETURN NONE");
 	} else if(node->type == NodeTypeChildCall_RETURN_TYPE) {
 		printf("RETURN TYPE <%.*s>",
 			(int) (node->token->R_end - node->token->R_start),
