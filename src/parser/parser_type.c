@@ -146,8 +146,10 @@ Parser* parser) {
 	if(node_type_last != NULL)
 		*node_type_last = (Node*) parser->nodes.top;
 
-	if(parser_is_R_left_parenthesis(tokens + buffer_i))
+	if(parser_is_R_left_parenthesis(tokens + buffer_i)) {
+		*bit_scoped = NodeSubtypeIntroductionBitScoped_PAL;
 		goto R_LPARENTHESIS_SKIP_PARAMETER;
+	}
 
 	do {
 		Node* lock = NULL;

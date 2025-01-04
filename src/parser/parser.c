@@ -125,9 +125,7 @@ Parser* parser) {
 			count_scope_nest += 1;
 			i += 1;
 
-			if(node_previous != NULL
-			&& parser_is_introduction(node_previous)
-			&& parser_introduction_is_PAL(node_previous)) {
+			if(parser_introduction_is_PAL(node_previous)) {
 				// initialization with a scope case
 				parser_introduction_set_initialization(
 					node_previous,
