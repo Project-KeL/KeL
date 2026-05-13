@@ -18,6 +18,9 @@ MemoryArea* memArea) {
 	assert(size_type != 0);
 	assert(memArea != NULL);
 
+	if(count == 0 || size_type == 0)
+		return false;
+
 	memArea->size_type = size_type;
 	memArea->addr = calloc(count, memArea->size_type);
 	
@@ -58,6 +61,36 @@ void destroy_memory_area(MemoryArea* memArea) {
 	initialize_memory_area(memArea);
 }
 
+bool start_memory_area_iterator(
+const MemoryArea* memArea,
+MemoryAreaIterator* memAreaIt) {
+	assert(memArea != NULL);
+	assert(memAreaIt != NULL);
+
+	memAreaIt->memArea = memArea;
+	return memArea->count != 0;
+}
+
+void end_memory_area_iterator(MemoryAreaIterator* memAreaIt) {
+	assert(memAreaIt != NULL);
+
+	memAreaIt->memArea = NULL;
+	memAreaIt->offset = 0;
+}
+
+void* memory_area_iterator_get(MemoryAreaIterator* memAreaIt) {
+	const MemoryArea* memArea = memAreaIt->memArea;
+	return (char*) memArea->addr + memArea->size_type * memAreaIt->offset;
+}
+
+bool memory_area_iterator_next(MemoryAreaIterator* memAreaIt) {
+	assert(memAreaIt != NULL);
+
+	const bool check_bounderies = memAreaIt->offset < memAreaIt->memArea->count;
+	memAreaIt->offset += 1;
+	return check_bounderies;
+}
+
 void initialize_memory_chain(MemoryChain* memChain) {
 	assert(memChain != NULL);
 
@@ -75,6 +108,9 @@ MemoryChain* memChain) {
 	assert(size != 0);
 	assert(size_type != 0);
 	assert(memChain != NULL);
+
+	if(size == 0 || size_type == 0)
+		return false;
 
 	memChain->first = malloc(sizeof(MemoryChainLink));
 
@@ -120,18 +156,6 @@ void memory_chain_destroy_memory_area_last(MemoryChain* memChain) {
 		memChain->previous = (char*) previous->memArea.addr + size_type * (previous->memArea.count - 1);
 	else
 		memChain->previous = NULL;
-}
-
-void destroy_memory_chain(MemoryChain* memChain) {
-	if(memChain == NULL)
-		return;
-
-	while(memChain->count > 1)
-		memory_chain_destroy_memory_area_last(memChain);
-
-	destroy_memory_area(&memChain->first->memArea);
-	free(memChain->first);
-	initialize_memory_chain(memChain);
 }
 
 bool memory_chain_add_area(
@@ -192,6 +216,18 @@ MemoryChain* memChain) {
 	return true;
 }
 
+void destroy_memory_chain(MemoryChain* memChain) {
+	if(memChain == NULL)
+		return;
+
+	while(memChain->count > 1)
+		memory_chain_destroy_memory_area_last(memChain);
+
+	destroy_memory_area(&memChain->first->memArea);
+	free(memChain->first);
+	initialize_memory_chain(memChain);
+}
+
 void initialize_memory_chain_state(MemoryChainState* memChain_state) {
 	assert(memChain_state != NULL);
 
@@ -224,4 +260,49 @@ const MemoryChainState* memChain_state) {
 
 	memChain->previous = memChain_state->buffer_previous;
 	memChain->top = memChain_state->buffer_top;
+}
+
+bool start_memory_chain_iterator(
+const MemoryChain* memChain,
+MemoryChainIterator* memChainIt) {
+	assert(memChain != NULL);
+	assert(memChainIt != NULL);
+
+	MemoryChainLink* const link = memChain->first;
+	memChainIt->link = link;
+	memChainIt->addr = link->memArea.addr;
+	return memChain->first != NULL;
+}
+
+void end_memory_chain_iterator(MemoryChainIterator* memChainIt) {
+	assert(memChainIt != NULL);
+
+	memChainIt->link = NULL;
+	memChainIt->addr = NULL;
+}
+
+void* memory_chain_iterator_get(MemoryChainIterator* memChainIt) {
+	assert(memChainIt != NULL);
+
+	return memChainIt->addr;
+}
+
+bool memory_chain_iterator_next(MemoryChainIterator* memChainIt) {
+	assert(memChainIt != NULL);
+
+	MemoryChainLink* link = memChainIt->link;
+	void* addr = memChainIt->addr;
+
+	if((char*) addr == ((char*) link->memArea.addr + link->memArea.size_type * (link->memArea.count - 1))) {
+		if(link->next == NULL)
+			return false;
+
+		memChainIt->link = link->next;
+		memChainIt->addr = link->memArea.addr;
+	} else {
+		char* addr_char = (char*) memChainIt->addr;
+		memChainIt->addr = addr_char + 1;
+	}
+
+	return true;
 }

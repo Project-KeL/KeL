@@ -1,8 +1,9 @@
 #ifndef LEXER_ALLOCATION
 #define LEXER_ALLOCATION
 
-#include "lexer_def.h"
+#include "lexer.h"
 
+void lexer_initialize_allocator(Lexer* lexer);
 bool lexer_create_allocator(Lexer* lexer);
 bool lexer_allocator(
 	size_t minimum,

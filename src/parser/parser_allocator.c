@@ -3,48 +3,47 @@
 #include <stdio.h>
 #include "parser_allocator.h"
 
-#define CHUNK 1
-
-void parser_initialize_allocators(Parser* parser) {
+#define CHUNK_SYMBOLS 1
+#define CHUNK_NODES 1
+/*
+void parser_initialize_allocator(Parser* parser) {
 	assert(parser != NULL);
 
+	initialize_memory_area(&parser->symbols);
 	initialize_memory_chain(&parser->nodes);
-	initialize_memory_chain(&parser->file_nodes);
 }
 
-bool parser_create_allocators(Parser* parser) {
+bool parser_create_allocator(Parser* parser) {
 	assert(parser != NULL);
 	// the first node is null
-	if(create_memory_chain(
-		CHUNK,
+	if(create_memory_area(
+		CHUNK_SYMBOLS,
 		sizeof(Node),
-		&parser->nodes)
+		&parser->scope_0.symbols)
 	== false)
 		return false;
 
 	if(create_memory_chain(
-		CHUNK,
+		CHUNK_NODES,
 		sizeof(Node),
-		&parser->file_nodes)
+		&parser->scope_0.nodes)
 	== false)
 		return false;
-#ifndef NDEBUG
-	parser->count_file_nodes = 0;
-#endif
+
 	return true;
 }
 
-void parser_destroy_allocators(Parser* parser) {
+void parser_destroy_allocator(Parser* parser) {
 	assert(parser != NULL);
 
-	destroy_memory_chain(&parser->file_nodes);
-	destroy_memory_chain(&parser->nodes);
+	destroy_memory_chain(&parser->scope_0.nodes);
+	destroy_memory_area(&parser->scope_0.symbols);
 }
 
 bool parser_allocator(Parser* parser) {
 	assert(parser != NULL);
 
-	return memory_chain_reserve_data(
+	return memory_area_realloc(
 		CHUNK,
 		&parser->nodes);
 }
@@ -151,5 +150,5 @@ Node** node) {
 	} else
 		*node -= 1;
 }
-
+*/
 #undef CHUNK

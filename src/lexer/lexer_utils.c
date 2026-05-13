@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stddef.h>
-#include <stdio.h>
 #include "lexer_utils.h"
+#include "lexer.h"
 
 TokenSubtype lexer_character_to_subtype(char c) {
 	switch(c) {
@@ -30,6 +30,7 @@ TokenSubtype lexer_character_to_subtype(char c) {
 	case ']': return TokenSubtype_RBRACKET;
 	case '\\': return TokenSubtype_BACKSLASH;
 	case '^': return TokenSubtype_CARET;
+	case '_': return TokenSubtype_UNDERSCORE;
 	case '`': return TokenSubtype_GRAVE_ACCENT;
 	case '{': return TokenSubtype_LCBRACE;
 	case '|': return TokenSubtype_PIPE;

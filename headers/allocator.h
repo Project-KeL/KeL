@@ -10,6 +10,11 @@ typedef struct {
 	size_t size_type;
 } MemoryArea;
 
+typedef struct {
+	const MemoryArea* memArea;
+	size_t offset;
+} MemoryAreaIterator;
+
 void initialize_memory_area(MemoryArea* memArea);
 bool create_memory_area(
 	size_t count,
@@ -19,6 +24,13 @@ bool memory_area_realloc(
 	size_t size,
 	MemoryArea* memArea);
 void destroy_memory_area(MemoryArea* memArea);
+
+bool start_memory_area_iterator(
+	const MemoryArea* memArea,
+	MemoryAreaIterator* memAreaIt);
+void end_memory_area_iterator(MemoryAreaIterator* memAreaIt);
+void* memory_area_iterator_get(MemoryAreaIterator* memAreaIt);
+bool memory_area_iterator_next(MemoryAreaIterator* memAreaIt);
 
 typedef struct MemoryChainLink MemoryChainLink;
 
@@ -42,19 +54,25 @@ typedef struct {
 	void* buffer_top;
 } MemoryChainState;
 
+typedef struct {
+	MemoryChainLink* link;
+	void* addr;
+} MemoryChainIterator;
+
 void initialize_memory_chain(MemoryChain* memChain);
 bool create_memory_chain(
 	size_t count,
 	size_t size_type,
 	MemoryChain* memChain);
 void memory_chain_destroy_memory_area_last(MemoryChain* memChain);
-void destroy_memory_chain(MemoryChain*  memChain);
 bool memory_chain_add_area(
 	size_t count,
 	MemoryChain* memChain);
 bool memory_chain_reserve_data(
 	size_t count,
 	MemoryChain* memChain);
+void destroy_memory_chain(MemoryChain* memChain);
+
 void initialize_memory_chain_state(MemoryChainState* memChain_state);
 void memory_chain_state_save(
 	const MemoryChain* memChain,
@@ -62,5 +80,12 @@ void memory_chain_state_save(
 void memory_chain_state_restore(
 	MemoryChain* memChain,
 	const MemoryChainState* memChain_state);
+
+bool start_memory_chain_iterator(
+	const MemoryChain* memChain,
+	MemoryChainIterator* memChainIt);
+void end_memory_chain_iterator(MemoryChainIterator* memChainIt);
+void* memory_chain_iterator_get(MemoryChainIterator* memChainIt);
+bool memory_chain_iterator_next(MemoryChainIterator* memChainIt);
 
 #endif

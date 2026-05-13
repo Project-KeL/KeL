@@ -13,6 +13,12 @@ static void create_token_null(Token* token) {
 		.end = 0};
 }
 
+void lexer_initialize_allocator(Lexer* lexer) {
+	assert(lexer != NULL);
+
+	initialize_memory_area(&lexer->tokens);
+}
+
 bool lexer_create_allocator(Lexer* lexer) {
 	if(create_memory_area(
 		CHUNK,

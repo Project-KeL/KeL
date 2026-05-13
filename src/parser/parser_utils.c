@@ -43,13 +43,11 @@ bool parser_is_R_right_parenthesis(const Token* token) {
 }
 
 bool parser_is_command(const Token* token) {
-	return token->type == TokenType_COMMAND;
+	return token->type == TokenType_COM;
 }
 
 bool parser_is_qualifier(const Token* token) {
-	return token->type == TokenType_QL
-	    || token->type == TokenType_QR
-	    || token->type == TokenType_QLR;
+	return token->type == TokenType_Q;
 }
 
 bool parser_is_operator_leveling(const Token* token) {
@@ -97,13 +95,13 @@ const Token* token1,
 const Token* token2) {
 	if(token1 == NULL
 	|| token2 == NULL
-	|| token1->L_end - token1->L_start != token2->L_end - token2->L_start)
+	|| token1->end - token1->start != token2->end - token2->start)
 		return false;
 
 	return strncmp(
-		code + token1->L_start,
-		code + token2->L_start,
-		token1->L_end - token1->L_start) == 0;
+		code + token1->start,
+		code + token2->start,
+		token1->end - token1->start) == 0;
 }
 
 bool parser_is_code_token_side_R_match(
@@ -112,13 +110,13 @@ const Token* token1,
 const Token* token2) {
 	if(token1 == NULL
 	|| token2 == NULL
-	|| token1->R_end - token1->R_start != token2->R_end - token2->R_start)
+	|| token1->end - token1->start != token2->end - token2->start)
 		return false;
 
 	return strncmp(
-		code + token1->R_start,
-		code + token2->R_start,
-		token1->R_end - token1->R_start) == 0;
+		code + token1->start,
+		code + token2->start,
+		token1->end - token1->start) == 0;
 }
 
 bool parser_is_code_token_L_match(
@@ -132,9 +130,9 @@ const Token* token2) {
 		return false;
 
 	return strncmp(
-		code + token1->L_start,
-		code + token2->L_start,
-		token1->L_end - token1->L_start) == 0;
+		code + token1->start,
+		code + token2->start,
+		token1->end - token1->start) == 0;
 }
 
 bool parser_is_code_token_R_match(
@@ -148,9 +146,9 @@ const Token* token2) {
 		return false;
 
 	return strncmp(
-		code + token1->R_start,
-		code + token2->R_start,
-		token1->R_end - token1->R_start) == 0;
+		code + token1->start,
+		code + token2->start,
+		token1->end - token1->start) == 0;
 }
 
 bool parser_is_code_token_LR_match(
@@ -186,20 +184,20 @@ const Token* token2) {
 	long int end1;
 	long int end2;
 
-	if(token1->L_end == token1->L_start) {
-		start1 = token1->L_start;
-		end1 = token1->L_start;
+	if(token1->end == token1->start) {
+		start1 = token1->start;
+		end1 = token1->start;
 	} else {
-		start1 = token1->R_start;
-		end1 = token1->R_end;
+		start1 = token1->start;
+		end1 = token1->end;
 	}
 
-	if(token2->L_end == token2->L_start) {
-		start2 = token2->L_start;
-		end2 = token2->L_start;
+	if(token2->end == token2->start) {
+		start2 = token2->start;
+		end2 = token2->start;
 	} else {
-		start2 = token2->R_start;
-		end2 = token2->R_end;
+		start2 = token2->start;
+		end2 = token2->end;
 	}
 
 	if(end1 - start1 != end2 - start2)

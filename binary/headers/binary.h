@@ -17,8 +17,10 @@ bool destroy_binary(Binary* restrict binary);
 bool binary_append_byte(
 	Binary* restrict binary,
 	uint8_t byte);
+/*
 bool binary_x64(
 	Binary* restrict binary,
 	const Parser* restrict parser);
+*/
 
 #endif

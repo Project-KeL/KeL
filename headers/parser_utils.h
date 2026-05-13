@@ -1,7 +1,7 @@
 #ifndef PARSER_UTILS_H
 #define PARSER_UTILS_H
 
-#include "lexer_def.h"
+#include "lexer.h"
 #include "parser_def.h"
 
 bool parser_is_parenthesis(const Token* token);
@@ -13,6 +13,7 @@ bool parser_is_R_left_parenthesis(const Token* token);
 bool parser_is_R_right_parenthesis(const Token* token);
 bool parser_is_command(const Token* token);
 bool parser_is_qualifier(const Token* token);
+bool parser_is_operator(const Token* token);
 bool parser_is_operator_leveling(const Token* token);
 bool parser_is_operator_modifier(const Token* token);
 bool parser_is_scope_L(const Token* token);

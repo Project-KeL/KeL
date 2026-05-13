@@ -2,7 +2,7 @@
 #define LEXER_UTILS_H
 
 #include <ctype.h>
-#include "lexer_def.h"
+#include "lexer.h"
 
 TokenSubtype lexer_character_to_subtype(char c);
 bool isXdigit(char c);
@@ -15,6 +15,7 @@ bool lexer_is_command(char c);
 bool lexer_is_interpreted(char c);
 bool lexer_is_operator_leveling(char c);
 bool lexer_is_operator_modifier(char c);
+bool lexer_is_operator(char c);
 bool lexer_is_special(char c);
 bool lexer_delimiter_match(
 	char c1,

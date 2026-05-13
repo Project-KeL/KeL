@@ -77,7 +77,7 @@ uint16_t byte) {
 #define APPEND_WORD(word) binary_append_big_endian_word( \
 	binary, \
 	word)
-
+/*
 static void binary_x64_elf_initialize(Binary* restrict binary) {
 	ELF_EHDR ehdr = (ELF_EHDR) {
 		.e_ident = {
@@ -147,20 +147,9 @@ bool binary_x64(
 Binary* restrict binary,
 const Parser* restrict parser) {
 	binary_x64_elf_initialize(binary);
-
-	for(size_t i = 0;
-	i < parser->nodes.count - 1;
-	++i) {
-		// const Node* node = &parser->nodes[i];
-/*
-		if(node->type == NodeType_CORE_B) {
-			APPEND_BYTE(node->value);
-*/
-	}
-
 	binary_x64_elf_terminate(binary);
 	return true;
 }
-
+*/
 #undef APPEND_WORD
 #undef APPEND_BYTE

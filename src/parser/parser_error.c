@@ -26,7 +26,7 @@ long int* i) {
 bool parser_scan_errors(const Lexer* lexer) {
 	const char* code = lexer->source->content;
 	size_t count_scope_nest = 0;
-
+/*
 	for(size_t i = 0;
 	i < lexer->tokens.count - 1;
 	i += 1) {
@@ -44,7 +44,7 @@ bool parser_scan_errors(const Lexer* lexer) {
 				return false;
 
 			count_scope_nest -= 1;
-		} /* else if(tokens[i].type == TokenType_COMMAND
+		}*/  /* else if(tokens[i].type == TokenType_COMMAND
 			   && tokens[i + 1].type == TokenType_L) {
 			long int buffer_i = i + 2;
 
@@ -62,8 +62,8 @@ bool parser_scan_errors(const Lexer* lexer) {
 				if(tokens[buffer_i].type != TokenType_R)
 					return false;
 			}
-		} */
-	}
+		}
+	}*/
 
 	return count_scope_nest == 0;
 }
