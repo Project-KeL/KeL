@@ -2,7 +2,6 @@
 #define PARSER_UTILS_H
 
 #include "lexer.h"
-#include "parser_def.h"
 
 bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);

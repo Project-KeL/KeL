@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "allocator.h"
 #include "lexer.h"
-#include "parser_def.h"
 
 typedef enum: uint64_t {
 #define NODE_TYPE(type) NodeType_ ## type
