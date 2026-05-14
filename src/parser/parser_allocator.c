@@ -5,150 +5,73 @@
 
 #define CHUNK_SYMBOLS 1
 #define CHUNK_NODES 1
-/*
+
+#define CHUNK 4096
+
+static void create_node_null(Node* token) {
+	/*
+	*token = (Node) {
+		.type = TokenType_NO,
+		.subtype = TokenSubtype_NO,
+		.start = 0,
+		.end = 0};
+	*/
+}
+
 void parser_initialize_allocator(Parser* parser) {
 	assert(parser != NULL);
 
-	initialize_memory_area(&parser->symbols);
-	initialize_memory_chain(&parser->nodes);
+	initialize_memory_area(&parser->nodes);
 }
 
-bool parser_create_allocator(Parser* parser) {
-	assert(parser != NULL);
-	// the first node is null
+bool parser_create_allocator_limit(
+size_t limit,
+Parser* parser) {
 	if(create_memory_area(
-		CHUNK_SYMBOLS,
+		limit,
 		sizeof(Node),
-		&parser->scope_0.symbols)
+		&parser->nodes)
 	== false)
 		return false;
 
-	if(create_memory_chain(
-		CHUNK_NODES,
-		sizeof(Node),
-		&parser->scope_0.nodes)
-	== false)
-		return false;
+	// create_node_null((Node*) parser->nodes.addr);
+	return true;
+}
+
+bool parser_create_allocator_chunk(Parser* parser) {
+	return parser_create_allocator_limit(
+		CHUNK,
+		parser);
+}
+
+bool parser_allocator(
+size_t minimum,
+Parser* parser) {
+	if(parser->nodes.count <= minimum) {
+		if(memory_area_realloc(
+			(minimum / CHUNK + 1) * CHUNK,
+			&parser->nodes)
+		== false) {
+			assert(false); // the `parser_create_allocator_limit` must be used
+			return false;
+		}
+	}
 
 	return true;
+}
+
+bool parser_allocator_shrink(Parser* parser) {
+	const bool error = memory_area_realloc(
+		parser->nodes.count + 1, // null token
+		&parser->nodes);
+	return error;
 }
 
 void parser_destroy_allocator(Parser* parser) {
-	assert(parser != NULL);
+	if(parser == NULL)
+		return;
 
-	destroy_memory_chain(&parser->scope_0.nodes);
-	destroy_memory_area(&parser->scope_0.symbols);
+	destroy_memory_area(&parser->nodes);
 }
 
-bool parser_allocator(Parser* parser) {
-	assert(parser != NULL);
-
-	return memory_area_realloc(
-		CHUNK,
-		&parser->nodes);
-}
-
-void parser_allocator_next_link(
-const MemoryChainLink** link,
-const Node* node) {
-	assert(link != NULL);
-	assert(node != NULL);
-
-	if(node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1)	
-		*link = (*link)->next;
-}
-
-bool parser_allocator_next(
-const Parser* parser,
-const MemoryChainLink** link,
-const Node** node) {
-	assert(parser != NULL);
-	assert(link != NULL);
-	assert(node != NULL);
-
-	if(*node == (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1) {
-		if((*link)->next == NULL)
-			return false;
-
-		*link = (*link)->next;
-		*node = (Node*) (*link)->memArea.addr;
-	} else
-		*node += 1;
-
-	return true;
-}
-
-const Node* parser_allocator_start_node(
-const Parser* parser,
-const MemoryChainLink** link) {
-	assert(parser != NULL);
-	assert(link != NULL);
-
-	Node* node;
-
-	if(parser->nodes.first->memArea.count > 1) {
-		*link = parser->nodes.first;
-		node = (Node*) (*link)->memArea.addr + 1;
-	} else if(parser->nodes.first->next != NULL) {
-		*link = parser->nodes.first->next;
-		node = (Node*) (*link)->memArea.addr;
-	} else
-		return NULL;
-
-	return node;
-}
-
-[[deprecated]] bool parser_allocator_continue_node(
-const Parser* parser,
-const Node* node) {
-	assert(parser != NULL);
-	assert(node != NULL);
-
-	return node != (Node*) parser->nodes.last->memArea.addr + parser->nodes.last->memArea.count;
-}
-
-const Node* parser_allocator_start_file_node(
-const Parser* parser,
-const MemoryChainLink** link) {
-	assert(parser != NULL);
-	assert(link != NULL);
-
-	Node* node;
-
-	if(parser->nodes.first->memArea.count > 1) {
-		*link = parser->file_nodes.first;
-		node = (Node*) (*link)->memArea.addr + 1;
-	} else if(parser->file_nodes.first->next != NULL) {
-		*link = parser->file_nodes.first->next;
-		node = (Node*) (*link)->memArea.addr;
-	} else
-		return NULL;
-
-	return node;
-}
-
-[[deprecated]] bool parser_allocator_continue_file_node(
-const Parser* parser,
-const Node* node) {
-	assert(parser != NULL);
-	assert(node != NULL);
-
-	return node != (Node*) parser->file_nodes.last->memArea.addr + parser->file_nodes.last->memArea.count;
-}
-
-void parser_allocator_node_previous(
-MemoryChainLink* restrict* link,
-Node** node) {
-	assert(link != NULL);
-	assert(
-		(*link)->previous != NULL
-		|| (Node*) (*link)->memArea.addr < *node);
-
-	if(*node == (*link)->memArea.addr) {
-		*link = (*link)->previous;
-		*node = (Node*) (*link)->memArea.addr + (*link)->memArea.count - 1;
-	} else
-		*node -= 1;
-}
-*/
 #undef CHUNK

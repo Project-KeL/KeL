@@ -1,6 +1,8 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "allocator.h"
 #include "debug.h"
 #include "kel.h"
 
@@ -19,7 +21,7 @@ char** argv) {
 	Lexer lexer;
 	// TAC tac;
 	initialize_source(&source);
-	initialize_memory_area(&memArea);
+	initialize_memory_area(&memArea); // for the lexer
 	initialize_binary(&binary);
 	initialize_lexer(&lexer);
 	// initialize_TAC(&tac);
@@ -41,7 +43,8 @@ char** argv) {
 		sizeof(union {
 			uintmax_t uintmax;
 			void* ptr;
-			void (*fn)(void);}),
+			void (*fn)(void);
+			size_t size;}),
 		&memArea))
 	== false)
 		goto END;

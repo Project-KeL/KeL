@@ -39,15 +39,17 @@ bool lexer_create_allocator_chunk(Lexer* lexer) {
 		lexer);
 }
 
-bool lexer_allocator(
+bool lexer_allocator_chunk(
 size_t minimum,
 Lexer* lexer) {
 	if(lexer->tokens.count <= minimum) {
 		if(memory_area_realloc(
 			(minimum / CHUNK + 1) * CHUNK,
 			&lexer->tokens)
-		== false)
+		== false) {
 			assert(false); // the `lexer_create_allocator_limit` must be used
+			return false;
+		}
 	}
 
 	return true;
@@ -57,11 +59,13 @@ bool lexer_allocator_shrink(Lexer* lexer) {
 	const bool error = memory_area_realloc(
 		lexer->tokens.count + 1, // null token
 		&lexer->tokens);
-	create_token_null((Token*) lexer->tokens.addr + lexer->tokens.count - 1);
 	return error;
 }
 
 void lexer_destroy_allocator(Lexer* lexer) {
+	if(lexer == NULL)
+		return;
+
 	destroy_memory_area(&lexer->tokens);
 }
 

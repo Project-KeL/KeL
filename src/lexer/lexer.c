@@ -376,7 +376,7 @@ Token* token) {
 			return false;
 		}
 
-		subtype = TokenSubtype_LIT_NUMBER;
+		subtype = TokenSubtype_LIT_NUM;
 	} else if(code[start] == '\'') {
 		while(code[buffer_end] != '\0'
 		   && code[buffer_end] != '\'') buffer_end += 1;
@@ -388,7 +388,7 @@ Token* token) {
 
 		start += 1;
 		buffer_end += 1;
-		subtype = TokenSubtype_LIT_CHARACTER;
+		subtype = TokenSubtype_LIT_CHAR;
 	} else if(code[start] == '`') {
 		while(code[buffer_end] != '\0'
 		   && code[buffer_end] != '`') buffer_end += 1;
@@ -400,7 +400,7 @@ Token* token) {
 
 		start += 1;
 		buffer_end += 1;
-		subtype = TokenSubtype_LIT_STRING;
+		subtype = TokenSubtype_LIT_STR;
 	} else {
 		return false;
 	}
@@ -409,7 +409,7 @@ Token* token) {
 		.type = TokenType_LIT,
 		.subtype = subtype,
 		.start = start,
-		.end = buffer_end - (subtype != TokenSubtype_LIT_NUMBER ? 1 : 0)};
+		.end = buffer_end - (subtype != TokenSubtype_LIT_NUM ? 1 : 0)};
 	*end = buffer_end;
 	return true;
 }
@@ -465,7 +465,7 @@ Lexer* lexer) {
 	long int end = 1;
 	long int count_RSPE_parenthesis_nest = 0;
 	size_t i = 1;
-	// scan errors
+
 	if(lexer_scan_errors(
 		source,
 		memArea)

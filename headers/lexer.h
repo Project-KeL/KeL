@@ -32,9 +32,9 @@ typedef enum: uint32_t {
 	TOKEN_SUBTYPE(SCOPE),
 	TOKEN_SUBTYPE(THEN),
 	// litteral
-	TOKEN_SUBTYPE(LIT_NUMBER), // the base is the highest byte
-	TOKEN_SUBTYPE(LIT_CHARACTER),
-	TOKEN_SUBTYPE(LIT_STRING),
+	TOKEN_SUBTYPE(LIT_NUM), // the base is the highest byte
+	TOKEN_SUBTYPE(LIT_CHAR),
+	TOKEN_SUBTYPE(LIT_STR),
 	// special
 	TOKEN_SUBTYPE(EXCLAMATION_MARK),
 	TOKEN_SUBTYPE(DQUOTES),
@@ -70,12 +70,6 @@ typedef enum: uint32_t {
 #undef TOKEN_SUBTYPE
 } TokenSubtype;
 
-/*
- * the piece of code is from:
- * - start to R_end for L, R and LR
- * - start to end for the rest
-*/
-
 typedef struct {
 	uint32_t type;
 	uint32_t subtype;
@@ -87,8 +81,6 @@ typedef struct {
 	const Source* source;
 	MemoryArea tokens;
 } Lexer;
-
-
 
 void initialize_lexer(Lexer* lexer);
 bool create_lexer(

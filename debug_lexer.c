@@ -11,19 +11,19 @@ const Token* token) {
 	const char* type;
 
 	switch(token->type) {
-	case TokenType_LSPE: type = "LSPE"; break;
-	case TokenType_RSPE: type = "RSPE"; break;
-	case TokenType_COM: type = "COM "; break;
-	case TokenType_ID: type = "ID  "; break;
-	case TokenType_Q: type = "Q   "; break;
-	case TokenType_LR: type = "LR  "; break;
-	case TokenType_R: type = "R   "; break;
-	case TokenType_RSCOPE: type = "RSCP"; break;
-	case TokenType_L: type = "L   "; break;
-	case TokenType_LSCOPE: type = "LSCP"; break;
-	case TokenType_PL: type = "PL  "; break;
-	case TokenType_LIT: type = "LIT "; break;
-	case TokenType_COLON_LONELY: type = "COL "; break;
+	case TokenType_LSPE: type = "LSPE  "; break;
+	case TokenType_RSPE: type = "RSPE  "; break;
+	case TokenType_COM: type = "COM   "; break;
+	case TokenType_ID: type = "ID    "; break;
+	case TokenType_Q: type = "Q     "; break;
+	case TokenType_LR: type = "LR    "; break;
+	case TokenType_R: type = "R     "; break;
+	case TokenType_RSCOPE: type = "RSCOPE"; break;
+	case TokenType_L: type = "L     "; break;
+	case TokenType_LSCOPE: type = "LSCOPE"; break;
+	case TokenType_PL: type = "PL    "; break;
+	case TokenType_LIT: type = "LIT   "; break;
+	case TokenType_COLON_LONELY: type = "COL   "; break;
 	}
 
 	printf(
@@ -43,9 +43,9 @@ const Token* token) {
 	}
 
 	switch(token->subtype) {
-		case TokenSubtype_LIT_NUMBER: printf(" (NUMBER)"); break;
-		case TokenSubtype_LIT_CHARACTER: printf(" (CHARACTER)"); break;
-		case TokenSubtype_LIT_STRING: printf(" (STRING)"); break;
+		case TokenSubtype_LIT_NUM: printf(" (NUM)"); break;
+		case TokenSubtype_LIT_CHAR: printf(" (CHAR)"); break;
+		case TokenSubtype_LIT_STR: printf(" (STR)"); break;
 	}
 
 	printf("\n");
