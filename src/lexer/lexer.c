@@ -124,12 +124,6 @@ Lexer* lexer) {
 		return 0;
 
 	do {
-		if(lexer_allocator(
-			buffer_i + 1,
-			lexer)
-		== false)
-			return -1;
-
 		Token* const tokens = (Token*) lexer->tokens.addr;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_Q,
@@ -229,13 +223,6 @@ Lexer* lexer) {
 				code,
 				start,
 				tokens + buffer_i);
-
-			if(lexer_allocator(
-				buffer_i + 1,
-				lexer)
-			== false)
-				return -1;
-
 			lexer_get_next_word(
 				code,
 				&start,
@@ -262,7 +249,8 @@ Lexer* lexer) {
 
 	*end = buffer_end;
 
-	if(strncmp(
+	if(*end - start == 5 // as much as character than in `scope`
+	&& strncmp(
 		"scope",
 		code + start,
 		*end - start)
@@ -302,7 +290,8 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	if(strncmp(
+	if(*end - start == 5
+	&& strncmp(
 		"scope",
 		code + start,
 		*end - start)
@@ -312,7 +301,8 @@ Lexer* lexer) {
 			.subtype = TokenSubtype_SCOPE,
 			.start = start,
 			.end = *end};
-	} else if(strncmp(
+	} else if(*end - start == 4
+	       && strncmp(
 		"then",
 		code + start,
 		*end - start)
@@ -322,7 +312,8 @@ Lexer* lexer) {
 			.subtype = TokenSubtype_THEN,
 			.start = start,
 			.end = *end};
-	} else if(strncmp(
+	} else if(*end - start == 4
+	       && strncmp(
 		"imod",
 		code + start,
 		*end - start)
@@ -332,7 +323,8 @@ Lexer* lexer) {
 			.subtype = TokenSubtype_MODULE_INPUT,
 			.start = start,
 			.end = *end};
-	} else if(strncmp(
+	} else if(*end - start == 4
+	       && strncmp(
 		"omod",
 		code + start,
 		*end - start)
@@ -482,7 +474,10 @@ Lexer* lexer) {
 
 	lexer_initialize_allocator(lexer);
 
-	if(!lexer_create_allocator(lexer))
+	if(lexer_create_allocator_limit(
+		lexer->source->length + 1,
+		lexer)
+	== false)
 		goto DESTROY;
 
 	while(lexer_get_next_word(
@@ -497,12 +492,6 @@ Lexer* lexer) {
 
 		if(code[end] == '\0')
 			break;
-		// allocation
-		if(lexer_allocator(
-			i + 1,
-			lexer)
-		== false)
-			goto DESTROY;
 		// create tokens
 		Token* token = (Token*) lexer->tokens.addr + i;
 
@@ -542,25 +531,13 @@ Lexer* lexer) {
 				&i,
 				lexer))
 		== 1) {
-			long int buffer_end = end;
-			lexer_get_next_word(
-				code,
-				&start,
-				&buffer_end);
-
-			if(code[start] == '(') {
-				if(lexer_allocator(
-					i + 1,
-					lexer)
-				== false)
-					goto DESTROY;
-				
+			if(code[end] == '(') {
 				create_token_RSPE(
 					code,
-					start,
+					end,
 					token + 1);
 				count_RSPE_parenthesis_nest += 1;
-				end = buffer_end;
+				end += 1;
 				i += 1;
 			}
 		} else if(if_L_create_token(
@@ -605,13 +582,6 @@ Lexer* lexer) {
 							code,
 							start,
 							tokens + buffer_i);
-
-						if(lexer_allocator(
-							buffer_i + 1,
-							lexer)
-						== false)
-							goto DESTROY;
-
 						lexer_get_next_word(
 							code,
 							&start,
@@ -619,6 +589,7 @@ Lexer* lexer) {
 						buffer_i += 1;
 					} while(code[start] != ':');
 
+					end -= 1;
 					i = buffer_i - 1;
 				} else {
 					create_token_LSPE(

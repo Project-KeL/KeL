@@ -19,9 +19,11 @@ void lexer_initialize_allocator(Lexer* lexer) {
 	initialize_memory_area(&lexer->tokens);
 }
 
-bool lexer_create_allocator(Lexer* lexer) {
+bool lexer_create_allocator_limit(
+size_t limit,
+Lexer* lexer) {
 	if(create_memory_area(
-		CHUNK,
+		limit,
 		sizeof(Token),
 		&lexer->tokens)
 	== false)
@@ -29,6 +31,12 @@ bool lexer_create_allocator(Lexer* lexer) {
 
 	create_token_null((Token*) lexer->tokens.addr);
 	return true;
+}
+
+bool lexer_create_allocator_chunk(Lexer* lexer) {
+	return lexer_create_allocator_limit(
+		CHUNK,
+		lexer);
 }
 
 bool lexer_allocator(
@@ -39,7 +47,7 @@ Lexer* lexer) {
 			(minimum / CHUNK + 1) * CHUNK,
 			&lexer->tokens)
 		== false)
-			return false;	
+			assert(false); // the `lexer_create_allocator_limit` must be used
 	}
 
 	return true;

@@ -55,8 +55,8 @@ char** argv) {
 	if((exit_status = create_lexer(
 		&source,
 		&memArea,
-		&lexer)
-	== false))
+		&lexer))
+	== false)
 		goto END;
 #ifndef NDEBUG
 	debug_lexer_print_tokens(&lexer);
