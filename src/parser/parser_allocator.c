@@ -9,13 +9,10 @@
 #define CHUNK 4096
 
 static void create_node_null(Node* token) {
-	/*
 	*token = (Node) {
-		.type = TokenType_NO,
-		.subtype = TokenSubtype_NO,
-		.start = 0,
-		.end = 0};
-	*/
+		.type = NodeType_NO,
+		.arity = 0,
+		.token = 0};
 }
 
 void parser_initialize_allocator(Parser* parser) {
@@ -34,7 +31,7 @@ Parser* parser) {
 	== false)
 		return false;
 
-	// create_node_null((Node*) parser->nodes.addr);
+	create_node_null((Node*) parser->nodes.base);
 	return true;
 }
 

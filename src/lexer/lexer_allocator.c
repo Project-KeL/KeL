@@ -29,7 +29,7 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	create_token_null((Token*) lexer->tokens.addr);
+	create_token_null((Token*) lexer->tokens.base);
 	return true;
 }
 
@@ -56,9 +56,14 @@ Lexer* lexer) {
 }
 
 bool lexer_allocator_shrink(Lexer* lexer) {
+	// later: must check if lexer->tokens.count is smaller than lexer->source.length
+	// TODO: check `source.c` to verify first and last `\0` (if needed, add it)
+	// same in `parser_allocator.c`
 	const bool error = memory_area_realloc(
 		lexer->tokens.count + 1, // null token
 		&lexer->tokens);
+	// for the parser
+	create_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
 	return error;
 }
 

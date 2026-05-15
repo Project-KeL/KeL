@@ -3,7 +3,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "debug_lexer.h"
-#include "lexer.h"
 
 static void print_info_token(
 const char* code,
@@ -24,6 +23,7 @@ const Token* token) {
 	case TokenType_PL: type = "PL    "; break;
 	case TokenType_LIT: type = "LIT   "; break;
 	case TokenType_COLON_LONELY: type = "COL   "; break;
+	default: assert(false);
 	}
 
 	printf(
@@ -60,12 +60,12 @@ void debug_lexer_print_tokens(const Lexer* lexer) {
 		printf("\t");
 		print_info_token(
 			lexer->source->content,
-			(Token*) lexer->tokens.addr + i);
+			(Token*) lexer->tokens.base + i);
 	}
 
 	printf(
 		"\nNumber of tokens: %zu.\n",
-		lexer->tokens.count); 
+		lexer->tokens.count - 2); // null tokens at start and end
 }
 
 #endif

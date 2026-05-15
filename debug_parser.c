@@ -1,109 +1,53 @@
+#include "parser.h"
 #ifndef NDEBUG
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include "debug_parser.h"
 #include "parser_allocator.h"
-#include "parser.h"
-/*
-void debug_print_nodes(const TAC* tac) {
-	// const char* code = parser->lexer->source->content;
 
-	const MemoryChainLink* link;
-	const Node* node = parser_allocator_start_node(
-		parser,
-		&link);
+static void print_info_node(const Node* node) {
+	const char* type;
+
+	switch(node->type) {
+	case NodeType_LIT_NUM: type = "LIT NUM"; break;
+	case NodeType_LIT_CHAR: type = "LIT CHAR"; break;
+	case NodeType_LIT_STR: type = "LIT STR"; break;
+	case NodeType_GRP_QUAL: type = "GRP QUAL"; break;
+	case NodeType_GRP_L_PARES: type = "GRP L PARES"; break;
+	case NodeType_GRP_R_PARES: type = "GRP R PARES"; break;
+	case NodeType_GRP_BRACS: type = "GRP BRACS"; break;
+	case NodeType_SCOPE: type = "SCOPE"; break;
+	case NodeType_SCOPE_IF: type = "IF"; break;
+	case NodeType_SCOPE_THROUGH: type = "THROUGH"; break;
+	case NodeType_SCOPE_ELSE_IF: type = "ELSE_IF"; break;
+	case NodeType_SCOPE_ELSE: type = "ELSE"; break;
+	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
+	case NodeType_DECL_VAR: type = "DECL VAR"; break;
+	case NodeType_DECL_PAL: type = "DECL PAL"; break;
+	case NodeType_VAR_TYPE: type = "VAR TYPE"; break;
+	case NodeType_PAL_TYPE: type = "PAL TYPE"; break;
+	case NodeType_ID: type = "ID"; break;
+	case NodeType_CALL: type = "CALL"; break;
+	default: assert(false);
+	}
+
+	printf("%s\n", type);
+}
+
+void debug_print_nodes(const Parser* parser) {
 	printf("NODES:\n");
 
-	if(node == NULL)
-		return;
-/*
-	do {
+	for(size_t i = 1;
+	i < parser->nodes.count - 1;
+	i += 1) {
 		printf("\t");
+		print_info_node((Node*) parser->nodes.base + i);
+	}
 
-		if(node->type == NodeType_MODULE) {
-			if(node->subtype == NodeSubtypeModule_INPUT)
-				printf("IMOD ");
-			else if(node->subtype == NodeSubtypeModule_OUTPUT)
-				printf("OMOD ");
-
-			printf(
-				"<%.*s>\n",
-				(int) (node->token->L_end - node->token->L_start),
-				code + node->token->L_start);
-			print_info_node_full_tail(
-				code,
-				parser,
-				&link,
-				&node,
-				print_info_submodule);
-		} else if(node->type == NodeType_SCOPE_START) {
-			printf(
-				"SCOPE START (%td NODES) ID: %p\n",
-				node->value - 1,
-				node);
-		} else if(node->type == NodeType_INTRODUCTION) {
-			print_info_node_key_introduction(
-				code,
-				node);
-			parser_allocator_next(
-				parser,
-				&link,
-				&node);
-			printf("\t\t[TYPE]\n");
-			print_info_node_full_tail(
-				code,
-				parser,
-				&link,
-				&node,
-				print_info_node_type);
-		} else if(node->type == NodeType_CALL) {
-			print_info_node_key_call(
-				code,
-				node);
-			parser_allocator_next(
-				parser,
-				&link,
-				&node);
-			printf("\t\t");
-			print_info_node_key_call_return_type(
-				code,
-				node);
-
-			do {
-				parser_allocator_next(
-					parser,
-					&link,
-					&node);	
-				printf("\t\t");
-				print_info_node_argument(
-					code,
-					node);
-			} while(parser_node_get_tail(node) != NULL);
-		} else if(node->type == NodeType_SCOPE_END) {
-			printf("SCOPE END\n");
-		} else if(node->type == NodeType_LITERAL) {
-			print_info_token(
-				code,
-				node->token);
-		} else {
-			printf(
-				"%" PRIu64 ", %" PRIu64 "\n",
-				node->type,
-				node->subtype);
-		}
-	} while(parser_allocator_next(
-		parser,
-		&link,
-		&node)
-	== true);
-*/
-	// (number of memory area - 1) * size of a chunk
-	// + what remains in the last memory area
-/*
 	printf(
 		"\nNumber of nodes: %zu.\n",
-		parser->nodes.count * parser->nodes.first->memArea.count);
+		parser->nodes.count - 2); // null nodes at start and end
 }
-*/
+
 #endif

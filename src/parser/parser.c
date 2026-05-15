@@ -1,11 +1,15 @@
 #include "parser.h"
 #include "allocator.h"
+#include "lexer.h"
 #include "parser_allocator.h"
+#include "parser_utils.h"
+#include <stdio.h>
 
-#define DEFINE_CONTEXT(context) Context* context = (Context*) stack_context.addr + stack_context.count
-#define DEFINE_OPERATOR(operator) Operator operator = (Operator) stack_operator.addr + stack_operator.count
+/*
+ * DECL: VAR or PAL (consumes the identifier, the type and, if it exists, the initialization)
+*/
 
-static int error;
+static int error = 0;
 
 static int set_error(int value) {
 	if(error == -1)
@@ -13,6 +17,98 @@ static int set_error(int value) {
 
 	error = value;
 	return value;
+}
+
+static bool if_ID_create_node(
+size_t i,
+size_t* j,
+MemoryStack* stack_operators,
+Parser* parser) {
+	const Token* tokens = parser->lexer->tokens.base;
+
+	if(!parser_is_ID(tokens + i))
+		return false;
+
+	Node* nodes = (Node*) parser->nodes.base;
+	nodes[*j] = (Node) {
+		.type = NodeType_ID,
+		.arity = 0,
+		.token = i};
+	Operator* top_operator = memory_stack_top_addr(stack_operators);
+	top_operator->count_arity += 1;
+	*j += 1;
+	return true;
+}
+
+static bool if_TYPE_create_operator(
+size_t* i,
+size_t* j,
+MemoryStack* stack_operator,
+Parser* parser) {
+	const Token* tokens = (const Token*) parser->lexer->tokens.base;
+	size_t buffer_i = *i;
+
+	if(tokens[buffer_i].type != TokenType_RSPE
+	&& tokens[buffer_i].type != TokenType_R)
+		return false;
+	// TODO
+	return true;
+}
+
+static bool if_DECL_create_operator(
+size_t* i,
+size_t* j,
+MemoryStack* stack_operator,
+Parser* parser) {
+	const Token* tokens = (const Token*) parser->lexer->tokens.base;
+	size_t buffer_i = *i;
+
+	if(tokens[buffer_i].type != TokenType_COM)
+		return false;
+	// `buffer_i` to look for an R parenthesis
+	do {
+		if(parser_is_quick_exit(tokens + buffer_i))
+			break;
+
+		buffer_i += 1;
+	} while(!parser_is_R_left_parenthesis(tokens + buffer_i));
+
+	Operator operator = {};
+
+	if(parser_is_R_left_parenthesis(tokens + buffer_i)) {
+		operator = (Operator) {
+			.type = NodeType_DECL_PAL,
+			.token = *i,
+			.precedence = 0,
+			.count_arity = 0};
+	} else {
+		operator = (Operator) {
+			.type = NodeType_DECL_VAR,
+			.token = *i,
+			.precedence = 0,
+			.count_arity = 0};
+	}
+	
+	memory_stack_push(
+		(void*) &operator,
+		stack_operator);
+	// `buffer_i` to look for an identifier
+	buffer_i = *i + 1;
+
+	if(if_ID_create_node(
+		buffer_i,
+		j,
+		stack_operator,
+		parser)
+	== false)
+		return false;
+	//`buffer_i` to look for a type
+	buffer_i = *i + 3;
+
+	// TODO
+
+	*i = buffer_i;
+	return true;
 }
 
 void initialize_parser(Parser* parser) {
@@ -28,25 +124,29 @@ Parser* parser) {
 	assert(lexer != NULL);
 	assert(parser != NULL);
 
-	MemoryArea stack_context;
-	MemoryArea stack_operator;
-	initialize_memory_area(&stack_context);
-	initialize_memory_area(&stack_operator);
+	error = 0;
 
-	if(!create_memory_area(
+	parser->lexer = lexer;
+
+	MemoryStack stack_context;
+	MemoryStack stack_operator;
+	initialize_memory_stack(&stack_context);
+	initialize_memory_stack(&stack_operator);
+
+	if(!create_memory_stack(
 		1024,
 		sizeof(Context),
 		&stack_context)
-	|| create_memory_area(
+	|| create_memory_stack(
 		1024,
 		sizeof(Operator),
 		&stack_operator)
 	== false) {
-		error = -1;
+		set_error(-1);
 		goto CLEAR;
 	}
 
-	DEFINE_CONTEXT(context);
+	Context* context = (Context*) stack_context.top;
 	*context = (Context) {
 		.type = ContextType_SCOPE_0,
 		.watermark = 0,
@@ -56,16 +156,42 @@ Parser* parser) {
 	parser_initialize_allocator(parser);
 
 	if(parser_create_allocator_limit(
-		lexer->source->length,
+		lexer->tokens.count,
 		parser)
 	== false) {
-		error = -1;
+		set_error(-1);
 		goto CLEAR;
 	}
 
+	size_t i = 1; // token position
+	size_t j = 1; // node position
+
+	while(i < lexer->tokens.count - 1) {
+		if(if_DECL_create_operator(
+			&i,
+			&j,
+			&stack_operator,
+			parser)
+		== true) {
+			// OK
+		} else {
+			set_error(-1);
+			break;
+		}
+
+		i += 1;
+	}
+
+	if(i == 0)
+		set_error(-1); // do a better error code later
+	
+	parser->nodes.count = j;
+
+	if(!parser_allocator_shrink(parser))
+		set_error(-1);
 CLEAR:
-	destroy_memory_area(&stack_operator);
-	destroy_memory_area(&stack_context);
+	destroy_memory_stack(&stack_operator);
+	destroy_memory_stack(&stack_context);
 
 	if(error == 0)
 		return true;

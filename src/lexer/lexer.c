@@ -88,7 +88,7 @@ long int start,
 long int end,
 size_t i,
 Lexer* lexer) {
-	Token* tokens = lexer->tokens.addr;
+	Token* tokens = lexer->tokens.base;
 
 	if(tokens[i - 1].type != TokenType_COM
 	|| lexer_is_name(
@@ -124,7 +124,7 @@ Lexer* lexer) {
 		return 0;
 
 	do {
-		Token* const tokens = (Token*) lexer->tokens.addr;
+		Token* const tokens = (Token*) lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_Q,
 			.subtype = TokenSubtype_NO,
@@ -184,7 +184,7 @@ long int* end,
 size_t i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = (Token*) lexer->tokens.addr;
+	Token* tokens = (Token*) lexer->tokens.base;
 
 	if(code[*end] != ':'
 	|| !isgraph(code[*end + 1])
@@ -218,7 +218,7 @@ Lexer* lexer) {
 
 	if(lexer_is_operator_modifier(code[start])) {
 		do {
-			Token* tokens = (Token*) lexer->tokens.addr;
+			Token* tokens = (Token*) lexer->tokens.base;
 			create_token_RSPE(
 				code,
 				start,
@@ -230,7 +230,7 @@ Lexer* lexer) {
 			buffer_i += 1;
 		} while(lexer_is_operator_modifier(code[start]));
 	} else if(code[start] == '_') {
-		Token* tokens = (Token*) lexer->tokens.addr;
+		Token* tokens = (Token*) lexer->tokens.base;
 		create_token_RSPE(
 			code,
 			start,
@@ -255,14 +255,14 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		Token* tokens = (Token*) lexer->tokens.addr;
+		Token* tokens = (Token*) lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_RSCOPE,
 			.subtype = TokenSubtype_SCOPE,
 			.start = start,
 			.end = *end};
 	} else {
-		Token* tokens = (Token*) lexer->tokens.addr;
+		Token* tokens = (Token*) lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_R,
 			.subtype = TokenSubtype_NO,
@@ -281,7 +281,7 @@ long int* end,
 size_t i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
-	Token* tokens = (Token*) lexer->tokens.addr;
+	Token* tokens = (Token*) lexer->tokens.base;
 
 	if(lexer_is_name(
 		code,
@@ -458,6 +458,8 @@ Lexer* lexer) {
 	assert(memArea != NULL);
 	assert(lexer != NULL);
 
+	error = 0;
+
 	lexer->source = source;
 
 	const char* code = source->content;
@@ -493,7 +495,7 @@ Lexer* lexer) {
 		if(code[end] == '\0')
 			break;
 		// create tokens
-		Token* token = (Token*) lexer->tokens.addr + i;
+		Token* token = (Token*) lexer->tokens.base + i;
 
 		if(if_COM_create_token(
 			code,
@@ -577,7 +579,7 @@ Lexer* lexer) {
 
 				if(code[buffer_start] == ':') {
 					do {
-						Token* tokens = (Token*) lexer->tokens.addr;
+						Token* tokens = (Token*) lexer->tokens.base;
 						create_token_RSPE(
 							code,
 							start,

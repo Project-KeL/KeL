@@ -10,7 +10,7 @@ MemoryArea* memArea) {
 	assert(memArea->count >= (size_t) source->length); // at least the size of the source (matching parenthesis)
 
 	const char* code = source->content;
-	char* const memory = memArea->addr;
+	char* const memory = memArea->base;
 	bool marker_literal_string = false;
 	size_t count_delimiter_open = 0;
 	long int start = 0;

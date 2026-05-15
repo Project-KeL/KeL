@@ -2,14 +2,18 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include "lexer.h"
 #include "lexer_utils.h"
 #include "parser_utils.h"
 
-// look at the commit 147b4b12 to get back the string to uint64_t converter
+bool parser_is_quick_exit(const Token* token) {
+	return token->type == TokenType_NO
+		|| token->subtype == TokenSubtype_SEMICOLON;
+}
 
 bool parser_is_parenthesis(const Token* token) {
 	return token->subtype == TokenSubtype_LPARENTHESIS
-	    || token->subtype == TokenSubtype_RPARENTHESIS;
+		|| token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
 bool parser_is_bracket(const Token* token) {
@@ -18,27 +22,27 @@ bool parser_is_bracket(const Token* token) {
 }
 
 bool parser_is_L_left_parenthesis(const Token* token) {
-	return token->type == TokenType_L
+	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_LPARENTHESIS;
 }
 
 bool parser_is_L_right_parenthesis(const Token* token) {
-	return token->type == TokenType_L
+	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
 bool parser_is_R_grave_accent(const Token* token) {
-	return token->type == TokenType_R
+	return token->type == TokenType_RSPE
 	    && token->subtype == TokenSubtype_GRAVE_ACCENT;
 }
 
 bool parser_is_R_left_parenthesis(const Token* token) {
-	return token->type == TokenType_R
+	return token->type == TokenType_RSPE
 	    && token->subtype == TokenSubtype_LPARENTHESIS;
 }
 
 bool parser_is_R_right_parenthesis(const Token* token) {
-	return token->type == TokenType_R
+	return token->type == TokenType_RSPE
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
@@ -77,6 +81,10 @@ bool parser_is_special(const Token* token) {
 	    && token->subtype <= TokenSubtype_TILDE;
 }
 
+bool parser_is_ID(const Token* token) {
+	return token->type == TokenType_ID;
+}
+
 bool parser_is_key(const Token* token) {
 	return (token->type == TokenType_L
 	     || token->type == TokenType_PL)
@@ -90,21 +98,6 @@ bool parser_is_lock(const Token* token) {
 }
 
 bool parser_is_code_token_side_L_match(
-const char* code,
-const Token* token1,
-const Token* token2) {
-	if(token1 == NULL
-	|| token2 == NULL
-	|| token1->end - token1->start != token2->end - token2->start)
-		return false;
-
-	return strncmp(
-		code + token1->start,
-		code + token2->start,
-		token1->end - token1->start) == 0;
-}
-
-bool parser_is_code_token_side_R_match(
 const char* code,
 const Token* token1,
 const Token* token2) {
