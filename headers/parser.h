@@ -9,6 +9,8 @@
 typedef enum: uint64_t {
 #define NODE_TYPE(type) NodeType_ ## type
 	NODE_TYPE(NO) = 0,
+// Qualifiers
+	NODE_TYPE(QUAL),
 // LIT
 	NODE_TYPE(LIT_NUM),
 	NODE_TYPE(LIT_CHAR),
@@ -28,9 +30,12 @@ typedef enum: uint64_t {
 // Keys actions
 	NODE_TYPE(DECL_VAR),
 	NODE_TYPE(DECL_PAL),
-	NODE_TYPE(VAR_TYPE),
-	NODE_TYPE(PAL_TYPE), // VAR_TYPE + GRP_PARES
+	NODE_TYPE(TYPE_VAR),
+	NODE_TYPE(TYPE_PAL), // TYPE_VAR + GRP_PARES
+	NODE_TYPE(TYPE_PAL_VOID), // is implicit (PAL with no return type or empty parenthesis)
 	NODE_TYPE(ID),
+	NODE_TYPE(L),
+	NODE_TYPE(PARAM),
 	NODE_TYPE(CALL),
 #undef NODE_TYPE
 } NodeType;

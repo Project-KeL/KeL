@@ -11,6 +11,11 @@ bool parser_is_quick_exit(const Token* token) {
 		|| token->subtype == TokenSubtype_SEMICOLON;
 }
 
+bool parser_is_instruction_end(const Token *token) {
+	return token->type == TokenType_LSPE
+        && token->subtype == TokenSubtype_SEMICOLON;
+}
+
 bool parser_is_parenthesis(const Token* token) {
 	return token->subtype == TokenSubtype_LPARENTHESIS
 		|| token->subtype == TokenSubtype_RPARENTHESIS;
@@ -74,6 +79,11 @@ bool parser_is_scope_L(const Token* token) {
 bool parser_is_scope_R(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_SCOPE;
+}
+
+bool parser_is_PAL_comma(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_COMMA;
 }
 
 bool parser_is_special(const Token* token) {

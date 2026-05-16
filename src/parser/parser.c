@@ -2,6 +2,8 @@
 #include "allocator.h"
 #include "lexer.h"
 #include "parser_allocator.h"
+#include "parser_declaration.h"
+#include "parser_node.h"
 #include "parser_utils.h"
 #include <stdio.h>
 
@@ -17,105 +19,6 @@ static int set_error(int value) {
 
 	error = value;
 	return value;
-}
-
-static bool if_ID_create_node(
-size_t i,
-size_t* j,
-MemoryStack* stack_operators,
-Parser* parser) {
-	const Token* tokens = parser->lexer->tokens.base;
-
-	if(!parser_is_ID(tokens + i))
-		return false;
-
-	Node* nodes = (Node*) parser->nodes.base;
-	nodes[*j] = (Node) {
-		.type = NodeType_ID,
-		.arity = 0,
-		.token = i};
-	Operator* top_operator = memory_stack_top_addr(stack_operators);
-	top_operator->count_arity += 1;
-	*j += 1;
-	return true;
-}
-
-static bool if_TYPE_create_operator(
-size_t* i,
-size_t* j,
-MemoryStack* stack_operator,
-Parser* parser) {
-	const Token* tokens = (const Token*) parser->lexer->tokens.base;
-	size_t buffer_i = *i;
-
-	if(tokens[buffer_i].type != TokenType_RSPE
-	&& tokens[buffer_i].type != TokenType_R)
-		return false;
-	// TODO
-	return true;
-}
-
-static bool if_DECL_create_operator(
-size_t* i,
-size_t* j,
-MemoryStack* stack_operator,
-Parser* parser) {
-	const Token* tokens = (const Token*) parser->lexer->tokens.base;
-	size_t buffer_i = *i;
-
-	if(tokens[buffer_i].type != TokenType_COM)
-		return false;
-	// `buffer_i` to look for an R parenthesis
-	do {
-		if(parser_is_quick_exit(tokens + buffer_i))
-			break;
-
-		buffer_i += 1;
-	} while(!parser_is_R_left_parenthesis(tokens + buffer_i));
-
-	Operator operator = {};
-
-	if(parser_is_R_left_parenthesis(tokens + buffer_i)) {
-		operator = (Operator) {
-			.type = NodeType_DECL_PAL,
-			.token = *i,
-			.precedence = 0,
-			.count_arity = 0};
-	} else {
-		operator = (Operator) {
-			.type = NodeType_DECL_VAR,
-			.token = *i,
-			.precedence = 0,
-			.count_arity = 0};
-	}
-	
-	memory_stack_push(
-		(void*) &operator,
-		stack_operator);
-	// `buffer_i` to look for an identifier
-	buffer_i = *i + 1;
-
-	if(if_ID_create_node(
-		buffer_i,
-		j,
-		stack_operator,
-		parser)
-	== false)
-		return false;
-	//`buffer_i` to look for a type
-	buffer_i = *i + 3;
-
-	// TODO
-
-	*i = buffer_i;
-	return true;
-}
-
-void initialize_parser(Parser* parser) {
-	assert(parser != NULL);
-
-	parser->lexer = NULL;
-	initialize_memory_area(&parser->nodes);
 }
 
 bool create_parser(
@@ -156,13 +59,14 @@ Parser* parser) {
 	parser_initialize_allocator(parser);
 
 	if(parser_create_allocator_limit(
-		lexer->tokens.count,
+		lexer->source->length,
 		parser)
 	== false) {
 		set_error(-1);
 		goto CLEAR;
 	}
 
+	const Token* const tokens = lexer->tokens.base;
 	size_t i = 1; // token position
 	size_t j = 1; // node position
 
@@ -170,6 +74,7 @@ Parser* parser) {
 		if(if_DECL_create_operator(
 			&i,
 			&j,
+			&stack_context,
 			&stack_operator,
 			parser)
 		== true) {
@@ -177,6 +82,20 @@ Parser* parser) {
 		} else {
 			set_error(-1);
 			break;
+		}
+	
+		if(parser_is_instruction_end(tokens + i)) {
+			Operator pop_operator;
+			memory_stack_pop(
+				(char*) &pop_operator,
+				&stack_operator);
+			parser_create_operator(
+				pop_operator.type,
+				pop_operator.count_arity,
+				pop_operator.token,
+				&j,
+				&stack_operator,
+				parser);
 		}
 
 		i += 1;

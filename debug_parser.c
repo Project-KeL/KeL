@@ -6,10 +6,13 @@
 #include "debug_parser.h"
 #include "parser_allocator.h"
 
-static void print_info_node(const Node* node) {
+static void print_info_node(
+const Parser* parser,
+const Node* node) {
 	const char* type;
 
 	switch(node->type) {
+	case NodeType_QUAL: type ="QUAL"; break;
 	case NodeType_LIT_NUM: type = "LIT NUM"; break;
 	case NodeType_LIT_CHAR: type = "LIT CHAR"; break;
 	case NodeType_LIT_STR: type = "LIT STR"; break;
@@ -25,14 +28,29 @@ static void print_info_node(const Node* node) {
 	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
 	case NodeType_DECL_VAR: type = "DECL VAR"; break;
 	case NodeType_DECL_PAL: type = "DECL PAL"; break;
-	case NodeType_VAR_TYPE: type = "VAR TYPE"; break;
-	case NodeType_PAL_TYPE: type = "PAL TYPE"; break;
+	case NodeType_TYPE_VAR: type = "TYPE VAR"; break;
+	case NodeType_TYPE_PAL: type = "TYPE PAL"; break;
+	case NodeType_TYPE_PAL_VOID: type = "TYPE PAL VOID"; break;
 	case NodeType_ID: type = "ID"; break;
+	case NodeType_L: type = "L"; break;
+	case NodeType_PARAM: type = "PARAM"; break;
 	case NodeType_CALL: type = "CALL"; break;
 	default: assert(false);
 	}
 
-	printf("%s\n", type);
+	printf("%s", type);
+
+	if(node->arity > 0) {
+		printf("/%" PRIu32, node->arity);
+	}
+	
+	const Lexer* lexer = parser->lexer;
+	const Token* tokens = lexer->tokens.base;
+
+	printf(
+		" (%.*s)\n",
+		(int)(tokens[node->token].end - tokens[node->token].start),
+		lexer->source->content + tokens[node->token].start);
 }
 
 void debug_print_nodes(const Parser* parser) {
@@ -42,7 +60,9 @@ void debug_print_nodes(const Parser* parser) {
 	i < parser->nodes.count - 1;
 	i += 1) {
 		printf("\t");
-		print_info_node((Node*) parser->nodes.base + i);
+		print_info_node(
+			parser,
+			(Node*) parser->nodes.base + i);
 	}
 
 	printf(
