@@ -51,19 +51,19 @@ size_t* j,
 MemoryStack* stack_operator,
 Parser* parser) {
 	const Token* const tokens = parser->lexer->tokens.base;
-	size_t buffer_i = *i;
 
-	if(!parser_is_R_left_parenthesis(tokens + buffer_i))
+	if(!parser_is_R_left_parenthesis(tokens + *i))
 		return false;
 
 	Operator operator = (Operator) {
 		.type = NodeType_GRP_R_PARES,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = buffer_i};
+		.token = *i};
 	memory_stack_push(
 		(char*) &operator,
 		stack_operator);
+	size_t buffer_i = *i;
 	size_t buffer_j = *j;
 	buffer_i += 1;
 
@@ -133,12 +133,12 @@ Parser* parser) {
 	assert(parser != NULL);
 
 	const Token* tokens = (const Token*) parser->lexer->tokens.base;
-	size_t buffer_i = *i;
 
-	if(tokens[buffer_i].type != TokenType_RSPE // TODO RSPE
-	&& tokens[buffer_i].type != TokenType_R)
+	if(tokens[*i].type != TokenType_RSPE // TODO RSPE
+	&& tokens[*i].type != TokenType_R)
 		return false;
 
+	size_t buffer_i = *i;
 	size_t buffer_j = *j;
 	bool maybe_type_return = false;
 
@@ -170,7 +170,7 @@ Parser* parser) {
 		}
 
 		Operator* top_operator = memory_stack_top_addr(stack_operator);
-		top_operator->count_arity -= 2; // TYPE_VAR + GRP_PARES in TYPE_PAL
+		top_operator->count_arity -= 2; // TYPE_PAL = TYPE_VAR + GRP_PARES
 		parser_create_operator(
 			NodeType_TYPE_PAL,
 			2,
@@ -178,6 +178,7 @@ Parser* parser) {
 			&buffer_j,
 			stack_operator,
 			parser);
+		buffer_i += 1;
 	}
 
 	*i = buffer_i;

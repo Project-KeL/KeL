@@ -10,13 +10,13 @@ typedef enum: uint64_t {
 #define NODE_TYPE(type) NodeType_ ## type
 	NODE_TYPE(NO) = 0,
 // Qualifiers
-	NODE_TYPE(QUAL),
+	NODE_TYPE(Q),
 // LIT
 	NODE_TYPE(LIT_NUM),
 	NODE_TYPE(LIT_CHAR),
 	NODE_TYPE(LIT_STR),
 // Groups
-	NODE_TYPE(GRP_QUAL),
+	NODE_TYPE(GRP_Q),
 	NODE_TYPE(GRP_L_PARES),
 	NODE_TYPE(GRP_R_PARES),
 	NODE_TYPE(GRP_BRACS),
@@ -30,6 +30,7 @@ typedef enum: uint64_t {
 // Keys actions
 	NODE_TYPE(DECL_VAR),
 	NODE_TYPE(DECL_PAL),
+	NODE_TYPE(INIT),
 	NODE_TYPE(TYPE_VAR),
 	NODE_TYPE(TYPE_PAL), // TYPE_VAR + GRP_PARES
 	NODE_TYPE(TYPE_PAL_VOID), // is implicit (PAL with no return type or empty parenthesis)

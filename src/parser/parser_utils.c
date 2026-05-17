@@ -13,12 +13,17 @@ bool parser_is_quick_exit(const Token* token) {
 
 bool parser_is_instruction_end(const Token *token) {
 	return token->type == TokenType_LSPE
-        && token->subtype == TokenSubtype_SEMICOLON;
+	    && token->subtype == TokenSubtype_SEMICOLON;
+}
+
+bool parser_is_equal(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_EQUAL;
 }
 
 bool parser_is_parenthesis(const Token* token) {
 	return token->subtype == TokenSubtype_LPARENTHESIS
-		|| token->subtype == TokenSubtype_RPARENTHESIS;
+	    || token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
 bool parser_is_bracket(const Token* token) {

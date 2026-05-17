@@ -6,6 +6,7 @@
 
 bool parser_is_quick_exit(const Token* token);
 bool parser_is_instruction_end(const Token* token);
+bool parser_is_equal(const Token* token);
 bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);
 bool parser_is_L_left_parenthesis(const Token* token);

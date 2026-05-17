@@ -21,6 +21,48 @@ static int set_error(int value) {
 	return value;
 }
 
+static void if_GRP_Q_create_operator(
+size_t* i,
+size_t* j,
+MemoryStack* stack_operator,
+Parser* parser) {
+	const Token* const tokens = parser->lexer->tokens.base;
+
+	if(!parser_is_qualifier(tokens + *i))
+		return;
+
+	Operator operator = (Operator) {
+		.type = NodeType_GRP_Q,
+		.precedence = 0,
+		.count_arity = 0,
+		.token = *i};
+	memory_stack_push(
+		(char*) &operator,
+		stack_operator);
+
+	do {
+		parser_create_leaf(
+			NodeType_Q,
+			*i,
+			j,
+			stack_operator,
+			parser);
+		*i += 1;
+	} while(parser_is_qualifier(tokens + *i));
+
+	Operator pop_operator;
+	memory_stack_pop(
+		(char*) &pop_operator,
+		stack_operator);
+	parser_create_operator(
+		pop_operator.type,
+		pop_operator.count_arity,
+		pop_operator.token,
+		j,
+		stack_operator,
+		parser);
+}
+
 bool create_parser(
 const Lexer* lexer,
 Parser* parser) {
@@ -55,7 +97,6 @@ Parser* parser) {
 		.watermark = 0,
 		.child_count = 0,
 		.token = 0};
-
 	parser_initialize_allocator(parser);
 
 	if(parser_create_allocator_limit(
@@ -71,6 +112,12 @@ Parser* parser) {
 	size_t j = 1; // node position
 
 	while(i < lexer->tokens.count - 1) {
+		if_GRP_Q_create_operator(
+			&i,
+			&j,
+			&stack_operator,
+			parser);
+
 		if(if_DECL_create_operator(
 			&i,
 			&j,

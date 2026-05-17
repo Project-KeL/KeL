@@ -29,6 +29,14 @@ Parser* parser) {
 	return true;
 }
 
+static bool if_INIT_create_operator(
+NodeType DECL, // VAR or PAL
+size_t* i,
+size_t* j,
+MemoryStack* stack_operator,
+Parser* parser) {
+}
+
 bool if_DECL_create_operator(
 size_t* i,
 size_t* j,
@@ -82,6 +90,9 @@ Parser* parser) {
 		parser)
 	== false)
 		return false;
+	// `=` is optional
+	if(parser_is_equal(tokens + buffer_i))
+		buffer_i += 1;
 	// `buffer_i` to look for an initialization (TODO)
 	*i = buffer_i;
 	*j = buffer_j;

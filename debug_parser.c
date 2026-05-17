@@ -12,11 +12,11 @@ const Node* node) {
 	const char* type;
 
 	switch(node->type) {
-	case NodeType_QUAL: type ="QUAL"; break;
+	case NodeType_Q: type ="QUAL"; break;
 	case NodeType_LIT_NUM: type = "LIT NUM"; break;
 	case NodeType_LIT_CHAR: type = "LIT CHAR"; break;
 	case NodeType_LIT_STR: type = "LIT STR"; break;
-	case NodeType_GRP_QUAL: type = "GRP QUAL"; break;
+	case NodeType_GRP_Q: type = "GRP QUAL"; break;
 	case NodeType_GRP_L_PARES: type = "GRP L PARES"; break;
 	case NodeType_GRP_R_PARES: type = "GRP R PARES"; break;
 	case NodeType_GRP_BRACS: type = "GRP BRACS"; break;
@@ -28,6 +28,7 @@ const Node* node) {
 	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
 	case NodeType_DECL_VAR: type = "DECL VAR"; break;
 	case NodeType_DECL_PAL: type = "DECL PAL"; break;
+	case NodeType_INIT: type = "INIT"; break;
 	case NodeType_TYPE_VAR: type = "TYPE VAR"; break;
 	case NodeType_TYPE_PAL: type = "TYPE PAL"; break;
 	case NodeType_TYPE_PAL_VOID: type = "TYPE PAL VOID"; break;
@@ -48,7 +49,7 @@ const Node* node) {
 	const Token* tokens = lexer->tokens.base;
 
 	printf(
-		" (%.*s)\n",
+		" \"%.*s\"\n",
 		(int)(tokens[node->token].end - tokens[node->token].start),
 		lexer->source->content + tokens[node->token].start);
 }
