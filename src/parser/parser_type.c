@@ -69,7 +69,7 @@ Parser* parser) {
 
 	if(!parser_is_R_right_parenthesis(tokens + buffer_i)) {
 		do {
-			if(parser_is_quick_exit(tokens + buffer_i))
+			if(parser_is_instruction_quick_exit(tokens + buffer_i))
 				return false;
 
 			if(if_PARAM_create_leaf(

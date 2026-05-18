@@ -1,3 +1,4 @@
+#include "lexer.h"
 #ifndef NDEBUG
 #include <assert.h>
 #include <inttypes.h>
@@ -32,7 +33,9 @@ const Token* token) {
 
 	switch(token->subtype) {
 	case TokenSubtype_SCOPE: printf("SCOPE"); break;
-	case TokenSubtype_THEN: printf("THEN"); break;
+	case TokenSubtype_IF: printf("THEN"); break;
+	case TokenSubtype_ELSE_IF: printf("ELSE IF"); break;
+	case TokenSubtype_ELSE: printf("ELSE"); break;
 	case TokenSubtype_MODULE_INPUT: printf("IMOD"); break;
 	case TokenSubtype_MODULE_OUTPUT: printf("OMOD"); break;
 	default:

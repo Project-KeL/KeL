@@ -38,6 +38,11 @@ typedef enum: uint64_t {
 	NODE_TYPE(L),
 	NODE_TYPE(PARAM),
 	NODE_TYPE(CALL),
+// Operators
+	NODE_TYPE(ADD),
+	NODE_TYPE(SUB),
+	NODE_TYPE(MUL),
+	NODE_TYPE(DIV),
 #undef NODE_TYPE
 } NodeType;
 
@@ -51,13 +56,18 @@ typedef enum: uint64_t {
 #define CONTEXT_TYPE(type) ContextType_ ## type
 	CONTEXT_TYPE(NO) = 0,
 	CONTEXT_TYPE(SCOPE_0),
+	CONTEXT_TYPE(SCOPE),
+	CONTEXT_TYPE(SCOPE_IF),
+	CONTEXT_TYPE(SCOPE_THROUGH),
+	CONTEXT_TYPE(SCOPE_ELSE_IF),
+	CONTEXT_TYPE(SCOPE_ELSE),
 #undef CONTEXT_TYPE
 } ContextType;
 
 typedef struct {
 	ContextType type;
 	uint32_t watermark;
-	uint32_t child_count;
+	uint32_t count_child;
 	size_t token;
 } Context;
 

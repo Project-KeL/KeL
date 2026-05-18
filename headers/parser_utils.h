@@ -3,10 +3,12 @@
 
 #include "lexer.h"
 #include "parser.h"
-
-bool parser_is_quick_exit(const Token* token);
+// instructions
+bool parser_is_instruction_quick_exit(const Token* token);
 bool parser_is_instruction_end(const Token* token);
-bool parser_is_equal(const Token* token);
+bool parser_is_L_scope_end(const Token* token);
+bool parser_is_instruction_initialization_equal(const Token* token);
+// misc
 bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);
 bool parser_is_L_left_parenthesis(const Token* token);
@@ -19,9 +21,10 @@ bool parser_is_qualifier(const Token* token);
 bool parser_is_operator(const Token* token);
 bool parser_is_operator_leveling(const Token* token);
 bool parser_is_operator_modifier(const Token* token);
-bool parser_is_scope_L(const Token* token);
-bool parser_is_scope_R(const Token* token);
+bool parser_is_L_scope(const Token* token);
+bool parser_is_R_scope(const Token* token);
 bool parser_is_PAL_comma(const Token* token);
+bool parser_is_literal(const Token* token);
 bool parser_is_special(const Token* token);
 bool parser_is_ID(const Token* token);
 bool parser_is_key(const Token* token);

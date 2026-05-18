@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 /*
+ * GRP_Q
  * DECL: VAR or PAL (consumes the identifier, the type and, if it exists, the initialization)
 */
 
@@ -95,7 +96,7 @@ Parser* parser) {
 	*context = (Context) {
 		.type = ContextType_SCOPE_0,
 		.watermark = 0,
-		.child_count = 0,
+		.count_child = 0,
 		.token = 0};
 	parser_initialize_allocator(parser);
 
@@ -143,6 +144,13 @@ Parser* parser) {
 				&j,
 				&stack_operator,
 				parser);
+			// ignore all the `;`
+			while(parser_is_instruction_end(tokens + i))
+				i += 1;
+		} else if(parser_is_L_scope_end(tokens + i)) {
+		} else {
+			set_error(-1);
+			break;
 		}
 
 		i += 1;

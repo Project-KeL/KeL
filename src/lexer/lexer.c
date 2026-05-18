@@ -278,7 +278,7 @@ Lexer* lexer) {
 static bool if_L_create_token(
 long int start,
 long int* end,
-size_t i,
+size_t* i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
 	Token* const tokens = lexer->tokens.base;
@@ -296,7 +296,7 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		tokens[i] = (Token) {
+		tokens[*i] = (Token) {
 			.type = TokenType_LSCOPE,
 			.subtype = TokenSubtype_SCOPE,
 			.start = start,
@@ -307,9 +307,21 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		tokens[i] = (Token) {
+		TokenSubtype subtype = TokenSubtype_IF;
+
+		if(code[tokens[*i - 1].start] == '~'
+		&& *i > 1
+		&& code[tokens[*i - 2].start] == ',') {
+			subtype = TokenSubtype_ELSE_IF;
+			*i -= 2; // absorb `~` ans `,`
+		} else if(code[tokens[*i - 1].start] == '~') {
+			subtype = TokenSubtype_ELSE;
+			*i -= 1; // absorb `~`
+		}
+
+		tokens[*i] = (Token) {
 			.type = TokenType_LSCOPE,
-			.subtype = TokenSubtype_THEN,
+			.subtype = subtype,
 			.start = start,
 			.end = *end};
 	} else if(*end - start == 4
@@ -318,7 +330,7 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		tokens[i] = (Token) {
+		tokens[*i] = (Token) {
 			.type = TokenType_L,
 			.subtype = TokenSubtype_MODULE_INPUT,
 			.start = start,
@@ -329,13 +341,13 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		tokens[i] = (Token) {
+		tokens[*i] = (Token) {
 			.type = TokenType_L,
 			.subtype = TokenSubtype_MODULE_OUTPUT,
 			.start = start,
 			.end = *end};
 	} else {
-		tokens[i] = (Token) {
+		tokens[*i] = (Token) {
 			.type = TokenType_L,
 			.subtype = TokenSubtype_NO,
 			.start = start,
@@ -545,7 +557,7 @@ Lexer* lexer) {
 		} else if(if_L_create_token(
 			start,
 			&end,
-			i,
+			&i,
 			lexer)
 		== true) {
 			// OK

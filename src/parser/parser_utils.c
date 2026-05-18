@@ -6,7 +6,7 @@
 #include "lexer_utils.h"
 #include "parser_utils.h"
 
-bool parser_is_quick_exit(const Token* token) {
+bool parser_is_instruction_quick_exit(const Token* token) {
 	return token->type == TokenType_NO
 		|| token->subtype == TokenSubtype_SEMICOLON;
 }
@@ -16,7 +16,12 @@ bool parser_is_instruction_end(const Token *token) {
 	    && token->subtype == TokenSubtype_SEMICOLON;
 }
 
-bool parser_is_equal(const Token* token) {
+bool parser_is_L_scope_end(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_PERIOD;
+}
+
+bool parser_is_instruction_initialization_equal(const Token* token) {
 	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_EQUAL;
 }
@@ -76,12 +81,12 @@ bool parser_is_operator_modifier(const Token* token) {
 	    || parser_is_bracket(token);
 }
 
-bool parser_is_scope_L(const Token* token) {
+bool parser_is_L_scope(const Token* token) {
 	return token->type == TokenType_L
 	    && token->subtype == TokenSubtype_SCOPE;
 }
 
-bool parser_is_scope_R(const Token* token) {
+bool parser_is_R_scope(const Token* token) {
 	return token->type == TokenType_R
 	    && token->subtype == TokenSubtype_SCOPE;
 }
@@ -89,6 +94,10 @@ bool parser_is_scope_R(const Token* token) {
 bool parser_is_PAL_comma(const Token* token) {
 	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_COMMA;
+}
+
+bool parser_is_literal(const Token* token) {
+	return token->type == TokenType_LIT;
 }
 
 bool parser_is_special(const Token* token) {
