@@ -1,5 +1,6 @@
 #include "parser_type.h"
 #include "allocator.h"
+#include "lexer.h"
 #include "parser.h"
 #include "parser_node.h"
 #include "parser_utils.h"
@@ -12,7 +13,8 @@ MemoryStack* stack_operator,
 Parser* parser) {
 	const Token* const tokens = parser->lexer->tokens.base;
 
-	if(tokens[*i].type != TokenType_R)
+	if(tokens[*i].type != TokenType_R
+	&& tokens[*i].type != TokenType_RSCOPE)
 		return false;
 
 	parser_create_leaf(
@@ -92,7 +94,6 @@ Parser* parser) {
 				if(!parser_is_R_right_parenthesis(tokens + buffer_i))
 					return false;
 				else {
-					buffer_i += 1;
 					break;
 				}
 			} else
@@ -135,7 +136,8 @@ Parser* parser) {
 	const Token* tokens = (const Token*) parser->lexer->tokens.base;
 
 	if(tokens[*i].type != TokenType_RSPE // TODO RSPE
-	&& tokens[*i].type != TokenType_R)
+	&& tokens[*i].type != TokenType_R
+	&& tokens[*i].type != TokenType_RSCOPE)
 		return false;
 
 	size_t buffer_i = *i;

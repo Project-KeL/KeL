@@ -258,7 +258,7 @@ Lexer* lexer) {
 		Token* const tokens = lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_RSCOPE,
-			.subtype = TokenSubtype_SCOPE,
+			.subtype = TokenSubtype_NO,
 			.start = start,
 			.end = *end};
 	} else {
@@ -310,7 +310,7 @@ Lexer* lexer) {
 		TokenSubtype subtype = TokenSubtype_IF;
 
 		if(code[tokens[*i - 1].start] == '~'
-		&& *i > 1
+		&& *i > 1 // do better??
 		&& code[tokens[*i - 2].start] == ',') {
 			subtype = TokenSubtype_ELSE_IF;
 			*i -= 2; // absorb `~` ans `,`

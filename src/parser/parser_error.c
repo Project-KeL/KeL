@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 /*
- * 1. a scope must match with a dot
+ * 1. a scope must match with a dot (see `lexer.c`
  * 2. pattern of a lock for a key declaration or an initialization
  */
 /*

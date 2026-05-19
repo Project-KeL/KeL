@@ -4,6 +4,7 @@
 #include "parser_allocator.h"
 #include "parser_declaration.h"
 #include "parser_node.h"
+#include "parser_scope.h"
 #include "parser_utils.h"
 #include <stdio.h>
 
@@ -29,7 +30,7 @@ MemoryStack* stack_operator,
 Parser* parser) {
 	const Token* const tokens = parser->lexer->tokens.base;
 
-	if(!parser_is_qualifier(tokens + *i))
+	if(!parser_is_Q(tokens + *i))
 		return;
 
 	Operator operator = (Operator) {
@@ -49,7 +50,7 @@ Parser* parser) {
 			stack_operator,
 			parser);
 		*i += 1;
-	} while(parser_is_qualifier(tokens + *i));
+	} while(parser_is_Q(tokens + *i));
 
 	Operator pop_operator;
 	memory_stack_pop(
@@ -62,6 +63,13 @@ Parser* parser) {
 		j,
 		stack_operator,
 		parser);
+}
+
+void initialize_parser(Parser* parser) {
+	assert(parser != NULL);
+
+	parser->lexer = NULL;
+	initialize_memory_area(&parser->nodes);
 }
 
 bool create_parser(
@@ -92,14 +100,17 @@ Parser* parser) {
 		goto CLEAR;
 	}
 
-	Context* context = (Context*) stack_context.top;
-	*context = (Context) {
+	Context context;
+	context = (Context) {
 		.type = ContextType_SCOPE_0,
 		.watermark = 0,
 		.count_child = 0,
 		.token = 0};
+	memory_stack_push(
+		(char*) &context,
+		&stack_context);
 	parser_initialize_allocator(parser);
-
+	
 	if(parser_create_allocator_limit(
 		lexer->source->length,
 		parser)
@@ -119,7 +130,14 @@ Parser* parser) {
 			&stack_operator,
 			parser);
 
-		if(if_DECL_create_operator(
+		if(if_LSCOPE_create_context(
+			&i,
+			&stack_context,
+			&stack_operator,
+			parser)
+		== true) {
+			continue;
+		} else if(if_DECL_create_operator(
 			&i,
 			&j,
 			&stack_context,
@@ -127,9 +145,6 @@ Parser* parser) {
 			parser)
 		== true) {
 			// OK
-		} else {
-			set_error(-1);
-			break;
 		}
 	
 		if(parser_is_instruction_end(tokens + i)) {
@@ -144,21 +159,32 @@ Parser* parser) {
 				&j,
 				&stack_operator,
 				parser);
+			Context* top_context = memory_stack_top_addr(&stack_context);
+			top_context->count_child += 1;
 			// ignore all the `;`
 			while(parser_is_instruction_end(tokens + i))
 				i += 1;
-		} else if(parser_is_L_scope_end(tokens + i)) {
+		} else if(if_LSCOPE_end_destroy_context(
+			&i,
+			&j,
+			&stack_context,
+			&stack_operator,
+			parser)
+		== true) {
 		} else {
 			set_error(-1);
 			break;
 		}
-
-		i += 1;
 	}
 
 	if(i == 0)
 		set_error(-1); // do a better error code later
-	
+	// the last context must be the first one (prevents not ended scopes)
+	Context* top_context = memory_stack_top_addr(&stack_context);
+
+	if(top_context->type != ContextType_SCOPE_0)
+		set_error(-1);
+
 	parser->nodes.count = j;
 
 	if(!parser_allocator_shrink(parser))

@@ -98,11 +98,3 @@ Parser* parser) {
 	*j = buffer_j;
 	return true;
 }
-
-void initialize_parser(Parser* parser) {
-	assert(parser != NULL);
-
-	parser->lexer = NULL;
-	initialize_memory_area(&parser->nodes);
-}
-
