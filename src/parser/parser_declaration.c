@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "parser_node.h"
 #include "parser.h"
+#include "parser_scope.h"
 #include "parser_type.h"
 #include "parser_utils.h"
 #include <stdio.h>
@@ -29,12 +30,38 @@ Parser* parser) {
 	return true;
 }
 
-static bool if_INIT_create_operator(
+static void if_INIT_create_operator(
 NodeType DECL, // VAR or PAL
 size_t* i,
 size_t* j,
+MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
+	assert(DECL == NodeType_DECL_VAR
+	    || DECL == NodeType_DECL_PAL);
+
+	Token* tokens = parser->lexer->tokens.base;
+	size_t buffer_i = *i;
+
+	if(parser_is_instruction_INIT_equal(tokens + *i))
+		buffer_i += 1;
+
+	if(DECL == NodeType_DECL_VAR) {
+		// TODO
+	} else if(DECL == NodeType_DECL_PAL) {
+		if(parser_is_LSCOPE_start(tokens + buffer_i)) {
+			Operator operator = (Operator) {
+				.type = NodeType_INIT_PAL,
+				.precedence = 0,
+				.count_arity = 0,
+				.token = buffer_i};
+			memory_stack_push(
+				(char*) &operator,
+				stack_operator);
+		}
+	}
+
+	*i = buffer_i;
 }
 
 bool if_DECL_create_operator(
@@ -90,9 +117,14 @@ Parser* parser) {
 		parser)
 	== false)
 		return false;
-	// `=` is optional
-	if(parser_is_instruction_initialization_equal(tokens + buffer_i))
-		buffer_i += 1;
+	// initialization
+	if_INIT_create_operator(
+		type_DECL,
+		&buffer_i,
+		&buffer_j,
+		stack_context,
+		stack_operator,
+		parser);
 	// `buffer_i` to look for an initialization (TODO)
 	*i = buffer_i;
 	*j = buffer_j;

@@ -144,7 +144,10 @@ Parser* parser) {
 			&stack_operator,
 			parser)
 		== true) {
-			// OK
+			Operator* top_operator = memory_stack_top_addr(&stack_operator);
+
+			if(top_operator->type == NodeType_INIT_PAL)
+				continue;
 		}
 	
 		if(parser_is_instruction_end(tokens + i)) {

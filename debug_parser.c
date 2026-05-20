@@ -28,7 +28,8 @@ const Node* node) {
 	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
 	case NodeType_DECL_VAR: type = "DECL VAR"; break;
 	case NodeType_DECL_PAL: type = "DECL PAL"; break;
-	case NodeType_INIT: type = "INIT"; break;
+	case NodeType_INIT_VAR: type = "INIT VAR"; break;
+	case NodeType_INIT_PAL: type = "INIT PAL"; break;
 	case NodeType_TYPE_VAR: type = "TYPE VAR"; break;
 	case NodeType_TYPE_PAL: type = "TYPE PAL"; break;
 	case NodeType_TYPE_PAL_VOID: type = "TYPE PAL VOID"; break;

@@ -30,7 +30,8 @@ typedef enum: uint64_t {
 // Keys actions
 	NODE_TYPE(DECL_VAR),
 	NODE_TYPE(DECL_PAL),
-	NODE_TYPE(INIT),
+	NODE_TYPE(INIT_VAR),
+	NODE_TYPE(INIT_PAL),
 	NODE_TYPE(TYPE_VAR),
 	NODE_TYPE(TYPE_PAL), // TYPE_VAR + GRP_PARES
 	NODE_TYPE(TYPE_PAL_VOID), // is implicit (PAL with no return type or empty parenthesis)

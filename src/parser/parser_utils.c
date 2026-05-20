@@ -16,7 +16,7 @@ bool parser_is_instruction_end(const Token *token) {
 	    && token->subtype == TokenSubtype_SEMICOLON;
 }
 
-bool parser_is_instruction_initialization_equal(const Token* token) {
+bool parser_is_instruction_INIT_equal(const Token* token) {
 	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_EQUAL;
 }

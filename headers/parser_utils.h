@@ -6,7 +6,7 @@
 // instructions
 bool parser_is_instruction_quick_exit(const Token* token);
 bool parser_is_instruction_end(const Token* token);
-bool parser_is_instruction_initialization_equal(const Token* token);
+bool parser_is_instruction_INIT_equal(const Token* token);
 bool parser_is_LSCOPE_start(const Token* token);
 bool parser_is_LSCOPE_end(const Token* token);
 // misc

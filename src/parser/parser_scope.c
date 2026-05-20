@@ -19,7 +19,7 @@ Parser* parser) {
 	const MemoryArea* const memArea = &stack_operator->memArea;
 	const size_t watermark = ((char*) stack_operator->top - (char*) memArea->base) / memArea->size_type;
 	Context context = {
-		.type = ContextType_SCOPE, // later `then`
+		.type = ContextType_SCOPE, // later `then` and `through`
 		.watermark = watermark,
 		.count_child = 0,
 		.token = *i};
@@ -27,6 +27,7 @@ Parser* parser) {
 		(char*) &context,
 		stack_context);
 	*i += 1;
+
 	return true;
 }
 
@@ -76,9 +77,27 @@ Parser* parser) {
 		j,
 		stack_operator,
 		parser);
-	// this previous child is a child of the outer scope
-	top_context = memory_stack_top_addr(stack_context);
-	top_context->count_child += 1;
+	// if the previous operator is a PAL initialization
+	Operator* top_operator = memory_stack_top_addr(stack_operator);
+
+	if(top_operator->type == NodeType_INIT_PAL) {
+		Operator pop_operator;
+		memory_stack_pop(
+			(char*) &pop_operator,
+			stack_operator);
+		parser_create_operator(
+			pop_operator.type,
+			1,
+			pop_operator.token,
+			j,
+			stack_operator,
+			parser);
+	} else {
+		// this previous child is a child of the outer scope
+		top_context = memory_stack_top_addr(stack_context);
+		top_context->count_child += 1;
+	}
+
 	*i += 1;
 	return true;
 }
