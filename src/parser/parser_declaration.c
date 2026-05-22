@@ -77,7 +77,7 @@ Parser* parser) {
 		return false;
 	// `buffer_i` to look for an R parenthesis
 	do {
-		if(parser_is_instruction_quick_exit(tokens + buffer_i))
+		if(parser_is_instruction_exit(tokens + buffer_i))
 			break;
 
 		buffer_i += 1;

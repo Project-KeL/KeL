@@ -12,7 +12,7 @@
  * COM: (COMmand) to declare`an identifier
  * ID: IDentifier, the declaration of a key
  * Q: Qualifier
- * LR: (Left-Right) an L, a colon and someting else, one after another
+ * LR: (Left-Right) an L, a colon and something immediately else, one after another
  * L: to the Left of a colon
  * R: to the Right of a colon
  * PL: Period-Left, a period immediatly followed by a name
@@ -25,12 +25,36 @@
  * 3 - Q to get rid of this special case (words surrounded by brackets, surrounded by blanks)
  * 4 - LR it is the most common token
  * 5 - RSPE and R to process tokens with a colon, maybe an RSPE (or more) and an R
- *     RSCOPE (Right SCOPE) is mostly use for labels
+ *     RSCOPE (Right SCOPE) is mostly used for labels
  * 6 - L is also very common
  *     LSCOPE (Left SCOPE) like `then`
- * 7 - PL (special use of the period, so before specials)
- * 8 - LIT
+ * 7 - LIT
+ * 8 - PL (special use of the period, so before specials)
  * 9 - LSPE, lonely colon and RSPE parenthesis nesting
+ *
+ * For `L:R`, `L` is an LR and `R`an R ; we read until there is no R or RSPE
+ *
+ * LSPE = TokenType_LSPE + lexer_character_to_subtype
+ * RSPE = TokenType_RSPE + lexer_character_to_subtype
+ * COM = TokenType_COM + lexer_character_to_subtype
+ * ID =  TokenType_ID + TokenSubtype_NO
+ * Q = TokenType_Q + TokenSubtype_NO
+ * LR = TokenType_LR + TokenSubtype_NO
+ * RSCOPE = TokenType_RSCOPE + TokenSubtype_NO
+ * R = TokenType_R + TokenSubtype_NO
+ * LSCOPE = TokenType_LSCOPE + TokenSubtype_NO
+ * LSCOPE(then) = TokenType_LSCOPE + TokenSubtype_IF
+ * LSCOPE(, ~then) = TokenType_LSCOPE + TokenSubtype_ELSE_IF
+ * LSCOPE(~then) = TokenType_LSCOPE + TokenSubtype_ELSE
+ * L = TokenType_L + TokenSubtype_NO
+ * IMOD = TokenType_L + TokenSubtype_MODULE_INPUT
+ * OMOD = TokenType_L + TokenSubtype_MODULE_OUTPUT
+ * LIT = TokenType_LIT + (TokenSubtype_LIT_NUM / TokenSubtype_LIT_CHAR / TokenSubtype_LIT_STR)
+ * PL = TokenType_PL + TokenSubtype_NO
+ * COL = TokenType_COLON_LONELY + TokenSubtype_NO
+ * 
+ *
+ * TODO: ID subtype will differentiate cases like `@a :A` and `a :@A
 */
 
 // more errors will be supported in "lexer_error.c".
@@ -298,7 +322,7 @@ Lexer* lexer) {
 	== 0) {
 		tokens[*i] = (Token) {
 			.type = TokenType_LSCOPE,
-			.subtype = TokenSubtype_SCOPE,
+			.subtype = TokenSubtype_NO,
 			.start = start,
 			.end = *end};
 	} else if(*end - start == 4
@@ -313,7 +337,7 @@ Lexer* lexer) {
 		&& *i > 1 // do better??
 		&& code[tokens[*i - 2].start] == ',') {
 			subtype = TokenSubtype_ELSE_IF;
-			*i -= 2; // absorb `~` ans `,`
+			*i -= 2; // absorb `~` and `,`
 		} else if(code[tokens[*i - 1].start] == '~') {
 			subtype = TokenSubtype_ELSE;
 			*i -= 1; // absorb `~`
@@ -356,7 +380,7 @@ Lexer* lexer) {
 
 	return true;
 }
-// later: check the litteral (for 0b0110, we have to check what follows `b`, it has to be `0` or `1`)
+// later: check the literal (for 0b0110, we have to check what follows `b`, it has to be `0` or `1`)
 static bool if_LIT_create_token(
 const char* code,
 long int start,
@@ -380,7 +404,7 @@ Token* token) {
 		while(code[buffer_end] != '\0'
 		   && (isXdigit(code[buffer_end])
 		    || code[buffer_end] == '`')) buffer_end += 1;
-		// a number cannot be followed by '`' and must be followed by a blank or a special symbole
+		// a number cannot be followed by '`' and must be followed by a blank or a special symbol
 		if(code[buffer_end - 1] == '`'
 		|| (isgraph(code[buffer_end])
 		 && !lexer_is_special(code[buffer_end]))) {

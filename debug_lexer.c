@@ -31,18 +31,20 @@ const Token* token) {
 		"%s\t",
 		type);
 
+	if(token->type == TokenType_LSPE) {
 	switch(token->subtype) {
-	case TokenSubtype_SCOPE: printf("SCOPE"); break;
-	case TokenSubtype_IF: printf("THEN"); break;
-	case TokenSubtype_ELSE_IF: printf("ELSE IF"); break;
-	case TokenSubtype_ELSE: printf("ELSE"); break;
-	case TokenSubtype_MODULE_INPUT: printf("IMOD"); break;
-	case TokenSubtype_MODULE_OUTPUT: printf("OMOD"); break;
-	default:
-		printf(
-			"%.*s",
-			(int)(token->end - token->start),
-			code + token->start);
+		case TokenSubtype_NO: printf("SCOPE"); break;
+		case TokenSubtype_IF: printf("THEN"); break;
+		case TokenSubtype_ELSE_IF: printf("ELSE IF"); break;
+		case TokenSubtype_ELSE: printf("ELSE"); break;
+		case TokenSubtype_MODULE_INPUT: printf("IMOD"); break;
+		case TokenSubtype_MODULE_OUTPUT: printf("OMOD"); break;
+		default:
+			printf(
+				"%.*s",
+				(int)(token->end - token->start),
+				code + token->start);
+		}
 	}
 
 	switch(token->subtype) {

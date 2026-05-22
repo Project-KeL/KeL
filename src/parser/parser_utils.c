@@ -6,9 +6,13 @@
 #include "lexer_utils.h"
 #include "parser_utils.h"
 
-bool parser_is_instruction_quick_exit(const Token* token) {
-	return token->type == TokenType_NO
-		|| token->subtype == TokenSubtype_SEMICOLON;
+// TODO: add asserts on "impossible" tests (exemple, parser_is_command: test all the subtype cases)
+
+bool parser_is_instruction_exit(const Token* token) {
+	return (token->type == TokenType_NO
+	     && token->subtype == TokenSubtype_NO)
+	    || (TokenType_LSPE
+		 && token->subtype == TokenSubtype_SEMICOLON);
 }
 
 bool parser_is_instruction_end(const Token *token) {
@@ -23,7 +27,7 @@ bool parser_is_instruction_INIT_equal(const Token* token) {
 
 bool parser_is_LSCOPE_start(const Token* token) {
 	return token->type == TokenType_LSCOPE
-	    && token->subtype != TokenSubtype_NO;
+	    && token->subtype == TokenSubtype_NO;
 }
 
 bool parser_is_LSCOPE_end(const Token* token) {
@@ -51,9 +55,9 @@ bool parser_is_L_right_parenthesis(const Token* token) {
 	    && token->subtype == TokenSubtype_RPARENTHESIS;
 }
 
-bool parser_is_R_grave_accent(const Token* token) {
+bool parser_is_R_underscope(const Token* token) {
 	return token->type == TokenType_RSPE
-	    && token->subtype == TokenSubtype_GRAVE_ACCENT;
+	    && token->subtype == TokenSubtype_UNDERSCORE;
 }
 
 bool parser_is_R_left_parenthesis(const Token* token) {

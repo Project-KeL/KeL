@@ -4,7 +4,7 @@
 #include "lexer.h"
 //
 // instructions
-bool parser_is_instruction_quick_exit(const Token* token);
+bool parser_is_instruction_exit(const Token* token);
 bool parser_is_instruction_end(const Token* token);
 bool parser_is_instruction_INIT_equal(const Token* token);
 bool parser_is_LSCOPE_start(const Token* token);
@@ -14,7 +14,7 @@ bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);
 bool parser_is_L_left_parenthesis(const Token* token);
 bool parser_is_L_right_parenthesis(const Token* token);
-bool parser_is_R_grave_accent(const Token* token);
+bool parser_is_R_underscope(const Token* token);
 bool parser_is_R_left_parenthesis(const Token* token);
 bool parser_is_R_right_parenthesis(const Token* token);
 bool parser_is_command(const Token* token);
