@@ -77,7 +77,7 @@ Parser* parser) {
 		j,
 		stack_operator,
 		parser);
-	// if the previous operator is a PAL initialization
+	// if the previous operator is a VAR or PAL initialization
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 
 	if(top_operator->type == NodeType_INIT_PAL) {
@@ -92,12 +92,26 @@ Parser* parser) {
 			j,
 			stack_operator,
 			parser);
-	} else {
-		// this previous child is a child of the outer scope
-		top_context = memory_stack_top_addr(stack_context);
-		top_context->count_child += 1;
+		// pop the `DECL_VAR` or the `DECL_PAL`
+		Operator* top_operator = memory_stack_top_addr(stack_operator);
+		// a `INIT_VAR` cannot be initialize with a `scope`
+		assert(top_operator->type == NodeType_DECL_PAL);
+		// pop the `DECL_PAL`
+		memory_stack_pop(
+			(char*) &pop_operator,
+			stack_operator);
+		parser_create_operator(
+			pop_operator.type,
+			pop_operator.count_arity,
+			pop_operator.token,
+			j,
+			stack_operator,
+			parser);
+
 	}
 
+	top_context = memory_stack_top_addr(stack_operator);
+	top_context->count_child += 1;
 	*i += 1;
 	return true;
 }

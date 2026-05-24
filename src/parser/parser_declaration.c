@@ -91,6 +91,12 @@ Parser* parser) {
 	else
 		type_DECL = NodeType_DECL_VAR;
 	
+	MemoryStackState stack_state;
+	initialize_memory_stack_state(&stack_state);
+	memory_stack_state_save(
+		stack_operator,
+		&stack_state);
+
 	Operator operator = (Operator) {
 		.type = type_DECL,
 		.precedence = 0,
@@ -108,7 +114,7 @@ Parser* parser) {
 		stack_operator,
 		parser)
 	== false)
-		return false;
+		goto POP;
 	//`buffer_i` to look for a type
 	if(if_TYPE_create_operator(
 		&buffer_i,
@@ -116,7 +122,7 @@ Parser* parser) {
 		stack_operator,
 		parser)
 	== false)
-		return false;
+		goto POP;
 	// initialization
 	if_INIT_create_operator(
 		type_DECL,
@@ -129,4 +135,9 @@ Parser* parser) {
 	*i = buffer_i;
 	*j = buffer_j;
 	return true;
+POP:
+	memory_stack_state_restore(
+		stack_operator,
+		&stack_state);
+	return false;
 }

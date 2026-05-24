@@ -78,6 +78,34 @@ bool parser_is_Q(const Token* token) {
 	return token->type == TokenType_Q;
 }
 
+bool parser_is_operator_algebraic(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && (token->subtype == TokenSubtype_ASTERISK
+         || token->subtype == TokenSubtype_PLUS
+		 || token->subtype == TokenSubtype_MINUS
+	     || token->subtype == TokenSubtype_DIVIDE);
+}
+
+bool parser_is_operator_MUL(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_ASTERISK;
+}
+
+bool parser_is_operator_ADD(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_PLUS;
+}
+
+bool parser_is_operator_SUB(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_MINUS;
+}
+
+bool parser_is_operator_DIV(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_DIVIDE;
+}
+
 bool parser_is_operator_leveling(const Token* token) {
 	return token->subtype == TokenSubtype_AMPERSAND
 	    || token->subtype == TokenSubtype_MINUS
@@ -102,6 +130,10 @@ bool parser_is_PAL_comma(const Token* token) {
 
 bool parser_is_literal(const Token* token) {
 	return token->type == TokenType_LIT;
+}
+
+bool parser_is_literal_number(const Token* token) {
+	return token->subtype == TokenSubtype_LIT_NUM;
 }
 
 bool parser_is_special(const Token* token) {

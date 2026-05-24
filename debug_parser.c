@@ -6,26 +6,35 @@
 #include "debug_parser.h"
 #include "parser_allocator.h"
 
+#define RED "\x1b[31m"
+#define RESET "\x1b[0m"
+
 static void print_info_node(
 const Parser* parser,
 const Node* node) {
 	const char* type;
 
 	switch(node->type) {
+// Q
 	case NodeType_Q: type ="QUAL"; break;
 	case NodeType_LIT_NUM: type = "LIT NUM"; break;
+// LIT
 	case NodeType_LIT_CHAR: type = "LIT CHAR"; break;
 	case NodeType_LIT_STR: type = "LIT STR"; break;
 	case NodeType_GRP_Q: type = "GRP QUAL"; break;
 	case NodeType_GRP_L_PARES: type = "GRP L PARES"; break;
 	case NodeType_GRP_R_PARES: type = "GRP R PARES"; break;
 	case NodeType_GRP_BRACS: type = "GRP BRACS"; break;
+// SCP
 	case NodeType_SCOPE: type = "SCOPE"; break;
 	case NodeType_SCOPE_IF: type = "IF"; break;
 	case NodeType_SCOPE_THROUGH: type = "THROUGH"; break;
 	case NodeType_SCOPE_ELSE_IF: type = "ELSE_IF"; break;
 	case NodeType_SCOPE_ELSE: type = "ELSE"; break;
 	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
+// EXP
+	case NodeType_EXP: type = "EXP"; break;
+// Keys actions
 	case NodeType_DECL_VAR: type = "DECL VAR"; break;
 	case NodeType_DECL_PAL: type = "DECL PAL"; break;
 	case NodeType_INIT_VAR: type = "INIT VAR"; break;
@@ -37,6 +46,14 @@ const Node* node) {
 	case NodeType_L: type = "L"; break;
 	case NodeType_PARAM: type = "PARAM"; break;
 	case NodeType_CALL: type = "CALL"; break;
+// OP (parenthesis should not be encountered: RPN)
+	case NodeType_OP_LPARENTHESIS: type = RED "OPLP" RESET; break;
+	case NodeType_OP_RPARENTHESIS: type = RED "OPRP" RESET; break;
+	case NodeType_OP_ADD: type = "ADD"; break;
+	case NodeType_OP_SUB: type = "SUB"; break;
+	case NodeType_OP_MUL: type = "MUL"; break;
+	case NodeType_OP_DIV: type = "DOV"; break;
+// error
 	default: assert(false);
 	}
 

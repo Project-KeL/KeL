@@ -139,15 +139,24 @@ MemoryStack* memStack) {
 	return true;
 }
 
-bool memory_stack_pop(
-char* data,
-MemoryStack* memStack) {
+bool memory_stack_discard(MemoryStack* memStack) {
 	assert(memStack != NULL);
 
 	if((char*) memStack->top <= (char*) memStack->memArea.base)
 		return false;
 
 	memStack->top = (char*) memStack->top - memStack->memArea.size_type;
+	return true;
+}
+
+bool memory_stack_pop(
+char* data,
+MemoryStack* memStack) {
+	assert(memStack != NULL);
+
+	if(!memory_stack_discard(memStack))
+		return false;
+
 	memcpy(
 		data,
 		memStack->top,
@@ -170,6 +179,34 @@ void* memory_stack_top_addr(MemoryStack* memStack) {
 	assert(memStack != NULL);
 
 	return (char*) memStack->top - memStack->memArea.size_type;
+}
+
+bool memory_stack_is_empty(MemoryStack* memStack) {
+	return memStack->top == memStack->memArea.base;
+}
+
+void initialize_memory_stack_state(MemoryStackState* memStackState) {
+	assert(memStackState != NULL);
+
+	memStackState->top = NULL;
+}
+
+void memory_stack_state_save(
+MemoryStack* memStack,
+MemoryStackState* memStackState) {
+	assert(memStack != NULL);
+	assert(memStackState != NULL);
+
+	memStackState->top = memStack->top;
+}
+
+void memory_stack_state_restore(
+MemoryStack* memStack,
+MemoryStackState* memStackState) {
+	assert(memStack != NULL);
+	assert(memStackState != NULL);
+
+	memStack->top = memStackState->top;
 }
 
 void initialize_memory_chain(MemoryChain* memChain) {
