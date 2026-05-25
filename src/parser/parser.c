@@ -158,6 +158,7 @@ Parser* parser) {
 			&j,
 			&stack_context,
 			&stack_operator,
+			&stack_buffer,
 			parser)
 		== true) {
 			Operator* top_operator = memory_stack_top_addr(&stack_operator);

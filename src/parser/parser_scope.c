@@ -92,7 +92,6 @@ Parser* parser) {
 			j,
 			stack_operator,
 			parser);
-		// pop the `DECL_VAR` or the `DECL_PAL`
 		Operator* top_operator = memory_stack_top_addr(stack_operator);
 		// a `INIT_VAR` cannot be initialize with a `scope`
 		assert(top_operator->type == NodeType_DECL_PAL);
@@ -110,7 +109,7 @@ Parser* parser) {
 
 	}
 
-	top_context = memory_stack_top_addr(stack_operator);
+	top_context = memory_stack_top_addr(stack_context);
 	top_context->count_child += 1;
 	*i += 1;
 	return true;

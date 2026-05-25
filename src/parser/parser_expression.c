@@ -100,11 +100,11 @@ Parser* parser) {
 		} else if(parser_is_L_right_parenthesis(tokens + buffer_i)) {
 			while(!memory_stack_is_empty(stack_buffer)
 			   && ((Operator*) memory_stack_top_addr(stack_buffer))->type
-			!= NodeType_OP_RPARENTHESIS) {
+			!= NodeType_OP_LPARENTHESIS) {
 				Operator pop_operator;
 				memory_stack_pop(
 					(char*) &pop_operator,
-					stack_operator);
+					stack_buffer);
 				parser_create_operator(
 					pop_operator.type,
 					2,
@@ -115,10 +115,10 @@ Parser* parser) {
 
 				if(memory_stack_is_empty(stack_buffer))
 					return false;
-				// throw `(`
-				memory_stack_discard(stack_buffer);
-				buffer_i += 1;
 			}
+			// throw `(`
+			memory_stack_discard(stack_buffer);
+			buffer_i += 1;
 		}
 	}
 
