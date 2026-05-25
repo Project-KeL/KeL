@@ -202,7 +202,7 @@ Parser* parser) {
 		}
 	}
 
-	if(i == 0)
+	if(i == 1)
 		set_error(-1); // do a better error code later
 	// the last context must be the first one (prevents not ended scopes)
 	Context* top_context = memory_stack_top_addr(&stack_context);

@@ -50,16 +50,46 @@ Parser* parser) {
 	size_t buffer_j = *j;
 
 	if(DECL == NodeType_DECL_VAR) {
+		MemoryStackState stack_state;
+		initialize_memory_stack_state(&stack_state);
+		memory_stack_state_save(
+			stack_operator,
+			&stack_state);
+
+		Operator operator = (Operator) {
+			.type = NodeType_INIT_VAR,
+			.precedence = 0,
+			.count_arity = 0,
+			.token = buffer_i};
+		memory_stack_push(
+			(char*) &operator,
+			stack_operator);
+
 		if(if_EXP_create_operator(
 			&buffer_i,
 			&buffer_j,
 			stack_operator,
 			stack_buffer,
 			parser)
-		==false)
+		==false) {
+			memory_stack_state_restore(
+				stack_operator,
+				&stack_state);
 			return;
-
+		}
+		// pop the EXP
 		Operator pop_operator;
+		memory_stack_pop(
+			(char*) &pop_operator,
+			stack_operator);
+		parser_create_operator(
+			pop_operator.type,
+			pop_operator.count_arity,
+			pop_operator.token,
+			&buffer_j,
+			stack_operator,
+			parser);
+		// pop the INIT
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_operator);
