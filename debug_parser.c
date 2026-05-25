@@ -3,8 +3,8 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include "allocator.h"
 #include "debug_parser.h"
-#include "parser_allocator.h"
 
 #define RED "\x1b[31m"
 #define RESET "\x1b[0m"
@@ -88,5 +88,62 @@ void debug_print_nodes(const Parser* parser) {
 		"\nNumber of nodes: %zu.\n",
 		parser->nodes.count - 2); // null nodes at start and end
 }
+
+void debug_print_tree(const Parser* parser) {
+	const Node* nodes = parser->nodes.base;
+
+	size_t* depths = calloc(
+		parser->nodes.count,
+		sizeof(size_t));
+
+	if(depths == NULL)
+		goto END;
+
+	size_t stack_depth[1024];
+	size_t top = 0;
+
+
+	for(size_t i = parser->nodes.count - 2;
+	i > 0;
+	i -= 1) {
+		// at least the same number of tabulations than the node before
+		size_t depth = top > 0 ? stack_depth[top - 1] : 0;
+		depths[i] = depth;
+
+		if(top > 0)
+			top -= 1;
+
+		for(
+		size_t count = 0;
+		count < nodes[i].arity;
+		count += 1) {
+			stack_depth[top] = depth + 1;
+			top += 1;
+		}
+	}
+
+	for(
+	size_t i = parser->nodes.count - 2;
+	i > 0;
+	i -= 1) {
+		printf("\t");
+
+		for(
+		size_t depth = 0;
+		depth < depths[i];
+		depth += 1) {
+			printf("    ");
+		}
+
+		print_info_node(parser, nodes + i);
+	}
+END:
+	free(depths);
+}
+
+// make a better tree with:
+// ─
+// ├
+// └
 
 #endif
