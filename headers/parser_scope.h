@@ -12,6 +12,7 @@ bool if_LSCOPE_create_context(
 bool if_LSCOPE_end_destroy_context(
 	size_t* i,
 	size_t* j,
+	size_t* i_Q,
 	MemoryStack* stack_context,
 	MemoryStack* stack_operator,
 	Parser* parser);

@@ -46,6 +46,7 @@ const Node* node) {
 	case NodeType_L: type = "L"; break;
 	case NodeType_PARAM: type = "PARAM"; break;
 	case NodeType_CALL: type = "CALL"; break;
+	case NodeType_CALL_CAST: type = "CALLC"; break;
 // OP (parenthesis should not be encountered: RPN)
 	case NodeType_OP_LPARENTHESIS: type = RED "OPLP" RESET; break;
 	case NodeType_OP_RPARENTHESIS: type = RED "OPRP" RESET; break;
@@ -90,6 +91,7 @@ void debug_print_nodes(const Parser* parser) {
 }
 
 void debug_print_tree(const Parser* parser) {
+	printf("TREE:\n");
 	const Node* nodes = parser->nodes.base;
 
 	size_t* depths = calloc(
@@ -102,17 +104,15 @@ void debug_print_tree(const Parser* parser) {
 	size_t stack_depth[1024];
 	size_t top = 0;
 
-
 	for(size_t i = parser->nodes.count - 2;
 	i > 0;
 	i -= 1) {
-		// at least the same number of tabulations than the node before
 		size_t depth = top > 0 ? stack_depth[top - 1] : 0;
 		depths[i] = depth;
 
 		if(top > 0)
 			top -= 1;
-
+		// reserve depth for the child
 		for(
 		size_t count = 0;
 		count < nodes[i].arity;

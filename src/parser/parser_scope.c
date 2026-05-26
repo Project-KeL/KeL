@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "parser_node.h"
+#include "parser_qualifier.h"
 #include "parser_utils.h"
 #include <stdio.h>
 
@@ -34,6 +35,7 @@ Parser* parser) {
 bool if_LSCOPE_end_destroy_context(
 size_t* i,
 size_t* j,
+size_t* i_Q,
 MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
@@ -77,7 +79,7 @@ Parser* parser) {
 		j,
 		stack_operator,
 		parser);
-	// if the previous operator is a VAR or PAL initialization
+	// if the previous operator is a PAL initialization
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 
 	if(top_operator->type == NodeType_INIT_PAL) {
@@ -107,6 +109,14 @@ Parser* parser) {
 			stack_operator,
 			parser);
 
+		if(*i_Q != 0) {
+			if_GRP_Q_create_operator(
+				j,
+				*i_Q,
+				stack_context,
+				parser);
+			*i_Q = 0;
+		}
 	}
 
 	top_context = memory_stack_top_addr(stack_context);

@@ -5,6 +5,7 @@
 #include "parser_declaration.h"
 #include "parser_expression.h"
 #include "parser_node.h"
+#include "parser_qualifier.h"
 #include "parser_scope.h"
 #include "parser_utils.h"
 #include <stdio.h>
@@ -22,48 +23,6 @@ static int set_error(int value) {
 
 	error = value;
 	return value;
-}
-
-static void if_GRP_Q_create_operator(
-size_t* i,
-size_t* j,
-MemoryStack* stack_operator,
-Parser* parser) {
-	const Token* const tokens = parser->lexer->tokens.base;
-
-	if(!parser_is_Q(tokens + *i))
-		return;
-
-	Operator operator = (Operator) {
-		.type = NodeType_GRP_Q,
-		.precedence = 0,
-		.count_arity = 0,
-		.token = *i};
-	memory_stack_push(
-		(char*) &operator,
-		stack_operator);
-
-	do {
-		parser_create_leaf(
-			NodeType_Q,
-			*i,
-			j,
-			stack_operator,
-			parser);
-		*i += 1;
-	} while(parser_is_Q(tokens + *i));
-
-	Operator pop_operator;
-	memory_stack_pop(
-		(char*) &pop_operator,
-		stack_operator);
-	parser_create_operator(
-		pop_operator.type,
-		pop_operator.count_arity,
-		pop_operator.token,
-		j,
-		stack_operator,
-		parser);
 }
 
 void initialize_parser(Parser* parser) {
@@ -105,8 +64,7 @@ Parser* parser) {
 	== false) {
 		set_error(-1);
 		goto CLEAR;
-	}
-	
+	}	
 
 	Context context;
 	context = (Context) {
@@ -130,13 +88,14 @@ Parser* parser) {
 	const Token* const tokens = lexer->tokens.base;
 	size_t i = 1; // token position
 	size_t j = 1; // node position
+	size_t i_Q = 0;
 
 	while(i < lexer->tokens.count - 1) {
-		if_GRP_Q_create_operator(
-			&i,
-			&j,
-			&stack_operator,
-			parser);
+		if(i_Q == 0
+		&& parser_is_Q(tokens + i)) {
+			i_Q = i;
+			while(parser_is_Q(tokens + i)) i += 1;
+		}
 
 		if(if_LSCOPE_create_context(
 			&i,
@@ -186,12 +145,22 @@ Parser* parser) {
 					parser);
 				top_context->count_child += 1;
 			}
+
+			if(i_Q != 0) {
+				if_GRP_Q_create_operator(
+					&j,
+					i_Q,
+					&stack_context,
+					parser);
+				i_Q = 0;
+			}
 			// ignore all the `;`
 			while(parser_is_instruction_end(tokens + i))
 				i += 1;
 		} else if(if_LSCOPE_end_destroy_context(
 			&i,
 			&j,
+			&i_Q,
 			&stack_context,
 			&stack_operator,
 			parser)
