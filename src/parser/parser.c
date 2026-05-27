@@ -4,6 +4,7 @@
 #include "parser_allocator.h"
 #include "parser_declaration.h"
 #include "parser_expression.h"
+#include "parser_module.h"
 #include "parser_node.h"
 #include "parser_qualifier.h"
 #include "parser_scope.h"
@@ -124,6 +125,12 @@ Parser* parser) {
 
 			if(top_operator->type == NodeType_INIT_PAL)
 				continue;
+		} else if(if_MOD_create_operator(
+			&i,
+			&j,
+			&stack_operator,
+			parser)
+		== true) {
 		}
 
 		if(parser_is_instruction_end(tokens + i)) {
@@ -131,7 +138,7 @@ Parser* parser) {
 			const MemoryArea* memArea = &stack_operator.memArea;
 			size_t watermark_over = ((char*) stack_operator.top - (char*) memArea->base) / memArea->size_type;
 
-			if(watermark_over > top_context->watermark) {
+			while(watermark_over > top_context->watermark) {
 				Operator pop_operator;
 				memory_stack_pop(
 					(char*) &pop_operator,
@@ -144,6 +151,7 @@ Parser* parser) {
 					&stack_operator,
 					parser);
 				top_context->count_child += 1;
+				watermark_over -= 1;
 			}
 
 			if(i_Q != 0) {
@@ -165,6 +173,7 @@ Parser* parser) {
 			&stack_operator,
 			parser)
 		== true) {
+			// OK
 		} else {
 			set_error(-1);
 			break;

@@ -11,7 +11,7 @@
 bool parser_is_instruction_exit(const Token* token) {
 	return (token->type == TokenType_NO
 	     && token->subtype == TokenSubtype_NO)
-	    || (TokenType_LSPE
+	    || (token->type == TokenType_LSPE
 		 && token->subtype == TokenSubtype_SEMICOLON);
 }
 
@@ -33,6 +33,16 @@ bool parser_is_LSCOPE_start(const Token* token) {
 bool parser_is_LSCOPE_end(const Token* token) {
 	return token->type == TokenType_LSPE
 	    && token->subtype == TokenSubtype_PERIOD;
+}
+
+bool parser_is_IMOD(const Token* token) {
+	return token->type == TokenType_L
+	    && token->subtype == TokenSubtype_IMOD;
+}
+
+bool parser_is_OMOD(const Token* token) {
+	return token->type == TokenType_L
+	    && token->subtype == TokenSubtype_OMOD;
 }
 
 bool parser_is_parenthesis(const Token* token) {

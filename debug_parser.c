@@ -17,14 +17,20 @@ const Node* node) {
 	switch(node->type) {
 // Q
 	case NodeType_Q: type ="QUAL"; break;
-	case NodeType_LIT_NUM: type = "LIT NUM"; break;
 // LIT
+	case NodeType_LIT_NUM: type = "LIT NUM"; break;
 	case NodeType_LIT_CHAR: type = "LIT CHAR"; break;
 	case NodeType_LIT_STR: type = "LIT STR"; break;
+// GRP
+	case NodeType_GRP_IMOD: type = "GRP IMOD"; break;
+	case NodeType_GRP_OMOD: type = "GRP OMOD"; break;
 	case NodeType_GRP_Q: type = "GRP QUAL"; break;
 	case NodeType_GRP_L_PARES: type = "GRP L PARES"; break;
 	case NodeType_GRP_R_PARES: type = "GRP R PARES"; break;
 	case NodeType_GRP_BRACS: type = "GRP BRACS"; break;
+// MOD
+	case NodeType_IMOD: type = "IMOD"; break;
+	case NodeType_OMOD: type = "OMOD"; break;
 // SCP
 	case NodeType_SCOPE: type = "SCOPE"; break;
 	case NodeType_SCOPE_IF: type = "IF"; break;

@@ -356,7 +356,7 @@ Lexer* lexer) {
 	== 0) {
 		tokens[*i] = (Token) {
 			.type = TokenType_L,
-			.subtype = TokenSubtype_MODULE_INPUT,
+			.subtype = TokenSubtype_IMOD,
 			.start = start,
 			.end = *end};
 	} else if(*end - start == 4
@@ -367,7 +367,7 @@ Lexer* lexer) {
 	== 0) {
 		tokens[*i] = (Token) {
 			.type = TokenType_L,
-			.subtype = TokenSubtype_MODULE_OUTPUT,
+			.subtype = TokenSubtype_OMOD,
 			.start = start,
 			.end = *end};
 	} else {

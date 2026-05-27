@@ -108,7 +108,7 @@ Parser* parser) {
 			j,
 			stack_operator,
 			parser);
-
+		// insert the qualifiers
 		if(*i_Q != 0) {
 			if_GRP_Q_create_operator(
 				j,
