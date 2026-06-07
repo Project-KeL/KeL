@@ -11,6 +11,8 @@ bool parser_is_LSCOPE_start(const Token* token);
 bool parser_is_LSCOPE_end(const Token* token);
 bool parser_is_IMOD(const Token* token);
 bool parser_is_OMOD(const Token* token);
+bool parser_is_CALL(const Token* token);
+bool parser_is_call_separator(const Token* token);
 // misc
 bool parser_is_parenthesis(const Token* token);
 bool parser_is_bracket(const Token* token);

@@ -35,6 +35,7 @@ static void if_INIT_create_operator(
 NodeType DECL, // VAR or PAL
 size_t* i,
 size_t* j,
+MemoryStack* stack_context,
 MemoryStack* stack_operator,
 MemoryStack* stack_buffer,
 Parser* parser) {
@@ -68,10 +69,11 @@ Parser* parser) {
 		if(if_EXP_create_operator(
 			&buffer_i,
 			&buffer_j,
+			stack_context,
 			stack_operator,
 			stack_buffer,
 			parser)
-		==false) {
+		== false) {
 			memory_stack_state_restore(
 				stack_operator,
 				&stack_state);
@@ -182,6 +184,7 @@ Parser* parser) {
 		type_DECL,
 		&buffer_i,
 		&buffer_j,
+		stack_context,
 		stack_operator,
 		stack_buffer,
 		parser);

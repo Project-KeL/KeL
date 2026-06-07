@@ -45,6 +45,17 @@ bool parser_is_OMOD(const Token* token) {
 	    && token->subtype == TokenSubtype_OMOD;
 }
 
+bool parser_is_CALL(const Token* token) {
+	// if `token` is the last token, then it must be a null one
+	return parser_is_key(token)
+	    && parser_is_L_left_parenthesis(token + 1);
+}
+
+bool parser_is_call_separator(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_COMMA;
+}
+
 bool parser_is_parenthesis(const Token* token) {
 	return token->subtype == TokenSubtype_LPARENTHESIS
 	    || token->subtype == TokenSubtype_RPARENTHESIS;

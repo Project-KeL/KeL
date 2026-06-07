@@ -108,6 +108,7 @@ Parser* parser) {
 		} else if(if_EXP_create_operator(
 			&i,
 			&j,
+			&stack_context,
 			&stack_operator,
 			&stack_buffer,
 			parser)
@@ -134,26 +135,13 @@ Parser* parser) {
 		}
 
 		if(parser_is_instruction_end(tokens + i)) {
-			Context* top_context = memory_stack_top_addr(&stack_context);
-			const MemoryArea* memArea = &stack_operator.memArea;
-			size_t watermark_over = ((char*) stack_operator.top - (char*) memArea->base) / memArea->size_type;
-
-			while(watermark_over > top_context->watermark) {
-				Operator pop_operator;
-				memory_stack_pop(
-					(char*) &pop_operator,
-					&stack_operator);
-				parser_create_operator(
-					pop_operator.type,
-					pop_operator.count_arity,
-					pop_operator.token,
-					&j,
-					&stack_operator,
-					parser);
-				top_context->count_child += 1;
-				watermark_over -= 1;
-			}
-
+			// handle `;`
+			parser_context_flush(
+				&j,
+				&stack_context,
+				&stack_operator,
+				parser);
+		
 			if(i_Q != 0) {
 				if_GRP_Q_create_operator(
 					&j,
@@ -173,7 +161,7 @@ Parser* parser) {
 			&stack_operator,
 			parser)
 		== true) {
-			// OK
+			// handle `.`
 		} else {
 			set_error(-1);
 			break;

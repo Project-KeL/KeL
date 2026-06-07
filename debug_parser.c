@@ -27,7 +27,7 @@ const Node* node) {
 	case NodeType_GRP_Q: type = "GRP QUAL"; break;
 	case NodeType_GRP_L_PARES: type = "GRP L PARES"; break;
 	case NodeType_GRP_R_PARES: type = "GRP R PARES"; break;
-	case NodeType_GRP_BRACS: type = "GRP BRACS"; break;
+	case NodeType_GRP_CALL_ARGS: type = "GRP CALL ARG NONE"; break;
 // MOD
 	case NodeType_IMOD: type = "IMOD"; break;
 	case NodeType_OMOD: type = "OMOD"; break;
@@ -49,10 +49,11 @@ const Node* node) {
 	case NodeType_TYPE_PAL: type = "TYPE PAL"; break;
 	case NodeType_TYPE_PAL_VOID: type = "TYPE PAL VOID"; break;
 	case NodeType_ID: type = "ID"; break;
-	case NodeType_L: type = "L"; break;
+	case NodeType_KEY: type = "KEY"; break;
 	case NodeType_PARAM: type = "PARAM"; break;
-	case NodeType_CALL: type = "CALL"; break;
-	case NodeType_CALL_CAST: type = "CALLC"; break;
+	case NodeType_CALLEE: type = "CALEE"; break;
+	case NodeType_CALL_ARG: type = "CALL ARG"; break;
+	case NodeType_CALL_ARG_NONE: type = "ARG NONE"; break;
 // OP (parenthesis should not be encountered: RPN)
 	case NodeType_OP_LPARENTHESIS: type = RED "OPLP" RESET; break;
 	case NodeType_OP_RPARENTHESIS: type = RED "OPRP" RESET; break;

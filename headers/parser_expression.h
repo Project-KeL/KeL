@@ -9,6 +9,7 @@
 bool if_EXP_create_operator(
 	size_t* i,
 	size_t* j,
+	MemoryStack* stack_context,
 	MemoryStack* stack_operator,
 	MemoryStack* stack_buffer,
 	Parser* parser);

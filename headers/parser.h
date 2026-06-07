@@ -21,7 +21,8 @@ typedef enum: uint64_t {
 	NODE_TYPE(GRP_Q),
 	NODE_TYPE(GRP_L_PARES),
 	NODE_TYPE(GRP_R_PARES),
-	NODE_TYPE(GRP_BRACS),
+	NODE_TYPE(GRP_BRAC),
+	NODE_TYPE(GRP_CALL_ARGS),
 // MOD
 	NODE_TYPE(IMOD),
 	NODE_TYPE(OMOD),
@@ -43,10 +44,11 @@ typedef enum: uint64_t {
 	NODE_TYPE(TYPE_PAL), // TYPE_VAR + GRP_PARES
 	NODE_TYPE(TYPE_PAL_VOID), // is implicit (PAL with no return type or empty parenthesis)
 	NODE_TYPE(ID),
-	NODE_TYPE(L),
+	NODE_TYPE(KEY),
 	NODE_TYPE(PARAM),
-	NODE_TYPE(CALL),
-	NODE_TYPE(CALL_CAST),
+	NODE_TYPE(CALLEE),
+	NODE_TYPE(CALL_ARG),
+	NODE_TYPE(CALL_ARG_NONE),
 // OP
 	NODE_TYPE(OP_LPARENTHESIS),
 	NODE_TYPE(OP_RPARENTHESIS),
@@ -54,6 +56,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(OP_SUB),
 	NODE_TYPE(OP_MUL),
 	NODE_TYPE(OP_DIV),
+	NODE_TYPE(OP_CALL),
 #undef NODE_TYPE
 } NodeType;
 
@@ -66,6 +69,7 @@ typedef struct {
 typedef enum: uint64_t {
 #define CONTEXT_TYPE(type) ContextType_ ## type
 	CONTEXT_TYPE(NO) = 0,
+// Scope
 	CONTEXT_TYPE(SCOPE_0),
 	CONTEXT_TYPE(SCOPE),
 	CONTEXT_TYPE(SCOPE_IF),
@@ -73,6 +77,10 @@ typedef enum: uint64_t {
 	CONTEXT_TYPE(SCOPE_ELSE),
 	CONTEXT_TYPE(SCOPE_THROUGH),
 	CONTEXT_TYPE(SCOPE_THROUGH_NOT),
+// Key
+	CONTEXT_TYPE(EXP),
+// Call
+	CONTEXT_TYPE(CALL),
 #undef CONTEXT_TYPE
 } ContextType;
 
