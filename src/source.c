@@ -17,13 +17,15 @@ Source* restrict source) {
 
 	source->path = path;
 
-	bool error = true;
+	bool error = false;
 	FILE* source_file = fopen(
 		path,
 		"r");
 
-	if(source_file == NULL)
-		goto ERROR;
+	if(source_file == NULL) {
+		error = true;
+		goto END;
+	}
 	// get length
 	fseek(
 		source_file,
@@ -35,13 +37,17 @@ Source* restrict source) {
 		0,
 		SEEK_SET);
 
-	if(ferror(source_file) != 0)
-		goto CLOSE;
-	// get source as a string
+	if(ferror(source_file) != 0) {
+		error = true;
+		goto END;
+	}
+	// get source as a string and add sentinel at start and at end
 	source->content = malloc(source->length * sizeof(char) + 2);
 
-	if(source->content == NULL)
-		goto CLOSE;
+	if(source->content == NULL) {
+		error = true;
+		goto END;
+	}
 
 	source->content[0] = '\0'; // will prevent errors with indexes
 
@@ -50,22 +56,22 @@ Source* restrict source) {
 		1,
 		source->length,
 		source_file)
-	!= (size_t) source->length)
-		goto CLOSE;
-
-	error = false;
-CLOSE:
+	!= (size_t) source->length) {
+		error =true;
+		goto END;
+	}
+END:
 	if(fclose(source_file) == EOF)
 		error = true;
 
-	if(error)
-		goto ERROR;
-
 	source->content[(size_t) source->length + 1] = '\0';
+
+	if(error == true) {
+		destroy_source(source);
+		return false;
+	}
+
 	return true;
-ERROR:
-	destroy_source(source);
-	return false;
 }
 
 void destroy_source(Source* source) {

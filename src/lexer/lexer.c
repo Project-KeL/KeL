@@ -54,7 +54,7 @@
  * COL = TokenType_COLON_LONELY + TokenSubtype_NO
  * 
  *
- * TODO: ID subtype will differentiate cases like `@a :A` and `a :@A
+ * TODO: ID subtype will differentiate cases like `@a :A` and `a :@A` (left and right)
 */
 
 // more errors will be supported in "lexer_error.c".
@@ -74,11 +74,10 @@ long int start,
 Token* token) {
 	*token = (Token) {
 		.type = TokenType_LSPE,
-		.subtype = lexer_character_to_subtype(code[start]),
+		.subtype = lexer_character_to_subtype(code[start]), // missing case checked
 		.start = start,
 		.end = start + 1};
 }
-
 
 static void create_token_RSPE(
 const char* code,
@@ -135,8 +134,6 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
-	assert(start != end);
-
 	const char* code = lexer->source->content;
 	lexer_get_next_word(
 		code,
@@ -175,8 +172,6 @@ long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
 Lexer* lexer) {
-	assert(start != end);
-
 	const char* code = lexer->source->content;
 	long int buffer_start = *start;
 	long int buffer_end = *end;
@@ -604,7 +599,7 @@ Lexer* lexer) {
 			// modifiers on the left case
 			if(lexer_is_operator_modifier(code[start])) {
 				long int buffer_start = start;
-				size_t buffer_i = i;
+				long int buffer_i = i;
 				// consume all the modifiers
 				while(lexer_is_operator_modifier(code[buffer_start])) {
 					lexer_get_next_word(
@@ -626,7 +621,7 @@ Lexer* lexer) {
 							&end);
 						buffer_i += 1;
 					} while(code[start] != ':');
-
+					// process the colon
 					end -= 1;
 					i = buffer_i - 1;
 				} else {
@@ -678,7 +673,7 @@ Lexer* lexer) {
 
 	lexer->tokens.count = i;
 
-	if(!lexer_allocator_shrink(lexer))
+	if(!lexer_allocator_shrink_append_null(lexer))
 		goto DESTROY;
 
 	return true;

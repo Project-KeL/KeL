@@ -2,7 +2,7 @@
 #define PARSER_NODE
 
 #include <stddef.h>
-#include "alloca.h"
+#include "allocator.h"
 #include "parser.h"
 
 void parser_create_leaf_raw(

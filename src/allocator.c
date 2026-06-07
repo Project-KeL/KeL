@@ -3,422 +3,421 @@
 #include <string.h>
 #include "allocator.h"
 
-void initialize_memory_area(MemoryArea* memArea) {
-	assert(memArea != NULL);
+void initialize_memory_area(MemoryArea* area) {
+	assert(area != NULL);
 
-	memArea->base = NULL;
-	memArea->count = 0;
-	memArea->size_type = 0;
+	area->base = NULL;
+	area->count = 0;
+	area->size_type = 0;
 }
 
 bool create_memory_area(
 size_t count,
 size_t size_type,
-MemoryArea* memArea) {
+MemoryArea* area) {
 	assert(count != 0);
 	assert(size_type != 0);
-	assert(memArea != NULL);
+	assert(area != NULL);
 
-	if(count == 0 || size_type == 0)
-		return false;
-
-	memArea->size_type = size_type;
-	memArea->base = calloc(count, memArea->size_type);
+	area->size_type = size_type;
+	area->base = calloc(count, size_type);
 	
-	if(memArea->base == NULL) {
-		destroy_memory_area(memArea);
+	if(area->base == NULL) {
+		destroy_memory_area(area);
 		return false;
 	}
 
-	memArea->count = count;
+	area->count = count;
 	return true;
 }
 
-void destroy_memory_area(MemoryArea* memArea) {
-	if(memArea == NULL)
+void destroy_memory_area(MemoryArea* area) {
+	if(area == NULL)
 		return;
 
-	free(memArea->base);
-	initialize_memory_area(memArea);
+	free(area->base);
+	initialize_memory_area(area);
 }
 
 bool memory_area_realloc(
 size_t count,
-MemoryArea* memArea) {
+MemoryArea* area) {
 	assert(count != 0);
-	assert(memArea != NULL);
+	assert(area != NULL);
 
 	void* const addr_realloc = realloc(
-		memArea->base,
-		count * memArea->size_type);
+		area->base,
+		count * area->size_type);
 
 	if(addr_realloc == NULL) {
-		destroy_memory_area(memArea);
+		destroy_memory_area(area);
 		return false;
 	}
 
-	memArea->base = addr_realloc;
-	memArea->count = count;
+	area->base = addr_realloc;
+	area->count = count;
 	return true;
 }
 
 bool start_memory_area_iterator(
-const MemoryArea* memArea,
-MemoryAreaIterator* memAreaIt) {
-	assert(memArea != NULL);
-	assert(memAreaIt != NULL);
+const MemoryArea* area,
+MemoryAreaIterator* area_it) {
+	assert(area != NULL);
+	assert(area_it != NULL);
 
-	memAreaIt->memArea = memArea;
-	return memArea->count != 0;
+	area_it->area = area;
+	return area->count != 0;
 }
 
-void end_memory_area_iterator(MemoryAreaIterator* memAreaIt) {
-	assert(memAreaIt != NULL);
+void end_memory_area_iterator(MemoryAreaIterator* area_it) {
+	assert(area_it != NULL);
 
-	memAreaIt->memArea = NULL;
-	memAreaIt->offset = 0;
+	area_it->area = NULL;
+	area_it->offset = 0;
 }
 
-void* memory_area_iterator_get(MemoryAreaIterator* memAreaIt) {
-	const MemoryArea* memArea = memAreaIt->memArea;
-	return (char*) memArea->base + memArea->size_type * memAreaIt->offset;
+void* memory_area_iterator_get(MemoryAreaIterator* area_it) {
+	assert(area_it != NULL);
+
+	const MemoryArea* area = area_it->area;
+	return (char*) area->base + area_it->offset * area->size_type;
 }
 
-bool memory_area_iterator_next(MemoryAreaIterator* memAreaIt) {
-	assert(memAreaIt != NULL);
+bool memory_area_iterator_next(MemoryAreaIterator* area_it) {
+	assert(area_it != NULL);
 
-	const bool check_bounderies = memAreaIt->offset < memAreaIt->memArea->count;
-	memAreaIt->offset += 1;
+	const bool check_bounderies = area_it->offset < area_it->area->count - 1;
+
+	if(check_bounderies)
+		area_it->offset += 1;
+
 	return check_bounderies;
 }
 
-void initialize_memory_stack(MemoryStack* memStack) {
-	assert(memStack != NULL);
+void initialize_memory_stack(MemoryStack* stack) {
+	assert(stack != NULL);
 
-	initialize_memory_area(&memStack->memArea);
-	memStack->top = NULL;
+	initialize_memory_area(&stack->area);
+	stack->top = NULL;
 }
 
 bool create_memory_stack(
 size_t count,
 size_t size_type,
-MemoryStack* memStack) {
-	assert(memStack != NULL);
+MemoryStack* stack) {
+	assert(stack != NULL);
 
 	bool ret = create_memory_area(
 		count,
 		size_type,
-		&memStack->memArea);
-	memStack->top = memStack->memArea.base;
+		&stack->area);
+	stack->top = stack->area.base;
 	return ret;
 }
 
-void destroy_memory_stack(MemoryStack* memStack) {
-	if(memStack == NULL)
+void destroy_memory_stack(MemoryStack* stack) {
+	if(stack == NULL)
 		return;
 
-	destroy_memory_area(&memStack->memArea);
-	memStack->top = NULL;
+	destroy_memory_area(&stack->area);
+	stack->top = NULL;
 }
 
 bool memory_stack_push(
 char* data,
-MemoryStack* memStack) {
-	assert(memStack != NULL);
+MemoryStack* stack) {
+	assert(data != NULL);
+	assert(stack != NULL);
 
-	MemoryArea* memArea = &memStack->memArea;
+	MemoryArea* area = &stack->area;
 
-	if((char*) memStack->top >= (char*) memArea->base + memArea->size_type * memArea->count)
+	if((char*) stack->top >= (char*) area->base + area->size_type * area->count)
 		return false;
 
 	memcpy(
-		memStack->top,
+		stack->top,
 		data,
-		memStack->memArea.size_type);
-	memStack->top = (char*) memStack->top + memStack->memArea.size_type;
+		stack->area.size_type);
+	stack->top = (char*) stack->top + stack->area.size_type;
 	return true;
 }
 
-bool memory_stack_discard(MemoryStack* memStack) {
-	assert(memStack != NULL);
+bool memory_stack_discard(MemoryStack* stack) {
+	assert(stack != NULL);
 
-	if((char*) memStack->top <= (char*) memStack->memArea.base)
+	if((char*) stack->top <= (char*) stack->area.base)
 		return false;
 
-	memStack->top = (char*) memStack->top - memStack->memArea.size_type;
+	stack->top = (char*) stack->top - stack->area.size_type;
 	return true;
 }
 
 bool memory_stack_pop(
 char* data,
-MemoryStack* memStack) {
-	assert(memStack != NULL);
+MemoryStack* stack) {
+	assert(stack != NULL);
 
-	if(!memory_stack_discard(memStack))
+	if(!memory_stack_discard(stack))
 		return false;
 
 	memcpy(
 		data,
-		memStack->top,
-		memStack->memArea.size_type);
+		stack->top,
+		stack->area.size_type);
 	return true;
 }
 
 void memory_stack_top(
 char* data,
-MemoryStack* memStack) {
-	assert(memStack != NULL);
+MemoryStack* stack) {
+	assert(stack != NULL);
 
 	memcpy(
 		data,
-		(char*) memStack->top - memStack->memArea.size_type,
-		memStack->memArea.size_type);
+		(char*) stack->top - stack->area.size_type,
+		stack->area.size_type);
 }
 
-void* memory_stack_top_addr(MemoryStack* memStack) {
-	assert(memStack != NULL);
+void* memory_stack_top_addr(MemoryStack* stack) {
+	assert(stack != NULL);
 
-	return (char*) memStack->top - memStack->memArea.size_type;
+	return (char*) stack->top - stack->area.size_type;
 }
 
-bool memory_stack_is_empty(MemoryStack* memStack) {
-	return memStack->top == memStack->memArea.base;
+bool memory_stack_is_empty(MemoryStack* stack) {
+	return stack->top == stack->area.base;
 }
 
-void initialize_memory_stack_state(MemoryStackState* memStackState) {
-	assert(memStackState != NULL);
+void initialize_memory_stack_state(MemoryStackState* stack_state) {
+	assert(stack_state != NULL);
 
-	memStackState->top = NULL;
+	stack_state->top = NULL;
 }
 
 void memory_stack_state_save(
-MemoryStack* memStack,
-MemoryStackState* memStackState) {
-	assert(memStack != NULL);
-	assert(memStackState != NULL);
+MemoryStack* stack,
+MemoryStackState* stack_state) {
+	assert(stack != NULL);
+	assert(stack_state != NULL);
 
-	memStackState->top = memStack->top;
+	stack_state->top = stack->top;
 }
 
 void memory_stack_state_restore(
-MemoryStack* memStack,
-MemoryStackState* memStackState) {
-	assert(memStack != NULL);
-	assert(memStackState != NULL);
+MemoryStack* stack,
+MemoryStackState* stack_state) {
+	assert(stack != NULL);
+	assert(stack_state != NULL);
 
-	memStack->top = memStackState->top;
+	stack->top = stack_state->top;
 }
 
-void initialize_memory_chain(MemoryChain* memChain) {
-	assert(memChain != NULL);
+void initialize_memory_chain(MemoryChain* chain) {
+	assert(chain != NULL);
 
-	memChain->first = NULL;
-	memChain->count = 0;
-	memChain->last = NULL;
-	memChain->previous = NULL;
-	memChain->top = NULL;
+	chain->first = NULL;
+	chain->count = 0;
+	chain->last = NULL;
+	chain->previous = NULL;
+	chain->top = NULL;
 }
 
 bool create_memory_chain(
 size_t size,
 size_t size_type,
-MemoryChain* memChain) {
+MemoryChain* chain) {
 	assert(size != 0);
 	assert(size_type != 0);
-	assert(memChain != NULL);
+	assert(chain != NULL);
 
-	if(size == 0 || size_type == 0)
-		return false;
+	chain->first = malloc(sizeof(MemoryChainLink));
+	chain->count = 1; // to prevent issue with chain->count > 1 (destroy)
 
-	memChain->first = malloc(sizeof(MemoryChainLink));
-
-	if(memChain->first == NULL)
-		goto ERROR1;
+	if(chain->first == NULL)
+		goto ERROR;
 
 	if(create_memory_area(
 		size,
 		size_type,
-		&memChain->first->memArea)
+		&chain->first->area)
 	== false)
-		goto ERROR2;
+		goto ERROR;
 
-	memChain->first->next = NULL;
-	memChain->first->previous = NULL;
-	memChain->count += 1;
+	chain->first->next = NULL;
+	chain->first->previous = NULL;
 
-	memChain->last = memChain->first;
-	memChain->previous = NULL;
-	memChain->top = memChain->first->memArea.base;
+	chain->last = chain->first;
+	chain->previous = NULL;
+	chain->top = chain->first->area.base;
 	return true;
-ERROR2:
-	free(memChain->first);
-ERROR1:
-	destroy_memory_chain(memChain);
+ERROR:
+	free(chain->first);
+	destroy_memory_chain(chain);
 	return false;
 }
 
-void destroy_memory_chain(MemoryChain* memChain) {
-	if(memChain == NULL)
+void destroy_memory_chain(MemoryChain* chain) {
+	if(chain == NULL)
 		return;
 
-	while(memChain->count > 1)
-		memory_chain_destroy_memory_area_last(memChain);
+	while(chain->count > 1)
+		memory_chain_destroy_memory_area_last(chain);
 
-	destroy_memory_area(&memChain->first->memArea);
-	free(memChain->first);
-	initialize_memory_chain(memChain);
+	destroy_memory_area(&chain->first->area);
+	free(chain->first);
+	initialize_memory_chain(chain);
 }
 
-void memory_chain_destroy_memory_area_last(MemoryChain* memChain) {
-	assert(memChain != NULL);
-	assert(memChain->count > 1);
+void memory_chain_destroy_memory_area_last(MemoryChain* chain) {
+	assert(chain != NULL);
+	assert(chain->count > 1);
 
-	destroy_memory_area(&memChain->last->memArea);
-	memChain->last = memChain->last->previous;
-	free(memChain->last->next);
-	memChain->last->next = NULL;
-	memChain->count -= 1;
+	destroy_memory_area(&chain->last->area);
+	chain->last = chain->last->previous;
+	free(chain->last->next);
+	chain->last->next = NULL;
+	chain->count -= 1;
 
-	const size_t size_type = memChain->first->memArea.size_type;
-	MemoryChainLink* const previous = memChain->last->previous;
+	const size_t size_type = chain->first->area.size_type;
+	MemoryChainLink* const previous = chain->last->previous;
 
 	if(previous != NULL)
-		memChain->previous = (char*) previous->memArea.base + size_type * (previous->memArea.count - 1);
+		chain->previous = (char*) previous->area.base + size_type * (previous->area.count - 1);
 	else
-		memChain->previous = NULL;
+		chain->previous = NULL;
 }
 
 bool memory_chain_add_area(
 size_t count,
-MemoryChain* memChain) {
+MemoryChain* chain) {
 	assert(count != 0);
-	assert(memChain != NULL);
+	assert(chain != NULL);
 
-	const size_t size_type = memChain->first->memArea.size_type;
-	memChain->last->next = malloc(sizeof(MemoryChainLink));
+	const size_t size_type = chain->first->area.size_type;
+	chain->last->next = malloc(sizeof(MemoryChainLink));
 
-	if(memChain->last->next == NULL)
+	if(chain->last->next == NULL)
 		goto ERROR1;
 
 	if(create_memory_area(
 		count,
 		size_type,
-		&memChain->last->next->memArea)
+		&chain->last->next->area)
 	== false)
 		goto ERROR2;
 
-	memChain->last->next->previous = memChain->last;
-	memChain->count += 1;
+	chain->last->next->previous = chain->last;
+	chain->count += 1;
 
-	memChain->previous = (char*) memChain->last->memArea.base + size_type * (memChain->last->memArea.count - 1);
-	memChain->last = memChain->last->next;
-	memChain->top = memChain->last->memArea.base;
-	memChain->last->next = NULL;
+	chain->previous = (char*) chain->last->area.base + size_type * (chain->last->area.count - 1);
+	chain->last = chain->last->next;
+	chain->top = chain->last->area.base;
+	chain->last->next = NULL;
 	return true;
 ERROR2:
-	free(memChain->last->next);
+	free(chain->last->next);
 ERROR1:
-	destroy_memory_chain(memChain);
+	destroy_memory_chain(chain);
 	return false;
 }
 
 bool memory_chain_reserve_data(
 size_t count,
-MemoryChain* memChain) {
+MemoryChain* chain) {
 	assert(count != 0);
-	assert(memChain != NULL);
+	assert(chain != NULL);
 
-	MemoryArea* restrict memArea = &memChain->last->memArea;
+	MemoryArea* restrict memArea = &chain->last->area;
 	const size_t current_count = memArea->count;
 
-	if((char*) memArea->base + memArea->size_type * (current_count - 1) <= (char*) memChain->top) {
+	if((char*) memArea->base + memArea->size_type * (current_count - 1) <= (char*) chain->top) {
 		// the remaining area is filled with blanks (calloc)
 		if(memory_chain_add_area(
 			count,
-			memChain)
+			chain)
 		== false)
 			return false;
 	} else {
-		memChain->previous = memChain->top;
-		memChain->top = (char*) memChain->top + memArea->size_type;
+		chain->previous = chain->top;
+		chain->top = (char*) chain->top + memArea->size_type;
 	}
 
 	return true;
 }
 
-void initialize_memory_chain_state(MemoryChainState* memChain_state) {
-	assert(memChain_state != NULL);
+void initialize_memory_chain_state(MemoryChainState* chain_state) {
+	assert(chain_state != NULL);
 
-	memChain_state->buffer_count = 0;
-	memChain_state->buffer_previous = NULL;
-	memChain_state->buffer_top = NULL;
+	chain_state->buffer_count = 0;
+	chain_state->buffer_previous = NULL;
+	chain_state->buffer_top = NULL;
 }
 
 void memory_chain_state_save(
-const MemoryChain* memChain,
-MemoryChainState* memChain_state) {
-	assert(memChain != NULL);
-	assert(memChain_state != NULL);
+const MemoryChain* chain,
+MemoryChainState* chain_state) {
+	assert(chain != NULL);
+	assert(chain_state != NULL);
 
-	memChain_state->buffer_count = memChain->count;
-	memChain_state->buffer_previous = memChain->previous;
-	memChain_state->buffer_top = memChain->top;
+	chain_state->buffer_count = chain->count;
+	chain_state->buffer_previous = chain->previous;
+	chain_state->buffer_top = chain->top;
 }
 
 void memory_chain_state_restore(
-MemoryChain* memChain,
-const MemoryChainState* memChain_state) {
-	assert(memChain != NULL);
-	assert(memChain_state != NULL);
-	assert(memChain_state->buffer_count != 0);
-	assert(memChain_state->buffer_top != NULL);
+MemoryChain* chain,
+const MemoryChainState* chain_state) {
+	assert(chain != NULL);
+	assert(chain_state != NULL);
+	assert(chain_state->buffer_count != 0);
+	assert(chain_state->buffer_top != NULL);
 
-	while(memChain->count != memChain_state->buffer_count)
-		memory_chain_destroy_memory_area_last(memChain);
+	while(chain->count != chain_state->buffer_count)
+		memory_chain_destroy_memory_area_last(chain);
 
-	memChain->previous = memChain_state->buffer_previous;
-	memChain->top = memChain_state->buffer_top;
+	chain->previous = chain_state->buffer_previous;
+	chain->top = chain_state->buffer_top;
 }
 
 bool start_memory_chain_iterator(
-const MemoryChain* memChain,
-MemoryChainIterator* memChainIt) {
-	assert(memChain != NULL);
-	assert(memChainIt != NULL);
+const MemoryChain* chain,
+MemoryChainIterator* chain_it) {
+	assert(chain != NULL);
+	assert(chain_it != NULL);
 
-	MemoryChainLink* const link = memChain->first;
-	memChainIt->link = link;
-	memChainIt->addr = link->memArea.base;
-	return memChain->first != NULL;
+	MemoryChainLink* const link = chain->first;
+	chain_it->link = link;
+	chain_it->addr = link->area.base;
+	return chain->first != NULL;
 }
 
-void end_memory_chain_iterator(MemoryChainIterator* memChainIt) {
-	assert(memChainIt != NULL);
+void end_memory_chain_iterator(MemoryChainIterator* chain_it) {
+	assert(chain_it != NULL);
 
-	memChainIt->link = NULL;
-	memChainIt->addr = NULL;
+	chain_it->link = NULL;
+	chain_it->addr = NULL;
 }
 
-void* memory_chain_iterator_get(MemoryChainIterator* memChainIt) {
-	assert(memChainIt != NULL);
+void* memory_chain_iterator_get(MemoryChainIterator* chain_it) {
+	assert(chain_it != NULL);
 
-	return memChainIt->addr;
+	return chain_it->addr;
 }
 
-bool memory_chain_iterator_next(MemoryChainIterator* memChainIt) {
-	assert(memChainIt != NULL);
+bool memory_chain_iterator_next(MemoryChainIterator* chain_it) {
+	assert(chain_it != NULL);
 
-	MemoryChainLink* link = memChainIt->link;
-	void* addr = memChainIt->addr;
+	MemoryChainLink* link = chain_it->link;
+	void* addr = chain_it->addr;
 
-	if((char*) addr == ((char*) link->memArea.base + link->memArea.size_type * (link->memArea.count - 1))) {
+	if((char*) addr == ((char*) link->area.base + link->area.size_type * (link->area.count - 1))) {
 		if(link->next == NULL)
 			return false;
 
-		memChainIt->link = link->next;
-		memChainIt->addr = link->memArea.base;
+		chain_it->link = link->next;
+		chain_it->addr = link->area.base;
 	} else {
-		memChainIt->addr = (char*) addr + link->memArea.size_type;
+		chain_it->addr = (char*) addr + link->area.size_type;
 	}
 
 	return true;

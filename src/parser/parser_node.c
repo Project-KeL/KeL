@@ -81,8 +81,8 @@ Parser* parser) {
 }
 
 size_t parser_context_get_watermark(const MemoryStack* stack_operator) {
-	const MemoryArea* const memArea = &stack_operator->memArea;
-	return ((char*) stack_operator->top - (char*) memArea->base) / memArea->size_type;
+	const MemoryArea* const area = &stack_operator->area;
+	return ((char*) stack_operator->top - (char*) area->base) / area->size_type;
 }	
 
 void parser_context_flush(
@@ -91,8 +91,8 @@ MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
 	Context* top_context = memory_stack_top_addr(stack_context);
-	const MemoryArea* memArea = &stack_operator->memArea;
-	size_t watermark_over = ((char*) stack_operator->top - (char*) memArea->base) / memArea->size_type;
+	const MemoryArea* area = &stack_operator->area;
+	size_t watermark_over = ((char*) stack_operator->top - (char*) area->base) / area->size_type;
 
 	while(watermark_over > top_context->watermark) {
 		Operator pop_operator;

@@ -17,8 +17,8 @@ Parser* parser) {
 	if(!parser_is_LSCOPE_start(tokens + *i))
 		return false;
 
-	const MemoryArea* const memArea = &stack_operator->memArea;
-	const size_t watermark = ((char*) stack_operator->top - (char*) memArea->base) / memArea->size_type;
+	const MemoryArea* const area = &stack_operator->area;
+	const size_t watermark = ((char*) stack_operator->top - (char*) area->base) / area->size_type;
 	Context context = {
 		.type = ContextType_SCOPE, // later `then` and `through`
 		.watermark = watermark,

@@ -11,29 +11,29 @@ typedef struct {
 } MemoryArea;
 
 typedef struct {
-	const MemoryArea* memArea;
+	const MemoryArea* area;
 	size_t offset;
 } MemoryAreaIterator;
 
-void initialize_memory_area(MemoryArea* memArea);
+void initialize_memory_area(MemoryArea* area);
 bool create_memory_area(
 	size_t count,
 	size_t size_type,
-	MemoryArea* memArea);
-void destroy_memory_area(MemoryArea* memArea);
+	MemoryArea* area);
+void destroy_memory_area(MemoryArea* area);
 bool memory_area_realloc(
 	size_t size,
-	MemoryArea* memArea);
+	MemoryArea* area);
 
 bool start_memory_area_iterator(
-	const MemoryArea* memArea,
-	MemoryAreaIterator* memAreaIt);
-void end_memory_area_iterator(MemoryAreaIterator* memAreaIt);
-void* memory_area_iterator_get(MemoryAreaIterator* memAreaIt);
-bool memory_area_iterator_next(MemoryAreaIterator* memAreaIt);
+	const MemoryArea* area,
+	MemoryAreaIterator* areaIt);
+void end_memory_area_iterator(MemoryAreaIterator* areaIt);
+void* memory_area_iterator_get(MemoryAreaIterator* areaIt);
+bool memory_area_iterator_next(MemoryAreaIterator* areaIt);
 
 typedef struct {
-	MemoryArea memArea;
+	MemoryArea area;
 	void* top;
 } MemoryStack;
 
@@ -74,7 +74,7 @@ void memory_stack_state_restore(
 typedef struct MemoryChainLink MemoryChainLink;
 
 struct MemoryChainLink {
-	MemoryArea memArea;
+	MemoryArea area;
 	MemoryChainLink* previous;
 	MemoryChainLink* next;
 };
@@ -98,33 +98,33 @@ typedef struct {
 	void* addr;
 } MemoryChainIterator;
 
-void initialize_memory_chain(MemoryChain* memChain);
+void initialize_memory_chain(MemoryChain* chain);
 bool create_memory_chain(
 	size_t count,
 	size_t size_type,
-	MemoryChain* memChain);
-void destroy_memory_chain(MemoryChain* memChain);
-void memory_chain_destroy_memory_area_last(MemoryChain* memChain);
+	MemoryChain* chain);
+void destroy_memory_chain(MemoryChain* chain);
+void memory_chain_destroy_memory_area_last(MemoryChain* chain);
 bool memory_chain_add_area(
 	size_t count,
-	MemoryChain* memChain);
+	MemoryChain* chain);
 bool memory_chain_reserve_data(
 	size_t count,
-	MemoryChain* memChain);
+	MemoryChain* chain);
 
-void initialize_memory_chain_state(MemoryChainState* memChain_state);
+void initialize_memory_chain_state(MemoryChainState* chain_state);
 void memory_chain_state_save(
-	const MemoryChain* memChain,
-	MemoryChainState* memChain_state);
+	const MemoryChain* chain,
+	MemoryChainState* chain_state);
 void memory_chain_state_restore(
-	MemoryChain* memChain,
-	const MemoryChainState* memChain_state);
+	MemoryChain* chain,
+	const MemoryChainState* chain_state);
 
 bool start_memory_chain_iterator(
-	const MemoryChain* memChain,
-	MemoryChainIterator* memChainIt);
-void end_memory_chain_iterator(MemoryChainIterator* memChainIt);
-void* memory_chain_iterator_get(MemoryChainIterator* memChainIt);
-bool memory_chain_iterator_next(MemoryChainIterator* memChainIt);
+	const MemoryChain* chain,
+	MemoryChainIterator* chain_it);
+void end_memory_chain_iterator(MemoryChainIterator* chain_it);
+void* memory_chain_iterator_get(MemoryChainIterator* chain_it);
+bool memory_chain_iterator_next(MemoryChainIterator* chain_it);
 
 #endif
