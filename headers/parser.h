@@ -43,15 +43,12 @@ typedef enum: uint64_t {
 	NODE_TYPE(TYPE_VAR),
 	NODE_TYPE(TYPE_PAL), // TYPE_VAR + GRP_PARES
 	NODE_TYPE(TYPE_PAL_VOID), // is implicit (PAL with no return type or empty parenthesis)
-	NODE_TYPE(ID),
-	NODE_TYPE(KEY),
+	NODE_TYPE(ID), // for declarations
+	NODE_TYPE(KEY), // an L without subtype
 	NODE_TYPE(PARAM),
 	NODE_TYPE(CALLEE),
-	NODE_TYPE(CALL_ARG),
-	NODE_TYPE(CALL_ARG_NONE),
 // OP
 	NODE_TYPE(OP_LPARENTHESIS),
-	NODE_TYPE(OP_RPARENTHESIS),
 	NODE_TYPE(OP_ADD),
 	NODE_TYPE(OP_SUB),
 	NODE_TYPE(OP_MUL),

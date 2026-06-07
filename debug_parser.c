@@ -52,11 +52,8 @@ const Node* node) {
 	case NodeType_KEY: type = "KEY"; break;
 	case NodeType_PARAM: type = "PARAM"; break;
 	case NodeType_CALLEE: type = "CALEE"; break;
-	case NodeType_CALL_ARG: type = "CALL ARG"; break;
-	case NodeType_CALL_ARG_NONE: type = "ARG NONE"; break;
 // OP (parenthesis should not be encountered: RPN)
 	case NodeType_OP_LPARENTHESIS: type = RED "OPLP" RESET; break;
-	case NodeType_OP_RPARENTHESIS: type = RED "OPRP" RESET; break;
 	case NodeType_OP_ADD: type = "ADD"; break;
 	case NodeType_OP_SUB: type = "SUB"; break;
 	case NodeType_OP_MUL: type = "MUL"; break;

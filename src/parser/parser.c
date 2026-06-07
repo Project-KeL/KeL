@@ -11,11 +11,6 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
-/*
- * GRP_Q
- * DECL: VAR or PAL (consumes the identifier, the type and, if it exists, the initialization)
-*/
-
 static int error = 0;
 
 static int set_error(int value) {
@@ -89,7 +84,7 @@ Parser* parser) {
 	const Token* const tokens = lexer->tokens.base;
 	size_t i = 1; // token position
 	size_t j = 1; // node position
-	size_t i_Q = 0;
+	size_t i_Q = 0; // qualifiers
 
 	while(i < lexer->tokens.count - 1) {
 		if(i_Q == 0
@@ -104,7 +99,7 @@ Parser* parser) {
 			&stack_operator,
 			parser)
 		== true) {
-			continue;
+			continue; // the comma is optional
 		} else if(if_EXP_create_operator(
 			&i,
 			&j,
@@ -125,13 +120,14 @@ Parser* parser) {
 			Operator* top_operator = memory_stack_top_addr(&stack_operator);
 
 			if(top_operator->type == NodeType_INIT_PAL)
-				continue;
+				continue; // skip to the next instruction
 		} else if(if_MOD_create_operator(
 			&i,
 			&j,
 			&stack_operator,
 			parser)
 		== true) {
+			// OK
 		}
 
 		if(parser_is_instruction_end(tokens + i)) {
@@ -143,6 +139,7 @@ Parser* parser) {
 				parser);
 		
 			if(i_Q != 0) {
+				// place qualifiers at the end of the RPN
 				if_GRP_Q_create_operator(
 					&j,
 					i_Q,
@@ -178,7 +175,7 @@ Parser* parser) {
 
 	parser->nodes.count = j;
 
-	if(!parser_allocator_shrink(parser))
+	if(!parser_allocator_shrink_append_null(parser))
 		set_error(-1);
 CLEAR:
 	destroy_memory_stack(&stack_buffer);

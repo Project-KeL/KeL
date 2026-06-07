@@ -57,10 +57,14 @@ Parser* parser) {
 	return true;
 }
 
-bool parser_allocator_shrink(Parser* parser) {
+bool parser_allocator_shrink_append_null(Parser* parser) {
+	assert(parser->nodes.count <= (size_t) parser->lexer->source->length);
+
 	const bool error = memory_area_realloc(
 		parser->nodes.count + 1, // null token
 		&parser->nodes);
+	// sentinel
+	create_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
 	return error;
 }
 

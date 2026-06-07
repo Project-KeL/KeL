@@ -11,7 +11,7 @@ bool parser_create_allocator_limit(
 	size_t limit,
 	Parser* parser);
 bool parser_create_allocator_chunk(Parser* parser);
-bool parser_allocator_shrink(Parser* parser);
+bool parser_allocator_shrink_append_null(Parser* parser);
 void parser_destroy_allocator(Parser* parser);
 
 #endif
