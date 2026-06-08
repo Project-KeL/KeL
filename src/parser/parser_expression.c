@@ -210,18 +210,8 @@ Parser* parser) {
 			stack_operator,
 			parser);
 	}
-
-	Operator pop_operator;
-	memory_stack_pop(
-		(char*) &pop_operator,
-		stack_operator);
-	parser_create_operator(
-		NodeType_EXP,
-		1,
-		pop_operator.token,
-		&buffer_j,
-		stack_operator,
-		parser);
+	Operator* operator_2 = memory_stack_top_addr(stack_operator);
+	operator_2->count_arity = 1;
 	// the arity of `EXP` must be `1`
 	*i = buffer_i;
 	*j = buffer_j;
