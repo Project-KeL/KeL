@@ -131,14 +131,12 @@ Parser* parser) {
 
 		if(parser_is_instruction_end(tokens + i)) {
 			// handle `;`
+			parser_context_flush(
+				&j,
+				&stack_context,
+				&stack_operator,
+				parser);
 			Context* top_context = memory_stack_top_addr(&stack_context);
-			if(top_context->type != ContextType_SCOPE_0) {
-				parser_context_flush(
-					&j,
-					&stack_context,
-					&stack_operator,
-					parser);
-			}
 		
 			if(i_Q != 0
 			&& i_Q > top_context->token) {
@@ -147,6 +145,7 @@ Parser* parser) {
 					&j,
 					i_Q,
 					&stack_context,
+					&stack_operator,
 					parser);
 				i_Q = 0;
 			}

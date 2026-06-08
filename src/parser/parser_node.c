@@ -98,12 +98,11 @@ Parser* parser) {
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_operator);
-		parser_create_operator(
+		parser_create_operator_raw(
 			pop_operator.type,
 			pop_operator.count_arity,
 			pop_operator.token,
 			j,
-			stack_operator,
 			parser);
 		top_context->count_child += 1;
 		watermark_over -= 1;

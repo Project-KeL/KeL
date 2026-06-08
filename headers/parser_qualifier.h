@@ -7,6 +7,7 @@ void if_GRP_Q_create_operator(
 	size_t* j,
 	size_t i_Q,
 	MemoryStack* stack_context,
+	MemoryStack* stack_operator,
 	Parser* parser);
 
 #endif

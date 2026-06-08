@@ -17,11 +17,7 @@ Parser* parser) {
 	if(!parser_is_LSCOPE_start(tokens + *i))
 		return false;
 
-<<<<<<< HEAD
-	Context context = (Context) {
-=======
 	Context context_scope = (Context) {
->>>>>>> 502589b (Fixed a bug when flushing the SCOPE_0)
 		.type = ContextType_SCOPE, // later `then` and `through`
 		.watermark = parser_context_get_watermark(stack_operator),
 		.count_child = 0,
@@ -104,6 +100,7 @@ Parser* parser) {
 				j,
 				*i_Q,
 				stack_context,
+				stack_operator,
 				parser);
 			*i_Q = 0;
 		}
