@@ -1,14 +1,13 @@
 #include "parser_node.h"
 #include "allocator.h"
+#include <stdio.h>
 
 void parser_create_leaf_raw(
 NodeType type,
 size_t token,
 size_t* j,
-MemoryStack* stack_operator,
 Parser* parser) {
 	assert(j != NULL);
-	assert(stack_operator != NULL);
 	assert(parser != NULL);
 
 	Node* nodes = parser->nodes.base;
@@ -33,7 +32,6 @@ Parser* parser) {
 		type,
 		token,
 		j,
-		stack_operator,
 		parser);
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 	top_operator->count_arity += 1;
@@ -44,10 +42,8 @@ NodeType type,
 uint32_t arity,
 size_t token,
 size_t* j,
-MemoryStack* stack_operator,
 Parser* parser) {
 	assert(j != NULL);
-	assert(stack_operator != NULL);
 	assert(parser != NULL);
 
 	Node* nodes = parser->nodes.base;
@@ -74,7 +70,6 @@ Parser* parser) {
 		arity,
 		token,
 		j,
-		stack_operator,
 		parser);
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 	top_operator->count_arity += 1;
@@ -90,9 +85,13 @@ size_t* j,
 MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
+	assert(j != NULL);
+	assert(stack_context != NULL);
+	assert(stack_operator != NULL);
+	assert(parser != NULL);
+
 	Context* top_context = memory_stack_top_addr(stack_context);
-	const MemoryArea* area = &stack_operator->area;
-	size_t watermark_over = ((char*) stack_operator->top - (char*) area->base) / area->size_type;
+	size_t watermark_over = parser_context_get_watermark(stack_operator);
 
 	while(watermark_over > top_context->watermark) {
 		Operator pop_operator;
@@ -108,4 +107,5 @@ Parser* parser) {
 			parser);
 		top_context->count_child += 1;
 		watermark_over -= 1;
-}}
+	}
+}

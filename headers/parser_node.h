@@ -9,7 +9,6 @@ void parser_create_leaf_raw(
 	NodeType type,
 	size_t token,
 	size_t* j,
-	MemoryStack* stack_operator,
 	Parser* parser);
 void parser_create_leaf(
 	NodeType type,
@@ -22,7 +21,6 @@ void parser_create_operator_raw(
 	uint32_t arity,
 	size_t token,
 	size_t* j,
-	MemoryStack* stack_operator,
 	Parser* parser);
 void parser_create_operator(
 	NodeType type,

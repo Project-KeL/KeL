@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "lexer.h"
-#include "lexer_utils.h"
 #include "parser_utils.h"
 
 // TODO: add asserts on "impossible" tests (exemple, parser_is_command: test all the subtype cases)

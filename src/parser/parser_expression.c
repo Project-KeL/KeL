@@ -3,6 +3,7 @@
 #include "parser_node.h"
 #include "parser_utils.h"
 #include "allocator.h"
+#include <assert.h>
 #include <stdio.h>
 
 void get_operator_algebraic_info(
@@ -28,10 +29,15 @@ uint32_t* precedence) {
 bool if_EXP_create_operator(
 size_t* i,
 size_t* j,
-MemoryStack* stack_context,
 MemoryStack* stack_operator,
 MemoryStack* stack_buffer,
 Parser* parser) {
+	assert(i != NULL);
+	assert(j != NULL);
+	assert(stack_operator != NULL);
+	assert(stack_buffer != NULL);
+	assert(parser != NULL);
+
 	const Token* const tokens = parser->lexer->tokens.base;
 
 	if(!parser_is_key(tokens + *i)
@@ -66,7 +72,6 @@ Parser* parser) {
 				NodeType_KEY,
 				buffer_i,
 				&buffer_j,
-				stack_operator,
 				parser);
 			buffer_i += 1;
 		} else if(parser_is_literal_number(tokens + buffer_i)) {
@@ -74,7 +79,6 @@ Parser* parser) {
 				NodeType_LIT_NUM,
 				buffer_i,
 				&buffer_j,
-				stack_operator,
 				parser);
 			buffer_i += 1;
 		} else if(parser_is_operator_algebraic(tokens + buffer_i)) {
@@ -106,7 +110,6 @@ Parser* parser) {
 					2,
 					pop_operator.token,
 					&buffer_j,
-					stack_operator,
 					parser);
 			}
 
@@ -130,7 +133,6 @@ Parser* parser) {
 					2,
 					pop_operator.token,
 					&buffer_j,
-					stack_operator,
 					parser);
 			}
 
@@ -157,7 +159,6 @@ Parser* parser) {
 					2,
 					pop_operator.token,
 					&buffer_j,
-					stack_operator,
 					parser);
 
 				if(memory_stack_is_empty(stack_buffer))
@@ -183,7 +184,6 @@ Parser* parser) {
 					count_arg,
 					pop_operator_2.token,
 					&buffer_j,
-					stack_operator,
 					parser);
 			}
 
@@ -207,7 +207,6 @@ Parser* parser) {
 			2,
 			pop_operator.token,
 			&buffer_j,
-			stack_operator,
 			parser);
 	}
 	Operator* operator_2 = memory_stack_top_addr(stack_operator);

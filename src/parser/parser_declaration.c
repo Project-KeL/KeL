@@ -6,7 +6,6 @@
 #include "parser_node.h"
 #include "parser.h"
 #include "parser_expression.h"
-#include "parser_scope.h"
 #include "parser_type.h"
 #include "parser_utils.h"
 #include <stdio.h>
@@ -69,7 +68,6 @@ Parser* parser) {
 		if(if_EXP_create_operator(
 			&buffer_i,
 			&buffer_j,
-			stack_context,
 			stack_operator,
 			stack_buffer,
 			parser)
@@ -160,13 +158,13 @@ Parser* parser) {
 		stack_operator,
 		&stack_state);
 
-	Operator operator = (Operator) {
+	Operator operator_decl = (Operator) {
 		.type = type_DECL,
 		.precedence = 0,
 		.count_arity = 0,
 		.token = *i};
 	memory_stack_push(
-		(char*) &operator,
+		(char*) &operator_decl,
 		stack_operator);
 	// `buffer_i` to look for an identifier
 	buffer_i = *i + 1;

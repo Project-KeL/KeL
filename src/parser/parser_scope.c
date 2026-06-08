@@ -17,13 +17,17 @@ Parser* parser) {
 	if(!parser_is_LSCOPE_start(tokens + *i))
 		return false;
 
+<<<<<<< HEAD
 	Context context = (Context) {
+=======
+	Context context_scope = (Context) {
+>>>>>>> 502589b (Fixed a bug when flushing the SCOPE_0)
 		.type = ContextType_SCOPE, // later `then` and `through`
 		.watermark = parser_context_get_watermark(stack_operator),
 		.count_child = 0,
 		.token = *i};
 	memory_stack_push(
-		(char*) &context,
+		(char*) &context_scope,
 		stack_context);
 	*i += 1;
 
@@ -54,14 +58,14 @@ Parser* parser) {
 		stack_operator,
 		parser);
 	// close the scope and add it as an operator
-	Context context;
+	Context context_scope;
 	memory_stack_pop(
-		(char*) &context,
+		(char*) &context_scope,
 		stack_context);
 	parser_create_operator(
 		NodeType_SCOPE,
-		context.count_child,
-		context.token,
+		context_scope.count_child,
+		context_scope.token,
 		j,
 		stack_operator,
 		parser);

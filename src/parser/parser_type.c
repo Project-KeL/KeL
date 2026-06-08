@@ -34,7 +34,7 @@ MemoryStack* stack_operator,
 Parser* parser) {
 	const Token* const tokens = parser->lexer->tokens.base;
 
-	if(tokens[*i].type != TokenType_L)
+	if(!parser_is_key(tokens + *i))
 		return false;
 
 	parser_create_leaf(
@@ -57,13 +57,13 @@ Parser* parser) {
 	if(!parser_is_R_left_parenthesis(tokens + *i))
 		return false;
 
-	Operator operator = (Operator) {
+	Operator operator_grp_pares = (Operator) {
 		.type = NodeType_GRP_R_PARES,
 		.precedence = 0,
 		.count_arity = 0,
 		.token = *i};
 	memory_stack_push(
-		(char*) &operator,
+		(char*) &operator_grp_pares,
 		stack_operator);
 	size_t buffer_i = *i;
 	size_t buffer_j = *j;
@@ -107,7 +107,6 @@ Parser* parser) {
 			stack_operator,
 			parser);
 	}
-
 	Operator pop_operator;
 	memory_stack_pop(
 		(char*) &pop_operator,
