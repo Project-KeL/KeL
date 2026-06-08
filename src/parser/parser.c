@@ -137,8 +137,10 @@ Parser* parser) {
 				&stack_context,
 				&stack_operator,
 				parser);
+			Context* top_context = memory_stack_top_addr(&stack_context);
 		
-			if(i_Q != 0) {
+			if(i_Q != 0
+			&& i_Q > top_context->token) {
 				// place qualifiers at the end of the RPN
 				if_GRP_Q_create_operator(
 					&j,

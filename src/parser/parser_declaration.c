@@ -126,6 +126,13 @@ MemoryStack* stack_context,
 MemoryStack* stack_operator,
 MemoryStack* stack_buffer,
 Parser* parser) {
+	assert(i != NULL);
+	assert(j != NULL);
+	assert(stack_context != NULL);
+	assert(stack_operator != NULL);
+	assert(stack_buffer != NULL);
+	assert(parser != NULL);
+
 	const Token* tokens = (const Token*) parser->lexer->tokens.base;
 	size_t buffer_i = *i;
 

@@ -191,7 +191,7 @@ Parser* parser) {
 		} else
 			break;
 	}
-printf("HHH\n");
+
 	while(!memory_stack_is_empty(stack_buffer)) {
 		Operator* top_operator = memory_stack_top_addr(stack_buffer);
 
