@@ -32,7 +32,6 @@ Parser* parser) {
 bool if_LSCOPE_end_destroy_context(
 size_t* i,
 size_t* j,
-size_t* i_Q,
 MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
@@ -93,16 +92,6 @@ Parser* parser) {
 			j,
 			stack_operator,
 			parser);
-		// insert the qualifiers
-		if(*i_Q != 0) {
-			if_GRP_Q_create_operator(
-				j,
-				*i_Q,
-				stack_context,
-				stack_operator,
-				parser);
-			*i_Q = 0;
-		}
 	}
 
 	top_context = memory_stack_top_addr(stack_context);

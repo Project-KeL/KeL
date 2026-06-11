@@ -3,9 +3,9 @@
 
 #include "parser.h"
 
-void if_GRP_Q_create_operator(
+bool if_GRP_Q_create_operator(
+	size_t* i,
 	size_t* j,
-	size_t i_Q,
 	MemoryStack* stack_context,
 	MemoryStack* stack_operator,
 	Parser* parser);

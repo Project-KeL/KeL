@@ -3,32 +3,45 @@
 #include "parser_qualifier.h"
 #include "parser_utils.h"
 
-void if_GRP_Q_create_operator(
+bool if_GRP_Q_create_operator(
+size_t* i,
 size_t* j,
-size_t i_Q,
 MemoryStack* stack_context,
 MemoryStack* stack_operator,
 Parser* parser) {
 	const Token* const tokens = parser->lexer->tokens.base;
-
+	size_t buffer_i = *i;
 	Operator operator_GRP_Q = (Operator) {
 		.type = NodeType_GRP_Q,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = i_Q};
+		.token = buffer_i};
+
+	MemoryStackState stack_operator_state;
+	initialize_memory_stack_state(&stack_operator_state);
+	memory_stack_state_save(
+		stack_operator,
+		&stack_operator_state);
+
 	memory_stack_push(
 		(char*) &operator_GRP_Q,
 		stack_operator);
-	size_t buffer_Q = i_Q;
 	// consumes all Q
-	while(parser_is_Q(tokens + buffer_Q)) {
-		parser_create_leaf(
-			NodeType_Q,
-			buffer_Q,
-			j,
+	if(parser_is_Q(tokens + buffer_i)) {
+		do {
+			parser_create_leaf(
+				NodeType_Q,
+				buffer_i,
+				j,
+				stack_operator,
+				parser);
+			buffer_i += 1;
+		} while(parser_is_Q(tokens + buffer_i));
+	} else {
+		memory_stack_state_restore(
 			stack_operator,
-			parser);
-		buffer_Q += 1;
+			&stack_operator_state);
+		return false;
 	}
 	// create a group of Q
 	Operator pop_operator_GRP_Q;
@@ -43,4 +56,6 @@ Parser* parser) {
 		parser);
 	Context* top_context = memory_stack_top_addr(stack_context);
 	top_context->count_child += 1;
+	*i = buffer_i;
+	return true;
 }

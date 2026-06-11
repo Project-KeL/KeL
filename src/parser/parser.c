@@ -83,16 +83,17 @@ Parser* parser) {
 	const Token* const tokens = lexer->tokens.base;
 	size_t i = 1; // token position
 	size_t j = 1; // node position
-	size_t i_Q = 0; // qualifiers
 
 	while(i < lexer->tokens.count - 1) {
-		if(i_Q == 0
-		&& parser_is_Q(tokens + i)) {
-			i_Q = i; // keep the track of the position
-			while(parser_is_Q(tokens + i)) i += 1; // reserve qualifiers for instructions end
-		}
-
-		if(if_LSCOPE_create_context(
+		if(if_GRP_Q_create_operator(
+			&i,
+			&j,
+			&stack_context,
+			&stack_operator,
+			parser)
+		== true) {
+			continue;
+		} else if(if_LSCOPE_create_context(
 			&i,
 			&stack_context,
 			&stack_operator,
@@ -136,26 +137,12 @@ Parser* parser) {
 				&stack_context,
 				&stack_operator,
 				parser);
-			Context* top_context = memory_stack_top_addr(&stack_context);
-		
-			if(i_Q != 0
-			&& i_Q > top_context->token) {
-				// place qualifiers at the end of the RPN
-				if_GRP_Q_create_operator(
-					&j,
-					i_Q,
-					&stack_context,
-					&stack_operator,
-					parser);
-				i_Q = 0;
-			}
 			// ignore all the `;`
 			while(parser_is_instruction_end(tokens + i))
 				i += 1;
 		} else if(if_LSCOPE_end_destroy_context(
 			&i,
 			&j,
-			&i_Q,
 			&stack_context,
 			&stack_operator,
 			parser)
