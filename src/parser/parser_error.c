@@ -24,8 +24,8 @@ long int* i) {
 }
 */
 bool parser_scan_errors(const Lexer* lexer) {
-	const char* code = lexer->source->content;
-	size_t count_scope_nest = 0;
+	[[maybe_unused]] const char* code = lexer->source->content;
+	[[maybe_unused]] size_t count_scope_nest = 0;
 /*
 	for(size_t i = 0;
 	i < lexer->tokens.count - 1;

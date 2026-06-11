@@ -8,7 +8,6 @@
 #include "parser_expression.h"
 #include "parser_type.h"
 #include "parser_utils.h"
-#include <stdio.h>
 
 static bool if_ID_create_leaf(
 size_t* i,
@@ -34,7 +33,6 @@ static void if_INIT_create_operator(
 NodeType DECL, // VAR or PAL
 size_t* i,
 size_t* j,
-MemoryStack* stack_context,
 MemoryStack* stack_operator,
 MemoryStack* stack_buffer,
 Parser* parser) {
@@ -189,7 +187,6 @@ Parser* parser) {
 		type_DECL,
 		&buffer_i,
 		&buffer_j,
-		stack_context,
 		stack_operator,
 		stack_buffer,
 		parser);

@@ -62,14 +62,13 @@ Parser* parser) {
 		goto CLEAR;
 	}	
 
-	Context context;
-	context = (Context) {
+	Context context_scope_0 = (Context) {
 		.type = ContextType_SCOPE_0,
 		.watermark = 0,
 		.count_child = 0,
 		.token = 0};
 	memory_stack_push(
-		(char*) &context,
+		(char*) &context_scope_0,
 		&stack_context);
 	parser_initialize_allocator(parser);
 	
@@ -89,8 +88,8 @@ Parser* parser) {
 	while(i < lexer->tokens.count - 1) {
 		if(i_Q == 0
 		&& parser_is_Q(tokens + i)) {
-			i_Q = i;
-			while(parser_is_Q(tokens + i)) i += 1;
+			i_Q = i; // keep the track of the position
+			while(parser_is_Q(tokens + i)) i += 1; // reserve qualifiers for instructions end
 		}
 
 		if(if_LSCOPE_create_context(
@@ -131,6 +130,7 @@ Parser* parser) {
 
 		if(parser_is_instruction_end(tokens + i)) {
 			// handle `;`
+			// flush the instruction
 			parser_context_flush(
 				&j,
 				&stack_context,

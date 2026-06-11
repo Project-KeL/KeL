@@ -61,7 +61,9 @@ void debug_lexer_print_tokens(const Lexer* lexer) {
 	for(size_t i = 1;
 	i < lexer->tokens.count - 1;
 	i += 1) {
-		printf("\t");
+		printf(
+			"%zu\t",
+			i);
 		print_info_token(
 			lexer->source->content,
 			(Token*) lexer->tokens.base + i);

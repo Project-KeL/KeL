@@ -1,10 +1,9 @@
-#include "parser_expression.h"
+#include <assert.h>
 #include "parser.h"
+#include "parser_expression.h"
 #include "parser_node.h"
 #include "parser_utils.h"
 #include "allocator.h"
-#include <assert.h>
-#include <stdio.h>
 
 void get_operator_algebraic_info(
 const Token* token,
@@ -45,26 +44,26 @@ Parser* parser) {
 	&& !parser_is_L_left_parenthesis(tokens + *i))
 		return false;
 	// shunting yard algorithm
-	Operator operator = (Operator) {
+	Operator operator_exp = (Operator) {
 		.type = NodeType_EXP,
 		.precedence = 0,
 		.count_arity = 0,
 		.token = *i};
 	memory_stack_push(
-		(char*) &operator,
+		(char*) &operator_exp,
 		stack_operator);
 	size_t buffer_i = *i;
 	size_t buffer_j = *j;
 
 	while(!parser_is_instruction_exit(tokens + buffer_i)) {
 		if(parser_is_CALL(tokens + buffer_i)) {
-			Operator operator = (Operator) {
+			Operator operator_call = (Operator) {
 				.type = NodeType_CALLEE,
 				.precedence = 0,
 				.count_arity = 0,
 				.token = buffer_i};
 			memory_stack_push(
-				(char*) &operator,
+				(char*) &operator_call,
 				stack_buffer);
 			buffer_i += 1;
 		} else if(parser_is_key(tokens + buffer_i)) {
@@ -113,13 +112,13 @@ Parser* parser) {
 					parser);
 			}
 
-			Operator operator = (Operator) {
+			Operator operator_algebraic = (Operator) {
 				.type = type,
 				.precedence = precedence,
 				.count_arity = 0,
 				.token = buffer_i};
 			memory_stack_push(
-				(char*) &operator,
+				(char*) &operator_algebraic,
 				stack_buffer);
 			buffer_i += 1;
 		} else if(parser_is_call_separator(tokens + buffer_i)) {
@@ -139,13 +138,13 @@ Parser* parser) {
 			((Operator*) memory_stack_top_addr(stack_buffer))->count_arity += 1;
 			buffer_i += 1;
 		} else if(parser_is_L_left_parenthesis(tokens + buffer_i)) {
-			Operator operator = (Operator) {
+			Operator operator_lparenthesis = (Operator) {
 				.type = NodeType_OP_LPARENTHESIS,
 				.precedence = 0,
 				.count_arity = 0,
 				.token = buffer_i};
 			memory_stack_push(
-				(char*) &operator,
+				(char*) &operator_lparenthesis,
 				stack_buffer);
 			buffer_i += 1;
 		} else if(parser_is_L_right_parenthesis(tokens + buffer_i)) {
@@ -165,24 +164,24 @@ Parser* parser) {
 					return false;
 			}
 
-			Operator pop_operator;
+			Operator pop_operator_rparenthesis;
 			memory_stack_pop(
-				(char*) &pop_operator,
+				(char*) &pop_operator_rparenthesis,
 				stack_buffer);
 
 			if(!memory_stack_is_empty(stack_buffer)
 			&& ((Operator*) memory_stack_top_addr(stack_buffer))->type == NodeType_CALLEE) {
-				Operator pop_operator_2;
+				Operator pop_operator;
 				memory_stack_pop(
-					(char*) &pop_operator_2,
+					(char*) &pop_operator,
 					stack_buffer);
 				uint32_t count_arg = parser_is_L_left_parenthesis(tokens + buffer_i - 1)
 					? 0
-					: pop_operator.count_arity + 1;
+					: pop_operator_rparenthesis.count_arity + 1;
 				parser_create_operator_raw(
 					NodeType_CALLEE,
 					count_arg,
-					pop_operator_2.token,
+					pop_operator.token,
 					&buffer_j,
 					parser);
 			}
@@ -193,11 +192,7 @@ Parser* parser) {
 	}
 
 	while(!memory_stack_is_empty(stack_buffer)) {
-		Operator* top_operator = memory_stack_top_addr(stack_buffer);
-
-		if(top_operator->type == NodeType_OP_LPARENTHESIS) // unclosed `(`
-			return false;
-
+		// parenthesis nesting is checked in `lexer_error.c`
 		Operator pop_operator;
 		memory_stack_pop(
 			(char*) &pop_operator,
@@ -209,9 +204,9 @@ Parser* parser) {
 			&buffer_j,
 			parser);
 	}
-	Operator* operator_2 = memory_stack_top_addr(stack_operator);
-	operator_2->count_arity = 1;
 	// the arity of `EXP` must be `1`
+	Operator* operator_exp_ptr = memory_stack_top_addr(stack_operator);
+	operator_exp_ptr->count_arity = 1;
 	*i = buffer_i;
 	*j = buffer_j;
 	return true;

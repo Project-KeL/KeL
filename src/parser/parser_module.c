@@ -1,7 +1,6 @@
-#include "parser_node.h"
 #include "parser_module.h"
+#include "parser_node.h"
 #include "parser_utils.h"
-#include <stdio.h>
 
 bool if_MOD_create_operator(
 size_t* i,

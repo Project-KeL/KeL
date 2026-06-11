@@ -1,6 +1,5 @@
 #include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <stddef.h>
 #include "parser_allocator.h"
 
 #define CHUNK_SYMBOLS 1

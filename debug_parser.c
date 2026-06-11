@@ -97,52 +97,97 @@ void debug_print_nodes(const Parser* parser) {
 void debug_print_tree(const Parser* parser) {
 	printf("TREE:\n");
 	const Node* nodes = parser->nodes.base;
+	const size_t count = parser->nodes.count;
 
-	size_t* depths = calloc(
-		parser->nodes.count,
+	if(count <= 2) // sentinels only
+		return;
+	// subtree (children + root)
+	size_t* start_subtree = calloc(
+		count,
 		sizeof(size_t));
+	size_t* stack_index = malloc(count * sizeof(size_t));
+	size_t* stack_depth = malloc(count * sizeof(size_t));
 
-	if(depths == NULL)
+	if(start_subtree == NULL
+	|| stack_depth == NULL
+	|| stack_index == NULL)
 		goto END;
 
-	size_t stack_depth[1024];
-	size_t top = 0;
+	{
+		// fill `stack_subtree`
+		// a leaf is its own subtree
+		size_t top = 0;
 
-	for(size_t i = parser->nodes.count - 2;
-	i > 0;
-	i -= 1) {
-		size_t depth = top > 0 ? stack_depth[top - 1] : 0;
-		depths[i] = depth;
+		for(size_t k = 1;
+		k < count - 1;
+		k += 1) {
+			size_t start = k;
+			// the last popped child is the one at the vey left
+			for(uint32_t c = 0;
+			c < nodes[k].arity;
+			c += 1) {
+				top -= 1;
+				start = stack_index[top];
+			}
 
-		if(top > 0)
-			top -= 1;
-		// reserve depth for the child
-		for(
-		size_t count = 0;
-		count < nodes[i].arity;
-		count += 1) {
-			stack_depth[top] = depth + 1;
+			start_subtree[k] = start;
+			stack_index[top] = start;
 			top += 1;
 		}
 	}
 
-	for(
-	size_t i = parser->nodes.count - 2;
-	i > 0;
-	i -= 1) {
+	size_t top = 0;
+
+	for(size_t end = count - 2
+	;
+	;) {
+		stack_index[top] = end;
+		stack_depth[top] = 0;
+		top += 1;
+		size_t start = start_subtree[end];
+
+		if(start <= 1)
+			break;
+
+		end = start - 1;
+	}
+
+	while(top != 0) {
+		top -= 1;
+		const size_t i = stack_index[top];
+		const size_t depth = stack_depth[top];
 		printf("\t");
 
-		for(
-		size_t depth = 0;
-		depth < depths[i];
-		depth += 1) {
-			printf("    ");
+		for(size_t d = 0;
+		d < depth;
+		d += 1) {
+			printf("\t");
 		}
 
-		print_info_node(parser, nodes + i);
+		print_info_node(
+			parser,
+			nodes + i);
+		// push the child from right to left
+		size_t end = i - 1;
+
+		for(uint32_t c = 0;
+		c < nodes[i].arity;
+		c += 1) {
+			stack_index[top] = end;
+			stack_depth[top] = depth + 1;
+			top += 1;
+			const size_t start = start_subtree[end];
+
+			if(start <= 1)
+				break; // avoid underflow: the left most child is reached
+
+			end = start - 1;
+		}
 	}
 END:
-	free(depths);
+	free(stack_depth);
+	free(stack_index);
+	free(start_subtree);
 }
 
 // make a better tree with:

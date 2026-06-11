@@ -1,10 +1,9 @@
-#include "parser_type.h"
 #include "allocator.h"
 #include "lexer.h"
 #include "parser.h"
 #include "parser_node.h"
+#include "parser_type.h"
 #include "parser_utils.h"
-#include <stdio.h>
 
 static bool if_TYPE_VAR_create_leaf(
 size_t* i,

@@ -1,11 +1,10 @@
-#include "parser_scope.h"
 #include "allocator.h"
 #include "lexer.h"
 #include "parser.h"
 #include "parser_node.h"
 #include "parser_qualifier.h"
+#include "parser_scope.h"
 #include "parser_utils.h"
-#include <stdio.h>
 
 bool if_LSCOPE_create_context(
 size_t* i,
