@@ -83,7 +83,9 @@ void debug_print_nodes(const Parser* parser) {
 	for(size_t i = 1;
 	i < parser->nodes.count - 1;
 	i += 1) {
-		printf("\t");
+		printf(
+			"%d\t",
+			i);
 		print_info_node(
 			parser,
 			(Node*) parser->nodes.base + i);
@@ -122,12 +124,12 @@ void debug_print_tree(const Parser* parser) {
 		k < count - 1;
 		k += 1) {
 			size_t start = k;
-			// the last popped child is the one at the vey left
+			// the last popped child is the one at the very left
 			for(uint32_t c = 0;
 			c < nodes[k].arity;
 			c += 1) {
 				top -= 1;
-				start = stack_index[top];
+				start = stack_index[top]; // the first node has arity = 0
 			}
 
 			start_subtree[k] = start;
@@ -161,7 +163,7 @@ void debug_print_tree(const Parser* parser) {
 		for(size_t d = 0;
 		d < depth;
 		d += 1) {
-			printf("\t");
+			printf("  ");
 		}
 
 		print_info_node(

@@ -1,5 +1,5 @@
-#ifndef PARSER_QUALIFIER
-#define PARSER_QUALIFIER
+#ifndef PARSER_QUALIFIER_H
+#define PARSER_QUALIFIER_H
 
 #include "parser.h"
 

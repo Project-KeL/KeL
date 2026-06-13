@@ -1,5 +1,5 @@
-#ifndef PARSER_SCOPE
-#define PARSER_SCOPE
+#ifndef PARSER_SCOPE_H
+#define PARSER_SCOPE_H
 
 #include "allocator.h"
 #include "parser.h"

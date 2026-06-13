@@ -1,5 +1,5 @@
-#ifndef PARSER_ALLOCATION
-#define PARSER_ALLOCATION
+#ifndef PARSER_ALLOCATION_H
+#define PARSER_ALLOCATION_H
 
 #include <stdlib.h>
 #include "parser.h"

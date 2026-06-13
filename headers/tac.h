@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef TAC_H
+#define TAC_H
 
 #include <stdint.h>
 #include "allocator.h"

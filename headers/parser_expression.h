@@ -1,5 +1,5 @@
-#ifndef PARSER_EXPRESSION
-#define PARSER_EXPRESSION
+#ifndef PARSER_EXPRESSION_H
+#define PARSER_EXPRESSION_H
 
 #include <stddef.h>
 #include "allocator.h"

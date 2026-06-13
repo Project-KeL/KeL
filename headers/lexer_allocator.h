@@ -1,5 +1,5 @@
-#ifndef LEXER_ALLOCATION
-#define LEXER_ALLOCATION
+#ifndef LEXER_ALLOCATION_H
+#define LEXER_ALLOCATION_H
 
 #include "lexer.h"
 

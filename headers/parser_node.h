@@ -1,5 +1,5 @@
-#ifndef PARSER_NODE
-#define PARSER_NODE
+#ifndef PARSER_NODE_H
+#define PARSER_NODE_H
 
 #include <stddef.h>
 #include "allocator.h"
