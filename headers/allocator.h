@@ -41,34 +41,34 @@ typedef struct {
 	void* top;
 } MemoryStackState;
 
-void initialize_memory_stack(MemoryStack* memStack);
+void initialize_memory_stack(MemoryStack* tack);
 bool create_memory_stack(
 	size_t count,
 	size_t size_type,
-	MemoryStack* memStack);
-void destroy_memory_stack(MemoryStack* memStack);
+	MemoryStack* stack);
+void destroy_memory_stack(MemoryStack* stack);
 bool memory_stack_push(
 	char* data,
 	MemoryStack* stack);
-bool memory_stack_discard(MemoryStack* memStack);
+bool memory_stack_discard(MemoryStack* stack);
 bool memory_stack_pop(
 	char* data,
-	MemoryStack* memStack);
+	MemoryStack* stack);
 void memory_stack_top(
 	char* data,
-	MemoryStack* memStack);
-void* memory_stack_top_addr(MemoryStack* memStack);
+	MemoryStack* stack);
+void* memory_stack_top_addr(MemoryStack* stack);
 bool memory_stack_realloc(
 	size_t count,
-	MemoryStack* memStack); // to implement
-bool memory_stack_is_empty(MemoryStack* memStack);
+	MemoryStack* stack); // to implement
+bool memory_stack_is_empty(MemoryStack* stack);
 
 void initialize_memory_stack_state(MemoryStackState* memStackState);
 void memory_stack_state_save(
-	MemoryStack* memStack,
+	MemoryStack* stack,
 	MemoryStackState* memStackState);
 void memory_stack_state_restore(
-	MemoryStack* memStack,
+	MemoryStack* stack,
 	MemoryStackState* memStackState);
 
 typedef struct MemoryChainLink MemoryChainLink;
