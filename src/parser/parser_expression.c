@@ -48,7 +48,7 @@ Parser* parser) {
 		.type = NodeType_EXP,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = *i};
+		.offset_token = *i};
 	memory_stack_push(
 		(char*) &operator_exp,
 		stack_operator);
@@ -61,7 +61,7 @@ Parser* parser) {
 				.type = NodeType_CALLEE,
 				.precedence = 0,
 				.count_arity = 0,
-				.token = buffer_i};
+				.offset_token = buffer_i};
 			memory_stack_push(
 				(char*) &operator_call,
 				stack_buffer);
@@ -107,7 +107,7 @@ Parser* parser) {
 				parser_create_operator_raw(
 					pop_operator.type,
 					2,
-					pop_operator.token,
+					pop_operator.offset_token,
 					&buffer_j,
 					parser);
 			}
@@ -116,7 +116,7 @@ Parser* parser) {
 				.type = type,
 				.precedence = precedence,
 				.count_arity = 0,
-				.token = buffer_i};
+				.offset_token = buffer_i};
 			memory_stack_push(
 				(char*) &operator_algebraic,
 				stack_buffer);
@@ -130,7 +130,7 @@ Parser* parser) {
 				parser_create_operator_raw(
 					pop_operator.type,
 					2,
-					pop_operator.token,
+					pop_operator.offset_token,
 					&buffer_j,
 					parser);
 			}
@@ -142,7 +142,7 @@ Parser* parser) {
 				.type = NodeType_OP_LPARENTHESIS,
 				.precedence = 0,
 				.count_arity = 0,
-				.token = buffer_i};
+				.offset_token = buffer_i};
 			memory_stack_push(
 				(char*) &operator_lparenthesis,
 				stack_buffer);
@@ -156,7 +156,7 @@ Parser* parser) {
 				parser_create_operator_raw(
 					pop_operator.type,
 					2,
-					pop_operator.token,
+					pop_operator.offset_token,
 					&buffer_j,
 					parser);
 
@@ -181,7 +181,7 @@ Parser* parser) {
 				parser_create_operator_raw(
 					NodeType_CALLEE,
 					count_arg,
-					pop_operator.token,
+					pop_operator.offset_token,
 					&buffer_j,
 					parser);
 			}
@@ -200,7 +200,7 @@ Parser* parser) {
 		parser_create_operator_raw(
 			pop_operator.type,
 			2,
-			pop_operator.token,
+			pop_operator.offset_token,
 			&buffer_j,
 			parser);
 	}

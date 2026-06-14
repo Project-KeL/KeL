@@ -38,6 +38,7 @@ const Node* node) {
 	case NodeType_SCOPE_ELSE_IF: type = "ELSE_IF"; break;
 	case NodeType_SCOPE_ELSE: type = "ELSE"; break;
 	case NodeType_SCOPE_ELSE_THROUGH: type = "ELSE THROUGH"; break;
+	case NodeType_SCOPE_END: type = "SCOPE END"; break;
 // EXP
 	case NodeType_EXP: type = "EXP"; break;
 // Keys actions
@@ -73,8 +74,8 @@ const Node* node) {
 
 	printf(
 		" \"%.*s\"\n",
-		(int)(tokens[node->token].end - tokens[node->token].start),
-		lexer->source->content + tokens[node->token].start);
+		(int)(tokens[node->offset_token].end - tokens[node->offset_token].start),
+		lexer->source->content + tokens[node->offset_token].start);
 }
 
 void debug_print_nodes(const Parser* parser) {
@@ -84,7 +85,7 @@ void debug_print_nodes(const Parser* parser) {
 	i < parser->nodes.count - 1;
 	i += 1) {
 		printf(
-			"%d\t",
+			"%zu\t",
 			i);
 		print_info_node(
 			parser,
@@ -100,10 +101,6 @@ void debug_print_tree(const Parser* parser) {
 	printf("TREE:\n");
 	const Node* nodes = parser->nodes.base;
 	const size_t count = parser->nodes.count;
-
-	if(count <= 2) // sentinels only
-		return;
-	// subtree (children + root)
 	size_t* start_subtree = calloc(
 		count,
 		sizeof(size_t));
@@ -116,20 +113,17 @@ void debug_print_tree(const Parser* parser) {
 		goto END;
 
 	{
-		// fill `stack_subtree`
-		// a leaf is its own subtree
 		size_t top = 0;
 
 		for(size_t k = 1;
 		k < count - 1;
 		k += 1) {
 			size_t start = k;
-			// the last popped child is the one at the very left
 			for(uint32_t c = 0;
 			c < nodes[k].arity;
 			c += 1) {
 				top -= 1;
-				start = stack_index[top]; // the first node has arity = 0
+				start = stack_index[top];
 			}
 
 			start_subtree[k] = start;
@@ -169,7 +163,6 @@ void debug_print_tree(const Parser* parser) {
 		print_info_node(
 			parser,
 			nodes + i);
-		// push the child from right to left
 		size_t end = i - 1;
 
 		for(uint32_t c = 0;
@@ -181,7 +174,7 @@ void debug_print_tree(const Parser* parser) {
 			const size_t start = start_subtree[end];
 
 			if(start <= 1)
-				break; // avoid underflow: the left most child is reached
+				break;
 
 			end = start - 1;
 		}

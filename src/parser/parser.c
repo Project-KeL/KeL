@@ -1,7 +1,6 @@
 #include "parser.h"
 #include "allocator.h"
 #include "lexer.h"
-#include "parser_allocator.h"
 #include "parser_declaration.h"
 #include "parser_expression.h"
 #include "parser_module.h"
@@ -19,6 +18,51 @@ static int set_error(int value) {
 
 	error = value;
 	return value;
+}
+
+static void create_node_null(Node* token) {
+	*token = (Node) {
+		.type = NodeType_NO,
+		.arity = 0,
+		.offset_token = 0};
+}
+
+static void parser_initialize_allocator(Parser* parser) {
+	assert(parser != NULL);
+
+	initialize_memory_area(&parser->nodes);
+}
+
+static bool parser_create_allocator_limit(
+size_t limit,
+Parser* parser) {
+	if(create_memory_area(
+		limit,
+		sizeof(Node),
+		&parser->nodes)
+	== false)
+		return false;
+
+	create_node_null((Node*) parser->nodes.base);
+	return true;
+}
+
+static bool parser_allocator_shrink_append_null(Parser* parser) {
+	assert(parser->nodes.count <= (size_t) parser->lexer->source->length);
+
+	const bool error = memory_area_realloc(
+		parser->nodes.count + 1, // null token
+		&parser->nodes);
+	// sentinel
+	create_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
+	return error;
+}
+
+static void parser_destroy_allocator(Parser* parser) {
+	if(parser == NULL)
+		return;
+
+	destroy_memory_area(&parser->nodes);
 }
 
 void initialize_parser(Parser* parser) {

@@ -5,6 +5,7 @@
 #include "allocator.h"
 #include "debug.h"
 #include "kel.h"
+#include "tac.h"
 
 int main(
 int argc,
@@ -16,17 +17,18 @@ char** argv) {
 
 	bool exit_status = true;
 	Source source;
-	MemoryArea memArea;
+	MemoryArea area;
 	Binary binary;
 	Lexer lexer;
 	Parser parser;
-	// TAC tac;
+	TAC tac;
+
 	initialize_source(&source);
-	initialize_memory_area(&memArea); // for the lexer
+	initialize_memory_area(&area); // for the lexer
 	initialize_binary(&binary);
 	initialize_lexer(&lexer);
 	initialize_parser(&parser);
-	// initialize_TAC(&tac);
+	initialize_tac(&tac);
 
 	if((exit_status = create_source(
 		argv[1],
@@ -46,7 +48,7 @@ char** argv) {
 			void* ptr;
 			void (*fn)(void);
 			size_t size;}),
-		&memArea))
+		&area))
 	== false)
 		goto END;
 
@@ -58,7 +60,7 @@ char** argv) {
 
 	if((exit_status = create_lexer(
 		&source,
-		&memArea,
+		&area,
 		&lexer))
 	== false)
 		goto END;
@@ -74,16 +76,22 @@ char** argv) {
 	debug_print_nodes(&parser);
 	debug_print_tree(&parser);
 #endif
+	if((exit_status = create_tac(
+		&parser,
+		&tac))
+	== false)
+		goto END;
 /*
 	binary_x64(
 		&binary,
 		&parser);
 */
 END:
+	destroy_tac(&tac);
 	destroy_parser(&parser);
 	destroy_lexer(&lexer);
 	destroy_binary(&binary);
-	destroy_memory_area(&memArea);
+	destroy_memory_area(&area);
 	destroy_source(&source);
 	return exit_status ? EXIT_SUCCESS : EXIT_FAILURE;
 }

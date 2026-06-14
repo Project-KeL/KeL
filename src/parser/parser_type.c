@@ -60,7 +60,7 @@ Parser* parser) {
 		.type = NodeType_GRP_R_PARES,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = *i};
+		.offset_token = *i};
 	memory_stack_push(
 		(char*) &operator_grp_pares,
 		stack_operator);
@@ -113,7 +113,7 @@ Parser* parser) {
 	parser_create_operator(
 		pop_operator.type,
 		pop_operator.count_arity,
-		pop_operator.token,
+		pop_operator.offset_token,
 		&buffer_j,
 		stack_operator,
 		parser);

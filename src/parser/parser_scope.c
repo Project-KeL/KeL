@@ -2,7 +2,6 @@
 #include "lexer.h"
 #include "parser.h"
 #include "parser_node.h"
-#include "parser_qualifier.h"
 #include "parser_scope.h"
 #include "parser_utils.h"
 
@@ -56,9 +55,15 @@ Parser* parser) {
 	memory_stack_pop(
 		(char*) &context_scope,
 		stack_context);
+	// `raw` to bypass the flush
+	parser_create_leaf_raw(
+		NodeType_SCOPE_END,
+		context_scope.token,
+		j,
+		parser);
 	parser_create_operator(
 		NodeType_SCOPE,
-		context_scope.count_child,
+		context_scope.count_child + 1,
 		context_scope.token,
 		j,
 		stack_operator,
@@ -74,7 +79,7 @@ Parser* parser) {
 		parser_create_operator(
 			pop_operator.type,
 			1,
-			pop_operator.token,
+			pop_operator.offset_token,
 			j,
 			stack_operator,
 			parser);
@@ -88,7 +93,7 @@ Parser* parser) {
 		parser_create_operator(
 			pop_operator.type,
 			pop_operator.count_arity,
-			pop_operator.token,
+			pop_operator.offset_token,
 			j,
 			stack_operator,
 			parser);

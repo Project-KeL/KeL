@@ -33,6 +33,7 @@ typedef enum: uint64_t {
 	NODE_TYPE(SCOPE_ELSE_IF),
 	NODE_TYPE(SCOPE_ELSE),
 	NODE_TYPE(SCOPE_ELSE_THROUGH),
+	NODE_TYPE(SCOPE_END), // last child of a scope, to ease the TAC
 // EXP
 	NODE_TYPE(EXP),
 // Keys actions
@@ -60,7 +61,7 @@ typedef enum: uint64_t {
 typedef struct {
 	NodeType type;
 	uint32_t arity;
-	long int token;
+	long int offset_token;
 } Node;
 
 typedef enum: uint64_t {
@@ -92,7 +93,7 @@ typedef struct {
 	NodeType type;
 	uint32_t precedence;
 	uint32_t count_arity;
-	size_t token;
+	size_t offset_token;
 } Operator;
 
 typedef struct {

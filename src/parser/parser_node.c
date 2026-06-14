@@ -14,7 +14,7 @@ Parser* parser) {
 	nodes[*j] = (Node) {
 		.type = type,
 		.arity = 0,
-		.token = token};
+		.offset_token = token};
 	*j += 1;
 }
 
@@ -50,7 +50,7 @@ Parser* parser) {
 	nodes[*j] = (Node) {
 		.type = type,
 		.arity = arity,
-		.token = token};
+		.offset_token = token};
 	*j += 1;
 }
 
@@ -101,7 +101,7 @@ Parser* parser) {
 		parser_create_operator_raw(
 			pop_operator.type,
 			pop_operator.count_arity,
-			pop_operator.token,
+			pop_operator.offset_token,
 			j,
 			parser);
 		top_context->count_child += 1;

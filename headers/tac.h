@@ -2,18 +2,18 @@
 #define TAC_H
 
 #include <stdint.h>
-#include "allocator.h"
-#include "lexer.h"
+#include "parser.h"
+#include "stab.h"
 
 typedef struct {
-	//
+	STab stab;
+	
 } TAC;
 
-void initialize_TAC(TAC* tac);
-bool create_TAC(
-	const Lexer* lexer,
-	MemoryArea* restrict memArea,
-	TAC* parser);
-void destroy_TAC(TAC* tac);
+void initialize_tac(TAC* tac);
+bool create_tac(
+	Parser* parser,
+	TAC* tac);
+void destroy_tac(TAC* tac);
 
 #endif

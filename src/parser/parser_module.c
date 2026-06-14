@@ -16,7 +16,7 @@ Parser* parser) {
 			.type = NodeType_GRP_IMOD,
 			.precedence = 0,
 			.count_arity = 0,
-			.token = *i};
+			.offset_token = *i};
 		memory_stack_push(
 			(char*) &operator,
 			stack_operator);
@@ -36,7 +36,7 @@ Parser* parser) {
 			.type = NodeType_GRP_OMOD,
 			.precedence = 0,
 			.count_arity = 0,
-			.token = *i};
+			.offset_token = *i};
 		memory_stack_push(
 			(char*) &operator,
 			stack_operator);

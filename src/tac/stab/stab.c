@@ -27,16 +27,13 @@ STab* stab) {
 	== false)
 		goto ERROR;
 
-	stab->code = parser->lexer->source->content;
-	// SCOPE_0
-	MemoryStackState stack_state;
-	initialize_memory_stack_state(&stack_state);
-	memory_stack_state_save(
-		&stab->stack_entry,
-		&stack_state);
+	STabEntry stab_entry = (STabEntry) {
+		.token = NULL,
+		.id = 0};
 	memory_stack_push(
-		(char*) &stack_state,
-		&stab->stack_watermark);
+		(char*) &stab_entry,
+		&stab->stack_entry);
+	stab->code = parser->lexer->source->content;
 	return true;
 ERROR:
 	destroy_stab(stab);
@@ -53,10 +50,14 @@ void destroy_stab(STab* stab) {
 }
 
 void stab_push_entry(
-STabEntry* stab_entry,
+const Token* token,
 STab* stab) {
+	STabEntry* top_stab_entry = memory_stack_top_addr(&stab->stack_entry);
+	STabEntry stab_entry = (STabEntry) {
+		.token = token,
+		.id = top_stab_entry->id + 1};
 	memory_stack_push(
-		(char*) stab_entry,
+		(char*) &stab_entry,
 		&stab->stack_entry);
 }
 

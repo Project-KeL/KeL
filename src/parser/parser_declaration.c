@@ -58,7 +58,7 @@ Parser* parser) {
 			.type = NodeType_INIT_VAR,
 			.precedence = 0,
 			.count_arity = 0,
-			.token = buffer_i};
+			.offset_token = buffer_i};
 		memory_stack_push(
 			(char*) &operator,
 			stack_operator);
@@ -83,7 +83,7 @@ Parser* parser) {
 		parser_create_operator(
 			pop_operator.type,
 			pop_operator.count_arity,
-			pop_operator.token,
+			pop_operator.offset_token,
 			&buffer_j,
 			stack_operator,
 			parser);
@@ -94,7 +94,7 @@ Parser* parser) {
 		parser_create_operator(
 			pop_operator.type,
 			pop_operator.count_arity,
-			pop_operator.token,
+			pop_operator.offset_token,
 			&buffer_j,
 			stack_operator,
 			parser);
@@ -104,7 +104,7 @@ Parser* parser) {
 				.type = NodeType_INIT_PAL,
 				.precedence = 0,
 				.count_arity = 0,
-				.token = buffer_i};
+				.offset_token = buffer_i};
 			memory_stack_push(
 				(char*) &operator,
 				stack_operator);
@@ -160,7 +160,7 @@ Parser* parser) {
 		.type = type_DECL,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = *i};
+		.offset_token = *i};
 	memory_stack_push(
 		(char*) &operator_decl,
 		stack_operator);

@@ -20,7 +20,7 @@ bool create_stab(
 	STab* stab);
 void destroy_stab(STab* stab);
 void stab_push_entry(
-	STabEntry* stab_entry,
+	const Token* token,
 	STab* stab);
 void stab_push_scope(STab* stab);
 void stab_pop_scope(STab* stab);

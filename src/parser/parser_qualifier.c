@@ -15,7 +15,7 @@ Parser* parser) {
 		.type = NodeType_GRP_Q,
 		.precedence = 0,
 		.count_arity = 0,
-		.token = buffer_i};
+		.offset_token = buffer_i};
 
 	MemoryStackState stack_operator_state;
 	initialize_memory_stack_state(&stack_operator_state);
@@ -51,7 +51,7 @@ Parser* parser) {
 	parser_create_operator_raw(
 		pop_operator_GRP_Q.type,
 		pop_operator_GRP_Q.count_arity,
-		pop_operator_GRP_Q.token,
+		pop_operator_GRP_Q.offset_token,
 		j,
 		parser);
 	Context* top_context = memory_stack_top_addr(stack_context);
