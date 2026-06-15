@@ -1,13 +1,16 @@
 #include <assert.h>
+#include "allocator.h"
 #include "parser.h"
 #include "stab.h"
 #include "tac.h"
 #include "tac_expression.h"
+#include "tac_quadruple.h"
 #include <stdio.h>
 void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
 
 	initialize_stab(&tac->stab);
+	initialize_quadruple_list(&tac->quadruple_list);
 }
 
 bool create_tac(
@@ -29,13 +32,19 @@ TAC* tac) {
 		return false;
 	// traverse nodes
 	// substree = root + descendant nodes
+	MemoryStack stack_buffer;
+	initialize_memory_stack(&stack_buffer);
 	size_t* start_subtree = calloc(
 		count,
 		sizeof(size_t));
 	size_t* stack_index = malloc(count * sizeof(size_t));
 	size_t* stack_depth = malloc(count * sizeof(size_t));
 
-	if(start_subtree == NULL
+	if(!create_memory_stack(
+		parser->lexer->source->length,
+		sizeof(Node*),
+		&stack_buffer)
+	|| start_subtree == NULL
 	|| stack_depth == NULL
 	|| stack_index == NULL) {
 		error = true;
@@ -100,7 +109,8 @@ TAC* tac) {
 			tac_create_expression(
 				start_subtree[i],
 				i,
-				&tac->stab);
+				&stack_buffer,
+				tac);
 			continue;
 		}
 		// push the child from right to left
@@ -124,6 +134,7 @@ END:
 	free(stack_depth);
 	free(stack_index);
 	free(start_subtree);
+	destroy_memory_stack(&stack_buffer);
 
 	if(error)
 		destroy_tac(tac);
@@ -135,6 +146,7 @@ void destroy_tac(TAC* tac) {
 	if(tac == NULL)
 		return;
 
+	destroy_quadruple_list(&tac->quadruple_list);
 	destroy_stab(&tac->stab);
 	initialize_tac(tac);
 }

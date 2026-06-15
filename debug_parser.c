@@ -58,7 +58,7 @@ const Node* node) {
 	case NodeType_OP_ADD: type = "ADD"; break;
 	case NodeType_OP_SUB: type = "SUB"; break;
 	case NodeType_OP_MUL: type = "MUL"; break;
-	case NodeType_OP_DIV: type = "DOV"; break;
+	case NodeType_OP_DIV: type = "DIV"; break;
 // error
 	default: assert(false);
 	}

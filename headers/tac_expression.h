@@ -3,11 +3,14 @@
 
 #include <stddef.h>
 #include "stab.h"
+#include "tac.h"
 #include "parser.h"
+#include "tac_quadruple.h"
 
 void tac_create_expression(
 	size_t start,
 	size_t end,
-	const STab* stab);
+	MemoryStack* stack_buffer,
+	TAC* tac);
 
 #endif

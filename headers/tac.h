@@ -4,9 +4,11 @@
 #include <stdint.h>
 #include "parser.h"
 #include "stab.h"
+#include "tac_quadruple.h"
 
 typedef struct {
 	STab stab;
+	QuadrupleList quadruple_list;
 } TAC;
 
 void initialize_tac(TAC* tac);

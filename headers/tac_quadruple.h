@@ -9,6 +9,8 @@ typedef enum: uint64_t {
 	QUADRUPLE_TYPE(NO) = 0,
 //
 	QUADRUPLE_TYPE(LIT),
+// temporarie
+	QUADRUPLE_TYPE(TEMP),
 // operator
 	QUADRUPLE_TYPE(ADD),
 	QUADRUPLE_TYPE(SUB),
