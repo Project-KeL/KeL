@@ -7,12 +7,19 @@
 typedef enum: uint64_t {
 #define QUADRUPLE_TYPE(type) QuadrupleItemType_ ## type
 	QUADRUPLE_TYPE(NO) = 0,
+//
+	QUADRUPLE_TYPE(LIT),
+// operator
+	QUADRUPLE_TYPE(ADD),
+	QUADRUPLE_TYPE(SUB),
+	QUADRUPLE_TYPE(MUL),
+	QUADRUPLE_TYPE(DIV),
 #undef QUADRUPLE_TYPE
 } QuadrupleItemType;
 
 typedef struct {
 	QuadrupleItemType type;
-	uint32_t misc;
+	size_t offset_node;
 } QuadrupleItem;
 
 typedef struct {
@@ -23,11 +30,16 @@ typedef struct {
 } QuadrupleEntry;
 
 typedef struct {
-	MemoryArea quadruples;
+	MemoryStack quadruples; // never popping stack
 } QuadrupleList;
 
+void initialize_quadruple_list(QuadrupleList* quadruple_list);
 bool create_quadruples(
 	Parser* parser,
-	QuadrupleList tac_quadruple);
+	QuadrupleList quadruple_list);
+void destroy_quadruple_list(QuadrupleList* tac_quadruples);
+void quadruple_list_append(
+	QuadrupleEntry* entry,
+	QuadrupleList* quadruple_list);
 
 #endif

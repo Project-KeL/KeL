@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "stab.h"
 #include "tac.h"
+#include "tac_expression.h"
 #include <stdio.h>
 void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
@@ -80,16 +81,14 @@ TAC* tac) {
 		end = start - 1;
 	}
 
-	const Token* tokens = parser->lexer->tokens.base;
-
 	while(top != 0) {
 		top -= 1;
-		const size_t i = stack_index[top];
+		size_t i = stack_index[top];
 		const size_t depth = stack_depth[top];
 		// record ID in the symbol table
 		if(nodes[i].type == NodeType_ID) {
 			stab_push_entry(
-				tokens + nodes[i].offset_token,
+				i,
 				&tac->stab);
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE) {
@@ -97,6 +96,12 @@ TAC* tac) {
 		// pop the scope
 		} else if(nodes[i].type == NodeType_SCOPE_END) {
 			stab_pop_scope(&tac->stab);
+		} else if(nodes[i].type == NodeType_EXP) {
+			tac_create_expression(
+				start_subtree[i],
+				i,
+				&tac->stab);
+			continue;
 		}
 		// push the child from right to left
 		size_t end = i - 1;
@@ -131,5 +136,5 @@ void destroy_tac(TAC* tac) {
 		return;
 
 	destroy_stab(&tac->stab);
-	initialize_tac(tac);;
+	initialize_tac(tac);
 }

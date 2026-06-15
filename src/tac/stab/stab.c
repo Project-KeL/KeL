@@ -28,12 +28,12 @@ STab* stab) {
 		goto ERROR;
 
 	STabEntry stab_entry = (STabEntry) {
-		.token = NULL,
+		.offset_node = 0,
 		.id = 0};
 	memory_stack_push(
 		(char*) &stab_entry,
 		&stab->stack_entry);
-	stab->code = parser->lexer->source->content;
+	stab->parser = parser;
 	return true;
 ERROR:
 	destroy_stab(stab);
@@ -50,11 +50,11 @@ void destroy_stab(STab* stab) {
 }
 
 void stab_push_entry(
-const Token* token,
+size_t offset_node,
 STab* stab) {
 	STabEntry* top_stab_entry = memory_stack_top_addr(&stab->stack_entry);
 	STabEntry stab_entry = (STabEntry) {
-		.token = token,
+		.offset_node = offset_node,
 		.id = top_stab_entry->id + 1};
 	memory_stack_push(
 		(char*) &stab_entry,
@@ -85,18 +85,20 @@ void stab_pop_scope(STab* stab) {
 }
 
 STabEntry* stab_lookup(
-const Token* token,
+size_t offset_node,
 STab* stab) {
 	STabEntry* const base = stab->stack_entry.area.base;
 	STabEntry* entry = stab->stack_entry.top;
+	Node* nodes = stab->parser->nodes.base;
+	Token* tokens = stab->parser->lexer->tokens.base;
 
 	while(entry != base) {
 		entry -= 1;
 
 		if(parser_is_code_token_match(
-			stab->code,
-			token,
-			entry->token)
+			stab->parser->lexer->source->content,
+			tokens + nodes[offset_node].offset_token,
+			tokens + nodes[entry->offset_node].offset_token)
 		== true)
 			return entry;
 	}

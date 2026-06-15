@@ -4,12 +4,12 @@
 #include "parser.h"
 
 typedef struct {
-	const Token* token;
+	size_t offset_node;
 	uint32_t id;
 } STabEntry;
 
 typedef struct {
-	const char* code;
+	Parser* parser;
 	MemoryStack stack_entry;
 	MemoryStack stack_watermark; // a stack of `MemoryStackState`
 } STab; //Symbol Table
@@ -20,9 +20,12 @@ bool create_stab(
 	STab* stab);
 void destroy_stab(STab* stab);
 void stab_push_entry(
-	const Token* token,
+	size_t offset_node,
 	STab* stab);
 void stab_push_scope(STab* stab);
 void stab_pop_scope(STab* stab);
+STabEntry* stab_lookup(
+	size_t offset_node,
+	STab* stab);
 
 #endif

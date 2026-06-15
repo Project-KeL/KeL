@@ -1,29 +1,43 @@
 #include <assert.h>
 #include "tac_quadruple.h"
 
-void initialize_quadruple(QuadrupleList* tac_quadruple) {
-	assert(tac_quadruple != NULL);
+void initialize_quadruple_list(QuadrupleList* quadruple_list) {
+	assert(quadruple_list != NULL);
 
-	initialize_memory_area(&tac_quadruple->quadruples);
+	initialize_memory_stack(&quadruple_list->quadruples);
 }
 
-bool create_quadruples(
+bool create_quadruple_list(
 Parser* parser,
-QuadrupleList tac_quadruple) {
-	if(create_memory_area(
+QuadrupleList* quadruple_list) {
+	assert(parser != NULL);
+	assert(quadruple_list != NULL);
+
+	if(create_memory_stack(
 		parser->lexer->source->length,
 		sizeof(QuadrupleEntry),
-		&tac_quadruple.quadruples)
+		&quadruple_list->quadruples)
 	== false)
 		return false;
 
 	return true;
 }
 
-void destroy_quadruples(QuadrupleList* tac_quadruples) {
+void destroy_quadruple_list(QuadrupleList* tac_quadruples) {
 	if(tac_quadruples == NULL)
 		return;
 
-	destroy_memory_area(&tac_quadruples->quadruples);
-	initialize_quadruple(tac_quadruples);
+	destroy_memory_stack(&tac_quadruples->quadruples);
+	initialize_quadruple_list(tac_quadruples);
+}
+
+void quadruple_list_append(
+QuadrupleEntry* entry,
+QuadrupleList* quadruple_list) {
+	assert(entry != NULL);
+	assert(quadruple_list != NULL);
+
+	memory_stack_push(
+		(char*) entry,
+		&quadruple_list->quadruples);
 }

@@ -7,7 +7,6 @@
 
 typedef struct {
 	STab stab;
-	
 } TAC;
 
 void initialize_tac(TAC* tac);
