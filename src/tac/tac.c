@@ -16,9 +16,15 @@ void initialize_tac(TAC* tac) {
 bool create_tac(
 Parser* parser,
 TAC* tac) {
-	if(create_stab(
+	initialize_stab(&tac->stab);
+	initialize_quadruple_list(&tac->quadruple_list);
+
+	if(!create_stab(
 		parser,
 		&tac->stab)
+	|| create_quadruple_list(
+		parser,
+		&tac->quadruple_list)
 	== false)
 		return false;
 

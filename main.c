@@ -81,6 +81,9 @@ char** argv) {
 		&tac))
 	== false)
 		goto END;
+#ifndef NDEBUG
+	debug_print_quadruple_list(&tac);
+#endif
 /*
 	binary_x64(
 		&binary,

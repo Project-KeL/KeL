@@ -36,9 +36,9 @@ typedef struct {
 } QuadrupleList;
 
 void initialize_quadruple_list(QuadrupleList* quadruple_list);
-bool create_quadruples(
+bool create_quadruple_list(
 	Parser* parser,
-	QuadrupleList quadruple_list);
+	QuadrupleList* quadruple_list);
 void destroy_quadruple_list(QuadrupleList* tac_quadruples);
 void quadruple_list_append(
 	QuadrupleEntry* entry,
