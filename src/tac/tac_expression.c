@@ -16,6 +16,7 @@ static QuadrupleItemType get_operand(const Node* operand) {
 	case NodeType_OP_SUB:
 	case NodeType_OP_MUL:
 	case NodeType_OP_DIV:
+	case NodeType_CALLEE:
 		return QuadrupleItemType_TEMP;
 	default: assert(false);
 	}
