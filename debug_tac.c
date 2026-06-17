@@ -9,19 +9,34 @@ const char* code,
 const Token* token,
 const QuadrupleItem* quadruple_item) {
 	switch(quadruple_item->type) {
+	case QuadrupleItemType_NO: break;
 	case QuadrupleItemType_LIT:
+	case QuadrupleItemType_PAL:
 		printf(
-			"%.*s\t",
+			"%.*s",
 			(int)(token->end - token->start),
 			code + token->start);
 		break;
 	case QuadrupleItemType_TEMP:
 		printf(
-			"t%zu\t",
+			"t%zu",
+			quadruple_item->offset_node);
+		break;
+	case QuadrupleItemType_CALL:
+		printf(
+			"%.*s",
+			(int)(token->end - token->start),
+			code + token->start);
+		break;
+	case QuadrupleItemType_COUNT:
+		printf(
+			"%zu",
 			quadruple_item->offset_node);
 		break;
 	default: assert(false);
 	}
+
+	printf("\t");
 }
 
 static void print_info_quadruple_entry(
@@ -34,6 +49,10 @@ const QuadrupleEntry* quadruple_entry) {
 	case QuadrupleItemType_SUB: type = "SUB"; break;
 	case QuadrupleItemType_MUL: type = "MUL"; break;
 	case QuadrupleItemType_DIV: type = "DIV"; break;
+	case QuadrupleItemType_ARG: type = "ARG"; break;
+	case QuadrupleItemType_CALL: type = "CALL"; break;
+	case QuadrupleItemType_PAL: type = "PAL"; break;
+	case QuadrupleItemType_COUNT: type = "COUNT"; break;
 	default: assert(false);
 	}
 
@@ -83,6 +102,10 @@ void debug_print_quadruple_list(const TAC* tac) {
 			tac->stab.parser,
 			base + i);
 	}
+
+	printf(
+		"\nQuadruple count: %zu\n",
+		count);
 }
 
 #endif
