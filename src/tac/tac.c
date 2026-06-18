@@ -101,9 +101,11 @@ TAC* tac) {
 		size_t i = stack_index[top];
 		const size_t depth = stack_depth[top];
 		// record ID in the symbol table
-		if(nodes[i].type == NodeType_ID) {
+		if((nodes[i].type == NodeType_DECL_VAR
+		 || nodes[i].type == NodeType_DECL_PAL)
+		&& nodes[start_subtree[i]].type == NodeType_ID) {
 			stab_push_entry(
-				i,
+				start_subtree[i],
 				&tac->stab);
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE) {

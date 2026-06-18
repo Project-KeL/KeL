@@ -2,7 +2,7 @@
 #include "allocator.h"
 #include "parser_utils.h"
 #include "stab.h"
-
+#include <stdio.h>
 void initialize_stab(STab* stab) {
 	assert(stab != NULL);
 

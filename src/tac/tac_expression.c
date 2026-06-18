@@ -3,21 +3,38 @@
 #include "tac_expression.h"
 #include "parser.h"
 #include "parser_utils.h"
+#include "stab.h"
 #include "tac_quadruple.h"
 #include <stdio.h>
 
-static QuadrupleItemType get_operand(const Node* operand) {
+static QuadrupleItem get_operand(
+const Node* operand,
+TAC* tac) {
+	Node* nodes = tac->stab.parser->nodes.base;
+
 	switch(operand->type) {
 	case NodeType_LIT_NUM:
 	case NodeType_LIT_CHAR:
 	case NodeType_LIT_STR:
-		return QuadrupleItemType_LIT;
+		return (QuadrupleItem) {
+			.offset_node = (size_t)(operand - nodes),
+			.type = QuadrupleItemType_LIT};
+	case NodeType_KEY:
+		STabEntry* entry = stab_lookup(
+			(size_t)(operand - nodes),
+			&tac->stab);
+		assert(entry != NULL);
+		return (QuadrupleItem) {
+			.offset_node = entry->offset_node,
+			.type = QuadrupleItemType_KEY};
 	case NodeType_OP_ADD:
 	case NodeType_OP_SUB:
 	case NodeType_OP_MUL:
 	case NodeType_OP_DIV:
 	case NodeType_CALLEE:
-		return QuadrupleItemType_TEMP;
+		return (QuadrupleItem) {
+			.offset_node = (size_t)(operand - nodes),
+			.type = QuadrupleItemType_TEMP};
 	default: assert(false);
 	}
 }
@@ -29,7 +46,6 @@ MemoryStack* stack_buffer,
 TAC* tac) {
 	const Parser* parser = tac->stab.parser;
 	const Token* tokens = parser->lexer->tokens.base;
-	const Node* nodes = parser->nodes.base;
 
 	for(
 	size_t i = start;
@@ -43,18 +59,18 @@ TAC* tac) {
 			size_t j = 0;
 			j < node->arity;
 			j += 1) {
-				Node* arg;
+				Node* node_arg;
 				memory_stack_pop(
-					(char*) &arg,
+					(char*) &node_arg,
 					stack_buffer);
 
 				QuadrupleEntry entry_arg = (QuadrupleEntry) {
 					.op = (QuadrupleItem) {
 						.type = QuadrupleItemType_ARG,
 						.offset_node = i},
-					.src1 = (QuadrupleItem) {
-						.type = get_operand(arg),
-						.offset_node = (size_t)(arg - nodes)},
+					.src1 = get_operand(
+						node_arg,
+						tac),
 					.src2 = (QuadrupleItem) {
 						.type = QuadrupleItemType_NO,
 						.offset_node = 0},
@@ -93,10 +109,10 @@ TAC* tac) {
 			Node* right;
 			Node* left;
 			memory_stack_pop(
-				(char*) &right,
+				(char*) &left,
 				stack_buffer);
 			memory_stack_pop(
-				(char*) &left,
+				(char*) &right,
 				stack_buffer);
 
 			const Token* tokens = parser->lexer->tokens.base;
@@ -116,12 +132,12 @@ TAC* tac) {
 				.op = (QuadrupleItem) {
 					.type = op_type,
 					.offset_node = i},
-				.src1 = (QuadrupleItem) {
-					.type = get_operand(left),
-					.offset_node = (size_t)(left - nodes)},
-				.src2 = (QuadrupleItem) {
-					.type = get_operand(right),
-					.offset_node = (size_t)(right - nodes)},
+				.src1 = get_operand(
+					right,
+					tac),
+				.src2 = get_operand(
+					left,
+					tac),
 				.dst = (QuadrupleItem) {
 					.type = QuadrupleItemType_TEMP,
 					.offset_node = i}};

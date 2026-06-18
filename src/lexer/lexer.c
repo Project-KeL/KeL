@@ -574,7 +574,7 @@ Lexer* lexer) {
 			&start,
 			&end));
 
-		if(code[end] == '\0')
+		if(code[start] == '\0')
 			break;
 		// create tokens
 		Token* token = (Token*) lexer->tokens.base + i;

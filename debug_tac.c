@@ -10,6 +10,7 @@ const Token* token,
 const QuadrupleItem* quadruple_item) {
 	switch(quadruple_item->type) {
 	case QuadrupleItemType_NO: break;
+	case QuadrupleItemType_KEY:
 	case QuadrupleItemType_LIT:
 	case QuadrupleItemType_PAL:
 		printf(
