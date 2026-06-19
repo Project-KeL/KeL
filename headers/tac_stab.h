@@ -14,17 +14,17 @@ typedef struct {
 	MemoryStack stack_watermark; // a stack of `MemoryStackState`
 } STab; //Symbol Table
 
-void initialize_stab(STab* stab);
-bool create_stab(
+void initialize_tac_stab(STab* stab);
+bool create_tac_stab(
 	Parser* parser,
 	STab* stab);
-void destroy_stab(STab* stab);
-void stab_push_entry(
+void destroy_tac_stab(STab* stab);
+void tac_stab_push_entry(
 	size_t offset_node,
 	STab* stab);
-void stab_push_scope(STab* stab);
-void stab_pop_scope(STab* stab);
-STabEntry* stab_lookup(
+void tac_stab_push_scope(STab* stab);
+void tac_stab_pop_scope(STab* stab);
+STabEntry* tac_stab_lookup(
 	size_t offset_node,
 	STab* stab);
 

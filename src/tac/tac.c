@@ -9,17 +9,17 @@
 void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
 
-	initialize_stab(&tac->stab);
+	initialize_tac_stab(&tac->stab);
 	initialize_quadruple_list(&tac->quadruple_list);
 }
 
 bool create_tac(
 Parser* parser,
 TAC* tac) {
-	initialize_stab(&tac->stab);
+	initialize_tac_stab(&tac->stab);
 	initialize_quadruple_list(&tac->quadruple_list);
 
-	if(!create_stab(
+	if(!create_tac_stab(
 		parser,
 		&tac->stab)
 	|| create_quadruple_list(
@@ -30,7 +30,7 @@ TAC* tac) {
 
 	bool error = false;
 	// SCOPE_0
-	stab_push_scope(&tac->stab);
+	tac_stab_push_scope(&tac->stab);
 	const Node* nodes = parser->nodes.base;
 	const size_t count = parser->nodes.count;
 	// sentinels only
@@ -104,15 +104,15 @@ TAC* tac) {
 		if((nodes[i].type == NodeType_DECL_VAR
 		 || nodes[i].type == NodeType_DECL_PAL)
 		&& nodes[start_subtree[i]].type == NodeType_ID) {
-			stab_push_entry(
+			tac_stab_push_entry(
 				start_subtree[i],
 				&tac->stab);
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE) {
-			stab_push_scope(&tac->stab);
+			tac_stab_push_scope(&tac->stab);
 		// pop the scope
 		} else if(nodes[i].type == NodeType_SCOPE_END) {
-			stab_pop_scope(&tac->stab);
+			tac_stab_pop_scope(&tac->stab);
 		} else if(nodes[i].type == NodeType_EXP) {
 			tac_create_expression(
 				start_subtree[i],
@@ -155,6 +155,6 @@ void destroy_tac(TAC* tac) {
 		return;
 
 	destroy_quadruple_list(&tac->quadruple_list);
-	destroy_stab(&tac->stab);
+	destroy_tac_stab(&tac->stab);
 	initialize_tac(tac);
 }

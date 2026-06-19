@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "parser.h"
-#include "stab.h"
+#include "tac_stab.h"
 #include "tac_quadruple.h"
 
 typedef struct {

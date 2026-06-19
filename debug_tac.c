@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "headers/tac_quadruple.h"
-#include "debug_tac.h"
+#include "tac.h"
+#include "tac_quadruple.h"
 
 #ifndef NDEBUG
 

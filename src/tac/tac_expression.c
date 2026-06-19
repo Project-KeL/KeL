@@ -20,7 +20,7 @@ TAC* tac) {
 			.offset_node = (size_t)(operand - nodes),
 			.type = QuadrupleItemType_LIT};
 	case NodeType_KEY:
-		STabEntry* entry = stab_lookup(
+		STabEntry* entry = tac_stab_lookup(
 			(size_t)(operand - nodes),
 			&tac->stab);
 		assert(entry != NULL);
