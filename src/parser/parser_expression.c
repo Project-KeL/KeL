@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "lexer.h"
 #include "parser.h"
 #include "parser_expression.h"
 #include "parser_node.h"
@@ -73,9 +74,18 @@ Parser* parser) {
 				&buffer_j,
 				parser);
 			buffer_i += 1;
-		} else if(parser_is_literal_number(tokens + buffer_i)) {
+		} else if(parser_is_literal(tokens + buffer_i)) {
+			NodeType type;
+
+			switch(tokens[buffer_i].subtype) {
+			case TokenSubtype_LIT_NUM: type = NodeType_LIT_NUM; break;
+			case TokenSubtype_LIT_CHAR: type = NodeType_LIT_CHAR; break;
+			case TokenSubtype_LIT_STR: type = NodeType_LIT_STR; break;
+			default: assert(false);
+			}
+
 			parser_create_leaf_raw(
-				NodeType_LIT_NUM,
+				type,
 				buffer_i,
 				&buffer_j,
 				parser);

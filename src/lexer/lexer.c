@@ -459,17 +459,15 @@ Token* token) {
 		}
 
 		subtype = TokenSubtype_LIT_NUM;
-	} else if(code[start] == '\'') {
-		while(code[buffer_end] != '\0'
-		   && code[buffer_end] != '\'') buffer_end += 1;
-
-		if(code[buffer_end] != '\'') {
+	} else if(code[start] == '\\') {
+		if(code[start + 1] == '\0'
+		|| code[start + 2] != '\\') {
 			set_error(-1);
 			return false;
 		}
 
+		buffer_end = start + 3;
 		start += 1;
-		buffer_end += 1;
 		subtype = TokenSubtype_LIT_CHAR;
 	} else if(code[start] == '`') {
 		while(code[buffer_end] != '\0'

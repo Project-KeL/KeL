@@ -25,8 +25,13 @@ MemoryArea* memArea) {
 		const char c = code[start];
 		// LITERAL_ASCII_NO
 		if(c == '\\'
-		&& !isgraph(code[start + 1])) {
-			return false;
+		&& !marker_literal_string) {
+			if(code[start + 1] == '\0'
+			|| code[start + 2] != '\\')
+				return false;
+
+			end = start + 3;
+			continue;
 		// DELIMITER_MATCH
 		} else if(lexer_is_delimiter_open(c)) {
 			memory[count_delimiter_open] = c;
