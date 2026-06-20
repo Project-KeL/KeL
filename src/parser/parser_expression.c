@@ -22,6 +22,9 @@ uint32_t* precedence) {
 	} else if(parser_is_operator_DIV(token)) {
 		*type = NodeType_OP_DIV;
 		*precedence = 2;
+	} else if(parser_is_operator_ASSIGN(token)) {
+		*type = NodeType_OP_ASSIGN;
+		*precedence = 0;
 	} else
 		*type = NodeType_NO;
 }
@@ -108,6 +111,10 @@ Parser* parser) {
 					break;
 
 				if(top_operator->precedence < precedence)
+					break;
+
+				if(type == NodeType_OP_ASSIGN
+				&& top_operator->precedence == precedence)
 					break;
 
 				Operator pop_operator;

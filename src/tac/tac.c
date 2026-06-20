@@ -114,9 +114,16 @@ TAC* tac) {
 		} else if(nodes[i].type == NodeType_SCOPE_END) {
 			tac_stab_pop_scope(&tac->stab);
 		} else if(nodes[i].type == NodeType_EXP) {
+			size_t dst = 0;
+
+			if(i + 2 < count
+			&& nodes[i + 1].type == NodeType_INIT_VAR)
+				dst = start_subtree[i + 2];
+
 			tac_create_expression(
 				start_subtree[i],
 				i,
+				dst,
 				&stack_buffer,
 				tac);
 			continue;

@@ -19,11 +19,6 @@ bool parser_is_instruction_end(const Token *token) {
 	    && token->subtype == TokenSubtype_SEMICOLON;
 }
 
-bool parser_is_instruction_INIT_equal(const Token* token) {
-	return token->type == TokenType_LSPE
-	    && token->subtype == TokenSubtype_EQUAL;
-}
-
 bool parser_is_LSCOPE_start(const Token* token) {
 	return token->type == TokenType_LSCOPE
 	    && token->subtype == TokenSubtype_NO;
@@ -98,12 +93,18 @@ bool parser_is_Q(const Token* token) {
 	return token->type == TokenType_Q;
 }
 
+bool parser_is_operator_ASSIGN(const Token* token) {
+	return token->type == TokenType_LSPE
+	    && token->subtype == TokenSubtype_EQUAL;
+}
+
 bool parser_is_operator_algebraic(const Token* token) {
 	return token->type == TokenType_LSPE
 	    && (token->subtype == TokenSubtype_ASTERISK
-         || token->subtype == TokenSubtype_PLUS
-		 || token->subtype == TokenSubtype_MINUS
-	     || token->subtype == TokenSubtype_DIVIDE);
+	     || token->subtype == TokenSubtype_PLUS
+	     || token->subtype == TokenSubtype_MINUS
+	     || token->subtype == TokenSubtype_DIVIDE
+	     || token->subtype == TokenSubtype_EQUAL);
 }
 
 bool parser_is_operator_MUL(const Token* token) {

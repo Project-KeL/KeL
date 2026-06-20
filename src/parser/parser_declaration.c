@@ -42,7 +42,7 @@ Parser* parser) {
 	Token* tokens = parser->lexer->tokens.base;
 	size_t buffer_i = *i;
 
-	if(parser_is_instruction_INIT_equal(tokens + *i))
+	if(parser_is_operator_ASSIGN(tokens + *i))
 		buffer_i += 1;
 
 	size_t buffer_j = *j;
