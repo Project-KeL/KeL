@@ -8,6 +8,9 @@ typedef enum: uint64_t {
 #define QUADRUPLE_TYPE(type) QuadrupleItemType_ ## type
 	QUADRUPLE_TYPE(NO) = 0,
 //
+	QUADRUPLE_TYPE(SCOPE_PAL),
+	QUADRUPLE_TYPE(SCOPE_END_PAL),
+//
 	QUADRUPLE_TYPE(LIT),
 // temporarie
 	QUADRUPLE_TYPE(TEMP),

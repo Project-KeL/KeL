@@ -107,12 +107,51 @@ TAC* tac) {
 			tac_stab_push_entry(
 				start_subtree[i],
 				&tac->stab);
+
+			if(nodes[i].type ==  NodeType_DECL_PAL
+			&& nodes[i - 1].type == NodeType_INIT_PAL) {
+				QuadrupleEntry entry = (QuadrupleEntry) {
+					.op = (QuadrupleItem) {
+						.type = QuadrupleItemType_SCOPE_PAL,
+						.offset_node = i},
+					.src1 = (QuadrupleItem) {
+						.type = QuadrupleItemType_KEY,
+						.offset_node = start_subtree[i]},
+					.src2 = (QuadrupleItem) {
+						.type = QuadrupleItemType_NO,
+						.offset_node = 0},
+					.dst = (QuadrupleItem) {
+						.type = QuadrupleItemType_NO,
+						.offset_node = 0}};
+				quadruple_list_append(
+					&entry,
+					&tac->quadruple_list);
+			}
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE) {
 			tac_stab_push_scope(&tac->stab);
 		// pop the scope
 		} else if(nodes[i].type == NodeType_SCOPE_END) {
 			tac_stab_pop_scope(&tac->stab);
+
+			if(nodes[i + 2].type == NodeType_INIT_PAL) { // i is well defined (SCOPE_END + sentinel at least)
+				QuadrupleEntry entry = (QuadrupleEntry) {
+					.op = (QuadrupleItem) {
+						.type = QuadrupleItemType_SCOPE_END_PAL,
+						.offset_node = i},
+					.src1 = (QuadrupleItem) {
+						.type = QuadrupleItemType_NO,
+						.offset_node = 0},
+					.src2 = (QuadrupleItem) {
+						.type = QuadrupleItemType_NO,
+						.offset_node = 0},
+					.dst = (QuadrupleItem) {
+						.type = QuadrupleItemType_NO,
+						.offset_node = 0}};
+				quadruple_list_append(
+					&entry,
+					&tac->quadruple_list);
+			}
 		} else if(nodes[i].type == NodeType_EXP) {
 			size_t dst = 0;
 

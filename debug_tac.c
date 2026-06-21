@@ -46,6 +46,8 @@ const QuadrupleEntry* quadruple_entry) {
 	const char* type;
 
 	switch(quadruple_entry->op.type) {
+	case QuadrupleItemType_SCOPE_PAL: type = "SCOPE PAL"; break;
+	case QuadrupleItemType_SCOPE_END_PAL: type = "SCOPE END PAL"; break;
 	case QuadrupleItemType_MOVE: type = "MOVE"; break;
 	case QuadrupleItemType_ADD: type = "ADD"; break;
 	case QuadrupleItemType_SUB: type = "SUB"; break;
