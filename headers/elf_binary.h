@@ -2,7 +2,7 @@
 #define BINARY_H
 
 #include <stdint.h>
-#include "parser.h"
+#include <stdio.h>
 
 typedef struct {
 	const char* path;

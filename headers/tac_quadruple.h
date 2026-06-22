@@ -5,54 +5,55 @@
 #include "parser.h"
 
 typedef enum: uint64_t {
-#define QUADRUPLE_TYPE(type) QuadrupleItemType_ ## type
-	QUADRUPLE_TYPE(NO) = 0,
+#define QUAD_TYPE(type) QuadItemType_ ## type
+	QUAD_TYPE(NO) = 0,
 //
-	QUADRUPLE_TYPE(SCOPE_PAL),
-	QUADRUPLE_TYPE(SCOPE_END_PAL),
+	QUAD_TYPE(SCOPE_PAL),
+	QUAD_TYPE(SCOPE_END_PAL),
 //
-	QUADRUPLE_TYPE(LIT),
+	QUAD_TYPE(LIT),
 // temporarie
-	QUADRUPLE_TYPE(TEMP),
+	QUAD_TYPE(TEMP),
 // operator
-	QUADRUPLE_TYPE(MOVE),
-	QUADRUPLE_TYPE(ADD),
-	QUADRUPLE_TYPE(SUB),
-	QUADRUPLE_TYPE(MUL),
-	QUADRUPLE_TYPE(DIV),
+	QUAD_TYPE(MOVE),
+	QUAD_TYPE(ADD),
+	QUAD_TYPE(SUB),
+	QUAD_TYPE(MUL),
+	QUAD_TYPE(DIV),
 // key
-	QUADRUPLE_TYPE(KEY),
+	QUAD_TYPE(KEY),
 // PAL
-	QUADRUPLE_TYPE(ARG),
-	QUADRUPLE_TYPE(CALL),
-	QUADRUPLE_TYPE(PAL),
-	QUADRUPLE_TYPE(COUNT),
+	QUAD_TYPE(ARG),
+	QUAD_TYPE(CALL),
+	QUAD_TYPE(PAL),
+	QUAD_TYPE(COUNT),
 #undef QUADRUPLE_TYPE
-} QuadrupleItemType;
+} QuadItemType;
 
 typedef struct {
-	QuadrupleItemType type;
+	QuadItemType type;
 	size_t offset_node;
-} QuadrupleItem;
+} QuadItem;
 
 typedef struct {
-	QuadrupleItem op;
-	QuadrupleItem src1;
-	QuadrupleItem src2;
-	QuadrupleItem dst;
-} QuadrupleEntry;
+	QuadItem op;
+	QuadItem src1;
+	QuadItem src2;
+	QuadItem dst;
+} QuadEntry;
 
 typedef struct {
 	MemoryStack quadruples; // never popping stack
-} QuadrupleList;
+} QuadList;
 
-void initialize_quadruple_list(QuadrupleList* quadruple_list);
-bool create_quadruple_list(
+void initialize_quadlist(QuadList* quadlist);
+bool create_quadlist(
 	Parser* parser,
-	QuadrupleList* quadruple_list);
-void destroy_quadruple_list(QuadrupleList* tac_quadruples);
-void quadruple_list_append(
-	QuadrupleEntry* entry,
-	QuadrupleList* quadruple_list);
+	QuadList* quadlist);
+void destroy_quadlist(QuadList* tac_quadruples);
+QuadItem create_quaditem_null();
+void quadlist_append(
+	QuadEntry* entry,
+	QuadList* quadlist);
 
 #endif

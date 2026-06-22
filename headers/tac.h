@@ -8,7 +8,7 @@
 
 typedef struct {
 	STab stab;
-	QuadrupleList quadruple_list;
+	QuadList quadlist;
 } TAC;
 
 void initialize_tac(TAC* tac);

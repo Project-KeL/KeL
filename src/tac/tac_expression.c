@@ -7,7 +7,7 @@
 #include "tac_quadruple.h"
 #include <stdio.h>
 
-static QuadrupleItem get_operand(
+static QuadItem get_operand(
 const Node* operand,
 TAC* tac) {
 	Node* nodes = tac->stab.parser->nodes.base;
@@ -16,26 +16,26 @@ TAC* tac) {
 	case NodeType_LIT_NUM:
 	case NodeType_LIT_CHAR:
 	case NodeType_LIT_STR:
-		return (QuadrupleItem) {
+		return (QuadItem) {
 			.offset_node = (size_t)(operand - nodes),
-			.type = QuadrupleItemType_LIT};
+			.type = QuadItemType_LIT};
 	case NodeType_ID:
 	case NodeType_KEY:
 		STabEntry* entry = tac_stab_lookup(
 			(size_t)(operand - nodes),
 			&tac->stab);
 		assert(entry != NULL);
-		return (QuadrupleItem) {
+		return (QuadItem) {
 			.offset_node = entry->offset_node,
-			.type = QuadrupleItemType_KEY};
+			.type = QuadItemType_KEY};
 	case NodeType_OP_ADD:
 	case NodeType_OP_SUB:
 	case NodeType_OP_MUL:
 	case NodeType_OP_DIV:
 	case NodeType_CALLEE:
-		return (QuadrupleItem) {
+		return (QuadItem) {
 			.offset_node = (size_t)(operand - nodes),
-			.type = QuadrupleItemType_TEMP};
+			.type = QuadItemType_TEMP};
 	default: assert(false);
 	}
 }
@@ -66,40 +66,36 @@ TAC* tac) {
 					(char*) &node_arg,
 					stack_buffer);
 
-				QuadrupleEntry entry_arg = (QuadrupleEntry) {
-					.op = (QuadrupleItem) {
-						.type = QuadrupleItemType_ARG,
+				QuadEntry entry_arg = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_ARG,
 						.offset_node = i},
 					.src1 = get_operand(
 						node_arg,
 						tac),
-					.src2 = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0},
-					.dst = (QuadrupleItem) {
-						QuadrupleItemType_NO,
-						.offset_node = 0}};
-				quadruple_list_append(
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
+				quadlist_append(
 					&entry_arg,
-					&tac->quadruple_list);
+					&tac->quadlist);
 			}
 
-			QuadrupleEntry entry_call = (QuadrupleEntry) {
-				.op = (QuadrupleItem) {
-					.type = QuadrupleItemType_CALL,
+			QuadEntry entry_call = (QuadEntry) {
+				.op = (QuadItem) {
+					.type = QuadItemType_CALL,
 					.offset_node = i},
-				.src1 = (QuadrupleItem) {
-					.type = QuadrupleItemType_PAL,
+				.src1 = (QuadItem) {
+					.type = QuadItemType_PAL,
 					.offset_node = i},
-				.src2 = (QuadrupleItem) {
-					.type = QuadrupleItemType_COUNT,
+				.src2 = (QuadItem) {
+					.type = QuadItemType_COUNT,
 					.offset_node = node->arity},
-				.dst = (QuadrupleItem) {
-					.type = QuadrupleItemType_TEMP,
+				.dst = (QuadItem) {
+					.type = QuadItemType_TEMP,
 					.offset_node = i}};
-			quadruple_list_append(
+			quadlist_append(
 				&entry_call,
-				&tac->quadruple_list);
+				&tac->quadlist);
 			memory_stack_push(
 				(char*) &node,
 				stack_buffer);
@@ -120,36 +116,34 @@ TAC* tac) {
 			const Token* tokens = parser->lexer->tokens.base;
 			[[maybe_unused]] const Token* token_left = tokens + left->offset_token;
 			[[maybe_unused]] const Token* token_right = tokens + right->offset_token;
-			QuadrupleEntry quadruple_entry;
+			QuadEntry quadentry;
 
 			if(node->type == NodeType_OP_ASSIGN) {
-				quadruple_entry = (QuadrupleEntry) {
-					.op = (QuadrupleItem) {
-						.type = QuadrupleItemType_MOVE,
+				quadentry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_MOVE,
 						.offset_node = i},
 					.src1 = get_operand(
 						left,
 						tac),
-					.src2 = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0},
+					.src2 = create_quaditem_null(),
 					.dst = get_operand(
 						right,
 						tac)};
 				node = right; // WARNING
 			} else {
-				QuadrupleItemType op_type;
+				QuadItemType op_type;
 
 				switch(node->type) {
-				case NodeType_OP_ADD: op_type = QuadrupleItemType_ADD; break;
-				case NodeType_OP_SUB: op_type = QuadrupleItemType_SUB; break;
-				case NodeType_OP_MUL: op_type = QuadrupleItemType_MUL; break;
-				case NodeType_OP_DIV: op_type = QuadrupleItemType_DIV; break;
+				case NodeType_OP_ADD: op_type = QuadItemType_ADD; break;
+				case NodeType_OP_SUB: op_type = QuadItemType_SUB; break;
+				case NodeType_OP_MUL: op_type = QuadItemType_MUL; break;
+				case NodeType_OP_DIV: op_type = QuadItemType_DIV; break;
 				default: assert(false);
 				}
 
-				quadruple_entry = (QuadrupleEntry) {
-					.op = (QuadrupleItem) {
+				quadentry = (QuadEntry) {
+					.op = (QuadItem) {
 						.type = op_type,
 						.offset_node = i},
 					.src1 = get_operand(
@@ -158,14 +152,14 @@ TAC* tac) {
 					.src2 = get_operand(
 						right,
 						tac),
-					.dst = (QuadrupleItem) {
-						.type = QuadrupleItemType_TEMP,
+					.dst = (QuadItem) {
+						.type = QuadItemType_TEMP,
 						.offset_node = i}};
 			}
 
-			quadruple_list_append(
-				&quadruple_entry,
-				&tac->quadruple_list);
+			quadlist_append(
+				&quadentry,
+				&tac->quadlist);
 			memory_stack_push(
 				(char*) &node,
 				stack_buffer);
@@ -179,22 +173,20 @@ TAC* tac) {
 			(char*) &result,
 			stack_buffer);
 
-		QuadrupleEntry quadruple_entry = (QuadrupleEntry) {
-			.op = (QuadrupleItem) {
-				.type = QuadrupleItemType_MOVE,
+		QuadEntry quadentry = (QuadEntry) {
+			.op = (QuadItem) {
+				.type = QuadItemType_MOVE,
 				.offset_node = dst},
 			.src1 = get_operand(
 				result,
 				tac),
-			.src2 = (QuadrupleItem) {
-				.type = QuadrupleItemType_NO,
-				.offset_node = 0},
+			.src2 = create_quaditem_null(),
 			.dst = get_operand(
 				(Node*) parser->nodes.base + dst,
 				tac)};
-		quadruple_list_append(
-			&quadruple_entry,
-			&tac->quadruple_list);
+		quadlist_append(
+			&quadentry,
+			&tac->quadlist);
 	}
 
 	printf("\n");

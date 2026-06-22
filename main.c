@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "allocator.h"
+#include "elf_binary.h"
 #include "debug.h"
-#include "kel.h"
 #include "tac.h"
 
 int main(

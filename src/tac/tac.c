@@ -10,21 +10,21 @@ void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
 
 	initialize_tac_stab(&tac->stab);
-	initialize_quadruple_list(&tac->quadruple_list);
+	initialize_quadlist(&tac->quadlist);
 }
 
 bool create_tac(
 Parser* parser,
 TAC* tac) {
 	initialize_tac_stab(&tac->stab);
-	initialize_quadruple_list(&tac->quadruple_list);
+	initialize_quadlist(&tac->quadlist);
 
 	if(!create_tac_stab(
 		parser,
 		&tac->stab)
-	|| create_quadruple_list(
+	|| create_quadlist(
 		parser,
-		&tac->quadruple_list)
+		&tac->quadlist)
 	== false)
 		return false;
 
@@ -110,22 +110,18 @@ TAC* tac) {
 
 			if(nodes[i].type ==  NodeType_DECL_PAL
 			&& nodes[i - 1].type == NodeType_INIT_PAL) {
-				QuadrupleEntry entry = (QuadrupleEntry) {
-					.op = (QuadrupleItem) {
-						.type = QuadrupleItemType_SCOPE_PAL,
+				QuadEntry entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_SCOPE_PAL,
 						.offset_node = i},
-					.src1 = (QuadrupleItem) {
-						.type = QuadrupleItemType_KEY,
+					.src1 = (QuadItem) {
+						.type = QuadItemType_KEY,
 						.offset_node = start_subtree[i]},
-					.src2 = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0},
-					.dst = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0}};
-				quadruple_list_append(
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
+				quadlist_append(
 					&entry,
-					&tac->quadruple_list);
+					&tac->quadlist);
 			}
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE) {
@@ -135,22 +131,16 @@ TAC* tac) {
 			tac_stab_pop_scope(&tac->stab);
 
 			if(nodes[i + 2].type == NodeType_INIT_PAL) { // i is well defined (SCOPE_END + sentinel at least)
-				QuadrupleEntry entry = (QuadrupleEntry) {
-					.op = (QuadrupleItem) {
-						.type = QuadrupleItemType_SCOPE_END_PAL,
+				QuadEntry entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_SCOPE_END_PAL,
 						.offset_node = i},
-					.src1 = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0},
-					.src2 = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0},
-					.dst = (QuadrupleItem) {
-						.type = QuadrupleItemType_NO,
-						.offset_node = 0}};
-				quadruple_list_append(
+					.src1 = create_quaditem_null(),
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
+				quadlist_append(
 					&entry,
-					&tac->quadruple_list);
+					&tac->quadlist);
 			}
 		} else if(nodes[i].type == NodeType_EXP) {
 			size_t dst = 0;
@@ -200,7 +190,7 @@ void destroy_tac(TAC* tac) {
 	if(tac == NULL)
 		return;
 
-	destroy_quadruple_list(&tac->quadruple_list);
+	destroy_quadlist(&tac->quadlist);
 	destroy_tac_stab(&tac->stab);
 	initialize_tac(tac);
 }

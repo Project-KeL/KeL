@@ -1,7 +1,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "binary.h"
+#include "elf_binary.h"
 #include "elf.h"
 
 void initialize_binary(Binary* binary) {
