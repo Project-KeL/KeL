@@ -153,10 +153,10 @@ TAC* tac) {
 						.type = op_type,
 						.offset_node = i},
 					.src1 = get_operand(
-						right,
+						left,
 						tac),
 					.src2 = get_operand(
-						left,
+						right,
 						tac),
 					.dst = (QuadrupleItem) {
 						.type = QuadrupleItemType_TEMP,

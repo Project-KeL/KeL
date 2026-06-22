@@ -55,12 +55,12 @@ const Node* node) {
 	case NodeType_CALLEE: type = "CALEE"; break;
 // OP (parenthesis should not be encountered: RPN)
 	case NodeType_OP_ASSIGN: type = "ASSIGN"; break;
-	case NodeType_OP_LPARENTHESIS: type = RED "OPLP" RESET; break;
 	case NodeType_OP_ADD: type = "ADD"; break;
 	case NodeType_OP_SUB: type = "SUB"; break;
 	case NodeType_OP_MUL: type = "MUL"; break;
 	case NodeType_OP_DIV: type = "DIV"; break;
 // error
+	case NodeType_OP_LPARENTHESIS:
 	default: assert(false);
 	}
 

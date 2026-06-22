@@ -8,6 +8,8 @@ static void print_info_quadruple_item(
 const char* code,
 const Token* token,
 const QuadrupleItem* quadruple_item) {
+	printf("\t\t");
+
 	switch(quadruple_item->type) {
 	case QuadrupleItemType_NO: break;
 	case QuadrupleItemType_KEY:
@@ -37,7 +39,6 @@ const QuadrupleItem* quadruple_item) {
 	default: assert(false);
 	}
 
-	printf("\t");
 }
 
 static void print_info_quadruple_entry(
@@ -73,7 +74,7 @@ const QuadrupleEntry* quadruple_entry) {
 	const Token* token_dst = tokens + node_dst->offset_token;
 
 	printf(
-		"\t%s\t",
+		"\t%s",
 		type);
 	print_info_quadruple_item(
 		code,
@@ -92,6 +93,7 @@ const QuadrupleEntry* quadruple_entry) {
 
 void debug_print_quadruple_list(const TAC* tac) {
 	printf("QUADRUPLES:\n");
+
 	const QuadrupleList* quadruple_list = &tac->quadruple_list;
 	QuadrupleEntry* base = quadruple_list->quadruples.area.base;
 	size_t count = base == NULL
@@ -108,7 +110,7 @@ void debug_print_quadruple_list(const TAC* tac) {
 	}
 
 	printf(
-		"\nQuadruple count: %zu\n",
+		"\nNumber of quadruplets: %zu\n",
 		count);
 }
 
