@@ -31,7 +31,7 @@ void destroy_quadlist(QuadList* tac_quadruples) {
 	initialize_quadlist(tac_quadruples);
 }
 
-QuadItem create_quaditem_null() {
+QuadItem create_quaditem_null(void) {
 	return (QuadItem) {
 		.type = QuadItemType_NO,
 		.offset_node = 0};

@@ -27,7 +27,7 @@ typedef enum: uint64_t {
 	QUAD_TYPE(CALL),
 	QUAD_TYPE(PAL),
 	QUAD_TYPE(COUNT),
-#undef QUADRUPLE_TYPE
+#undef QUAD_TYPE
 } QuadItemType;
 
 typedef struct {
@@ -51,7 +51,7 @@ bool create_quadlist(
 	Parser* parser,
 	QuadList* quadlist);
 void destroy_quadlist(QuadList* tac_quadruples);
-QuadItem create_quaditem_null();
+QuadItem create_quaditem_null(void);
 void quadlist_append(
 	QuadEntry* entry,
 	QuadList* quadlist);
