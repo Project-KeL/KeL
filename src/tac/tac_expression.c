@@ -188,6 +188,4 @@ TAC* tac) {
 			&quadentry,
 			&tac->quadlist);
 	}
-
-	printf("\n");
 }
