@@ -101,8 +101,8 @@ void debug_print_quadruple_list(const TAC* tac) {
 		: (size_t)((const char*) quadruple_list->quadruples.top - (const char*) base) / sizeof(QuadEntry);
 
 	for(
-	size_t i = 0;
-	i < count;
+	size_t i = 1;
+	i < count - 1;
 	i += 1) {
 		print_info_quadruple_entry(
 			tac->stab.parser,
@@ -111,7 +111,7 @@ void debug_print_quadruple_list(const TAC* tac) {
 
 	printf(
 		"\nNumber of quadruplets: %zu\n",
-		count);
+		count - 2);
 }
 
 #endif

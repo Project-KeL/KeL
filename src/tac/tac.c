@@ -174,6 +174,9 @@ TAC* tac) {
 			end = start - 1;
 		}
 	}
+
+	if(!quadlist_allocator_shrink_append_null(&tac->quadlist))
+		error = true;
 END:
 	free(stack_depth);
 	free(stack_index);

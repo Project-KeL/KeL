@@ -123,6 +123,25 @@ void destroy_memory_stack(MemoryStack* stack) {
 	stack->top = NULL;
 }
 
+bool memory_stack_realloc(
+size_t count,
+MemoryStack* stack) {
+	assert(stack != NULL);
+
+	size_t offset = (char*) stack->top - (char*) stack->area.base;
+
+	if(memory_area_realloc(
+		count,
+		&stack->area)
+	== false) {
+		destroy_memory_stack(stack);
+		return false;
+	}
+
+	stack->top = (char*) stack->area.base + offset;
+	return true;
+}
+
 bool memory_stack_push(
 char* data,
 MemoryStack* stack) {

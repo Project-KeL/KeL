@@ -46,12 +46,13 @@ typedef struct {
 	MemoryStack quadruples; // never popping stack
 } QuadList;
 
+QuadItem create_quaditem_null(void);
+bool quadlist_allocator_shrink_append_null(QuadList* quadlist);
 void initialize_quadlist(QuadList* quadlist);
 bool create_quadlist(
 	Parser* parser,
 	QuadList* quadlist);
 void destroy_quadlist(QuadList* tac_quadruples);
-QuadItem create_quaditem_null(void);
 void quadlist_append(
 	QuadEntry* entry,
 	QuadList* quadlist);

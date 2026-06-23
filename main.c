@@ -3,9 +3,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "allocator.h"
+#include "debug_x64_register.h"
 #include "elf_binary.h"
 #include "debug.h"
 #include "tac.h"
+#include "x64_register.h"
 
 int main(
 int argc,
@@ -22,6 +24,7 @@ char** argv) {
 	Lexer lexer;
 	Parser parser;
 	TAC tac;
+	RegSlots regslots;
 
 	initialize_source(&source);
 	initialize_memory_area(&area); // for the lexer
@@ -29,6 +32,7 @@ char** argv) {
 	initialize_lexer(&lexer);
 	initialize_parser(&parser);
 	initialize_tac(&tac);
+	initialize_regslots(&regslots);
 
 	if((exit_status = create_source(
 		argv[1],
@@ -84,12 +88,21 @@ char** argv) {
 #ifndef NDEBUG
 	debug_print_quadruple_list(&tac);
 #endif
+	if((exit_status = create_regslots(
+		&tac,
+		&regslots))
+	== false)
+		goto END;
+#ifndef NDEBUG
+	debug_print_x64_register(&regslots);
+#endif
 /*
 	binary_x64(
 		&binary,
 		&parser);
 */
 END:
+	destroy_regslots(&regslots);
 	destroy_tac(&tac);
 	destroy_parser(&parser);
 	destroy_lexer(&lexer);

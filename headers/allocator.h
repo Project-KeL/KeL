@@ -47,6 +47,9 @@ bool create_memory_stack(
 	size_t size_type,
 	MemoryStack* stack);
 void destroy_memory_stack(MemoryStack* stack);
+bool memory_stack_realloc(
+	size_t count,
+	MemoryStack* stack);
 bool memory_stack_push(
 	char* data,
 	MemoryStack* stack);
@@ -58,9 +61,6 @@ void memory_stack_top(
 	char* data,
 	MemoryStack* stack);
 void* memory_stack_top_addr(MemoryStack* stack);
-bool memory_stack_realloc(
-	size_t count,
-	MemoryStack* stack); // to implement
 bool memory_stack_is_empty(MemoryStack* stack);
 
 void initialize_memory_stack_state(MemoryStackState* memStackState);

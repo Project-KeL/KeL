@@ -2,6 +2,8 @@
 #define ELF_REGISTER_H
 
 #include <stddef.h>
+#include "allocator.h"
+#include "tac.h"
 #include "tac_quadruple.h"
 
 typedef enum: uint32_t {
@@ -33,6 +35,7 @@ typedef struct {
 typedef struct {
 	size_t start; // the QuadEntry in the QuadList
 	size_t end;
+	size_t offset_node;
 	Slot slot;
 } SlotLifetime;
 
@@ -42,7 +45,19 @@ typedef struct {
 } SlotPool;
 
 typedef struct {
+	SlotLifetime* lifetimes;
+	MemoryStack stack_range;
 	SlotPool pool;
 } RegSlots;
+
+void initialize_regslots(RegSlots* regslots);
+	bool create_regslots(
+	TAC* tac,
+	RegSlots* regslots);
+void destroy_regslots(RegSlots* regslots);
+Slot regslots_alloc(RegSlots* regslots);
+void regslots_free(
+	Slot slot,
+	RegSlots* regslots);
 
 #endif
