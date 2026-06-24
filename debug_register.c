@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "debug_x64_register.h"
-#include "x64_register.h"
+#include "debug_register.h"
+#include "register.h"
 
 #ifndef NDEBUG
 

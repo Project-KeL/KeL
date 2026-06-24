@@ -3,11 +3,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "allocator.h"
-#include "debug_x64_register.h"
+#include "debug_register.h"
 #include "elf_binary.h"
 #include "debug.h"
 #include "tac.h"
-#include "x64_register.h"
+#include "register.h"
 
 int main(
 int argc,

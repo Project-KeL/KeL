@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include "x64_register.h"
+#include "register.h"
 #include "allocator.h"
 #include "tac_quadruple.h"
 #include <stdio.h>
