@@ -11,48 +11,83 @@ static Slot create_slot_null(void) {
 		.slot = 0};
 }
 
+static Slot regslots_alloc(RegSlots* regslots) {
+	for(
+	uint32_t i = 1;
+	i <= regslots->count_reg;
+	i += 1) {
+		if(regslots->pool.reg[i]) {
+			regslots->pool.reg[i] = false;
+			return (Slot) {
+				.spilled = false,
+				.slot = i};
+		}
+	}
+
+	for(
+	uint32_t i = 0;
+	i < regslots->count_spilled;
+	i += 1) {
+		if(regslots->pool.stack[i]) {
+			regslots->pool.stack[i] = false;
+			return (Slot) {
+				.spilled = true,
+				.slot = i};
+		}
+	}
+
+	return (Slot) {
+		.spilled = false,
+		.slot = 0};
+}
+
+static void regslots_free(
+Slot slot,
+RegSlots* regslots) {
+	if(slot.spilled)
+		regslots->pool.stack[slot.slot] = true;
+	else
+		regslots->pool.reg [slot.slot] = true;
+}
 void initialize_regslots(RegSlots* regslots) {
 	regslots->lifetimes = NULL;
 	initialize_memory_stack(&regslots->stack_range);
-
-	memset(
-		regslots->pool.reg,
-		(char) true,
-		Reg_COUNT * sizeof(bool));
-	memset(
-		regslots->pool.stack,
-		(char) true,
-		512 * sizeof(bool));
-
-	bool* regs = regslots->pool.reg;
-	regs[Reg_NO] = false;
-	regs[Reg_RBP] = false; // base pointer
-	regs[Reg_RSP] = false; // stack pointer
+	regslots->pool.reg = NULL;
+	regslots->pool.stack = NULL;
 }
 
 bool create_regslots(
+size_t count_reg,
+size_t count_spilled,
 TAC* tac,
 RegSlots* regslots) {
 	assert(tac != NULL);
 	assert(regslots != NULL);
 
-	regslots->lifetimes = calloc(
-		tac->stab.parser->nodes.count,
-		sizeof(SlotLifetime));
-
-	if(regslots->lifetimes == NULL)
-		return false;
-
 	bool error = false;
-
-	if(create_memory_stack(
+	error = (regslots->lifetimes = calloc(
+		tac->stab.parser->nodes.count,
+		sizeof(SlotLifetime))) == NULL;
+	error |= (create_memory_stack(
 		tac->quadlist.quadruples.area.count,
 		sizeof(SlotLifetime),
-		&regslots->stack_range)
-	== false) {
-		error = true;
+		&regslots->stack_range)) == false;
+	error |= (regslots->pool.reg = malloc((count_reg + 1) * sizeof(bool))) == NULL;
+	error |= (regslots->pool.stack = malloc(count_spilled * sizeof(bool))) == NULL;
+	regslots->count_reg = count_reg;
+	regslots->count_spilled = count_spilled;
+
+	if(error)
 		goto END;
-	}
+
+	*regslots->pool.reg = false;
+	memset(
+		regslots->pool.reg + 1,
+		(char) true,
+		count_reg * sizeof(bool));
+	memset(regslots->pool.stack,
+		(char) true,
+		count_spilled * sizeof(bool));
 
 	QuadList* quadlist = &tac->quadlist;
 
@@ -173,46 +208,9 @@ void destroy_regslots(RegSlots* regslots) {
 	if(regslots == NULL)
 		return;
 
+	free(regslots->pool.stack);
+	free(regslots->pool.reg);
 	destroy_memory_stack(&regslots->stack_range);
 	free(regslots->lifetimes);
 	initialize_regslots(regslots);
-}
-
-Slot regslots_alloc(RegSlots* regslots) {
-	for(
-	uint32_t i = 1;
-	i < Reg_COUNT;
-	i += 1) {
-		if(regslots->pool.reg[i]) {
-			regslots->pool.reg[i] = false;
-			return (Slot) {
-				.spilled = false,
-				.slot = i};
-		}
-	}
-
-	for(
-	uint32_t i = 0;
-	i < 512;
-	i += 1) {
-		if(regslots->pool.stack[i]) {
-			regslots->pool.stack[i] = false;
-			return (Slot) {
-				.spilled = true,
-				.slot = i};
-		}
-	}
-
-	return (Slot) {
-		.spilled = false,
-		.slot = Reg_NO};
-}
-
-void regslots_free(
-Slot slot,
-RegSlots* regslots) {
-	if(slot.spilled)
-		regslots->pool.stack[slot.slot] = true;
-	else
-		regslots->pool.reg [slot.slot] = true;
 }

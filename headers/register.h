@@ -40,24 +40,24 @@ typedef struct {
 } SlotLifetime;
 
 typedef struct {
-	bool reg[Reg_COUNT];
-	bool stack[512]; // 64 bits alignment
+	bool* reg;
+	bool* stack; // 64 bits alignment
 } SlotPool;
 
 typedef struct {
 	SlotLifetime* lifetimes;
 	MemoryStack stack_range;
+	size_t count_reg;
+	size_t count_spilled;
 	SlotPool pool;
 } RegSlots;
 
 void initialize_regslots(RegSlots* regslots);
 	bool create_regslots(
+	size_t count_reg,
+	size_t count_spilled,
 	TAC* tac,
 	RegSlots* regslots);
 void destroy_regslots(RegSlots* regslots);
-Slot regslots_alloc(RegSlots* regslots);
-void regslots_free(
-	Slot slot,
-	RegSlots* regslots);
 
 #endif

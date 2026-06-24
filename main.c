@@ -89,6 +89,8 @@ char** argv) {
 	debug_print_quadruple_list(&tac);
 #endif
 	if((exit_status = create_regslots(
+		16,
+		512,
 		&tac,
 		&regslots))
 	== false)
