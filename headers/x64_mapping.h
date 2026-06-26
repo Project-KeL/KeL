@@ -39,5 +39,6 @@ bool create_regmap(
 void destroy_regmap(RegMap* regmap);
 Reg regmap_from_slot_to_physical(uint32_t slot);
 uint32_t regmap_from_physical_to_slot(Reg reg);
+const char* regmap_to_str(Reg reg);
 
 #endif

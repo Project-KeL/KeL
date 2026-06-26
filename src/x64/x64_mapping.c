@@ -67,3 +67,23 @@ uint32_t regmap_from_physical_to_slot(Reg reg) {
 	default: assert(false);
 	}
 }
+
+const char* regmap_to_str(Reg reg) {
+	switch(reg) {
+	case Reg_RAX: return "rax";
+	case Reg_RBX: return "rbx";
+	case Reg_RCX: return "rcx";
+	case Reg_RDX: return "rdx";
+	case Reg_RSI: return "rsi";
+	case Reg_RDI: return "rdi";
+	case Reg_R8: return "r8";
+	case Reg_R9: return "r9";
+	case Reg_R10: return "r10";
+	case Reg_R11: return "r11";
+	case Reg_R12: return "r12";
+	case Reg_R13: return "r13";
+	case Reg_R14: return "r14";
+	case Reg_R15: return "r15";
+	default: assert(false);
+	}
+}

@@ -180,6 +180,8 @@ void debug_print_tree(const Parser* parser) {
 			end = start - 1;
 		}
 	}
+
+	printf("\n");
 END:
 	free(stack_depth);
 	free(stack_index);

@@ -12,8 +12,6 @@ void initialize_binary(Binary* binary) {
 bool create_binary(
 const char* restrict path,
 Binary* restrict binary) {
-	binary->path = NULL;
-
 	binary->file = fopen(
 		path,
 		"w");

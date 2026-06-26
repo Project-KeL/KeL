@@ -3,11 +3,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "allocator.h"
+#include "assembly.h"
 #include "debug_register.h"
 #include "elf_binary.h"
 #include "debug.h"
 #include "tac.h"
 #include "register.h"
+#include "x64_mapping.h"
 
 int main(
 int argc,
@@ -24,7 +26,8 @@ char** argv) {
 	Lexer lexer;
 	Parser parser;
 	TAC tac;
-	RegSlots regslots;
+	RegMap regmap;
+	Assembly assembly;
 
 	initialize_source(&source);
 	initialize_memory_area(&area); // for the lexer
@@ -32,7 +35,8 @@ char** argv) {
 	initialize_lexer(&lexer);
 	initialize_parser(&parser);
 	initialize_tac(&tac);
-	initialize_regslots(&regslots);
+	initialize_regmap(&regmap);
+	initialize_assembly(&assembly);
 
 	if((exit_status = create_source(
 		argv[1],
@@ -92,19 +96,29 @@ char** argv) {
 		16,
 		512,
 		&tac,
-		&regslots))
+		&regmap.regslots))
 	== false)
 		goto END;
 #ifndef NDEBUG
-	debug_print_x64_register(&regslots);
+	debug_print_x64_register(&regmap.regslots);
 #endif
+	if((exit_status = create_assembly(
+		"./EXE.sh",
+		&tac.quadlist,
+		&regmap,
+		&assembly))
+	== false)
+		goto END;
+
+	assembly_file_write(&assembly);
 /*
 	binary_x64(
 		&binary,
 		&parser);
 */
 END:
-	destroy_regslots(&regslots);
+	destroy_assembly(&assembly);
+	destroy_regmap(&regmap);
 	destroy_tac(&tac);
 	destroy_parser(&parser);
 	destroy_lexer(&lexer);
