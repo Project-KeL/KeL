@@ -104,7 +104,7 @@ char** argv) {
 #endif
 	if((exit_status = create_assembly(
 		"./EXE.sh",
-		&tac.quadlist,
+		&tac,
 		&regmap,
 		&assembly))
 	== false)

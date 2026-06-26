@@ -76,6 +76,8 @@ const char* regmap_to_str(Reg reg) {
 	case Reg_RDX: return "rdx";
 	case Reg_RSI: return "rsi";
 	case Reg_RDI: return "rdi";
+	case Reg_RBP: return "rbp";
+	case Reg_RSP: return "rsp";
 	case Reg_R8: return "r8";
 	case Reg_R9: return "r9";
 	case Reg_R10: return "r10";
@@ -84,6 +86,6 @@ const char* regmap_to_str(Reg reg) {
 	case Reg_R13: return "r13";
 	case Reg_R14: return "r14";
 	case Reg_R15: return "r15";
-	default: assert(false);
+	default: return NULL;
 	}
 }
