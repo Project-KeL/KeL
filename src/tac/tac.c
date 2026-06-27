@@ -109,34 +109,26 @@ TAC* tac) {
 			tac_stab_push_entry(
 				start_subtree[i],
 				&tac->stab);
-
+			QuadItemType type = QuadItemType_NO;
+			
 			if(nodes[i].type == NodeType_DECL_LAB
 			&& nodes[i - 1].type == NodeType_INIT_LAB) {
-				tac_stab_push_scope(&tac->stab);
-				QuadEntry entry = (QuadEntry) {
-					.op = (QuadItem) {
-						.type = QuadItemType_SCOPE_LAB,
-						.offset_node = i},
-					.src1 = (QuadItem) {
-						.type = QuadItemType_KEY,
-						.offset_node = start_subtree[i]},
-					.src2 = create_quaditem_null(),
-					.dst = create_quaditem_null()};
-				quadlist_append(
-					&entry,
-					&tac->quadlist);
+				type = QuadItemType_SCOPE_LAB;
 			} else if(nodes[i].type == NodeType_DECL_PAL
-			       && nodes[i - 1].type == NodeType_INIT_PAL) {
+			       && nodes[i - 1].type == NodeType_INIT_PAL)
+				type = QuadItemType_SCOPE_PAL;
+
+			if(type != QuadItemType_NO) {
 				tac_stab_push_scope(&tac->stab);
 				QuadEntry entry = (QuadEntry) {
-					.op = (QuadItem) {
-						.type = QuadItemType_SCOPE_PAL,
-						.offset_node = i},
-					.src1 = (QuadItem) {
-						.type = QuadItemType_KEY,
-						.offset_node = start_subtree[i]},
-					.src2 = create_quaditem_null(),
-					.dst = create_quaditem_null()};
+				.op = (QuadItem) {
+					.type = type,
+					.offset_node = i},
+				.src1 = (QuadItem) {
+					.type = QuadItemType_KEY,
+					.offset_node = start_subtree[i]},
+				.src2 = create_quaditem_null(),
+				.dst = create_quaditem_null()};
 				quadlist_append(
 					&entry,
 					&tac->quadlist);

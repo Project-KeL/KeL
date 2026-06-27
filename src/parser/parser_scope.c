@@ -69,7 +69,7 @@ Parser* parser) {
 		j,
 		stack_operator,
 		parser);
-	// if the previous operator is a PAL initialization
+	// if the previous operator is a LAB initialization
 	if(!memory_stack_is_empty(stack_operator)) {
 		Operator* top_operator = memory_stack_top_addr(stack_operator);
 
@@ -89,7 +89,7 @@ Parser* parser) {
 			Operator* top_operator = memory_stack_top_addr(stack_operator);
 			// a `INIT_VAR` cannot be initialize with a `scope` (except for labels)
 			assert(top_operator->type == NodeType_DECL_LAB);
-			// pop the `DECL_LAB` or the `DECL_PAL`
+			// pop the `DECL_LAB`
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);
@@ -114,9 +114,7 @@ Parser* parser) {
 				stack_operator,
 				parser);
 			Operator* top_operator = memory_stack_top_addr(stack_operator);
-			// a `INIT_VAR` cannot be initialize with a `scope` (except for labels)
 			assert(top_operator->type == NodeType_DECL_PAL);
-			// pop the `DECL_LAB` or the `DECL_PAL`
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);

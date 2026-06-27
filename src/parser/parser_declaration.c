@@ -149,12 +149,10 @@ Parser* parser) {
 	== 0) {
 		type_DECL = NodeType_DECL_LAB;
 	} else {
-		do {
-			if(parser_is_instruction_exit(tokens + buffer_i))
-				break;
-
+		while(!parser_is_instruction_exit(tokens + buffer_i)
+		   && !parser_is_R_left_parenthesis(tokens + buffer_i)) {
 			buffer_i += 1;
-		} while(!parser_is_R_left_parenthesis(tokens + buffer_i));
+		}
 
 		if(parser_is_R_left_parenthesis(tokens + buffer_i))
 			type_DECL = NodeType_DECL_PAL;

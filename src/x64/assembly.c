@@ -150,6 +150,7 @@ bool assembly_file_write(Assembly* assembly) {
 
 
 		if(entry->op.type == QuadItemType_SCOPE_END
+		|| entry->op.type == QuadItemType_SCOPE_END_LAB
 		|| entry->op.type == QuadItemType_SCOPE_END_PAL)
 			count_tab -= 1;
 
@@ -161,6 +162,7 @@ bool assembly_file_write(Assembly* assembly) {
 		}
 
 		if(entry->op.type == QuadItemType_SCOPE
+		|| entry->op.type == QuadItemType_SCOPE_LAB
 		|| entry->op.type == QuadItemType_SCOPE_PAL)
 			count_tab += 1;
 
