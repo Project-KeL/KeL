@@ -162,7 +162,8 @@ Parser* parser) {
 		== true) {
 			Operator* top_operator = memory_stack_top_addr(&stack_operator);
 
-			if(top_operator->type == NodeType_INIT_PAL)
+			if(top_operator->type == NodeType_INIT_LAB
+			|| top_operator->type == NodeType_INIT_PAL)
 				continue; // skip to the next instruction
 		} else if(if_MOD_create_operator(
 			&i,

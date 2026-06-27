@@ -119,6 +119,10 @@ bool destroy_assembly(Assembly* assembly) {
 }
 
 bool assembly_file_write(Assembly* assembly) {
+	const char* code = assembly->tac->stab.parser->lexer->source->content;
+	const Parser* parser = assembly->tac->stab.parser;
+	const Node* nodes = parser->nodes.base;
+	const Token* tokens = parser->lexer->tokens.base;
 	const QuadList* quadlist = &assembly->tac->quadlist;
 	size_t count_tab = 0;
 
@@ -130,6 +134,9 @@ bool assembly_file_write(Assembly* assembly) {
 		size_t src1_offset_node = entry->src1.offset_node;
 		size_t src2_offset_node = entry->src2.offset_node;
 		size_t dst_offset_node = entry->dst.offset_node;
+		const Token* token_src1 = tokens + nodes[src1_offset_node].offset_token;
+		const Token* token_src2 = tokens + nodes[src2_offset_node].offset_token;
+		const Token* token_dst = tokens + nodes[dst_offset_node].offset_token;
 		SlotLifetime* lifetime_src1 = (SlotLifetime*) assembly->regmap->regslots.lifetimes + src1_offset_node;
 		SlotLifetime* lifetime_src2 = (SlotLifetime*) assembly->regmap->regslots.lifetimes + src2_offset_node;
 		SlotLifetime* lifetime_dst = (SlotLifetime*) assembly->regmap->regslots.lifetimes + dst_offset_node;
@@ -141,7 +148,9 @@ bool assembly_file_write(Assembly* assembly) {
 		Reg reg_src2 = regmap_from_slot_to_physical(slot_src2->slot);
 		Reg reg_dst = regmap_from_slot_to_physical(slot_dst->slot);
 
-		if(entry->op.type == QuadItemType_SCOPE_END)
+
+		if(entry->op.type == QuadItemType_SCOPE_END
+		|| entry->op.type == QuadItemType_SCOPE_END_PAL)
 			count_tab -= 1;
 
 		for(
@@ -151,15 +160,33 @@ bool assembly_file_write(Assembly* assembly) {
 			printf("\t");
 		}
 
-		if(entry->op.type == QuadItemType_SCOPE)
+		if(entry->op.type == QuadItemType_SCOPE
+		|| entry->op.type == QuadItemType_SCOPE_PAL)
 			count_tab += 1;
 
 		switch(entry->op.type) {
 		case QuadItemType_SCOPE:
-			printf("SCOPE");
+			printf("scope");
 			break;
 		case QuadItemType_SCOPE_END:
-			printf("SCOPE END");
+			printf(".");
+			break;
+		case QuadItemType_SCOPE_LAB:
+			printf("#%.*s scope",
+				(int)(token_src1->end - token_src1->start),
+				code + token_src1->start);
+			break;
+		case QuadItemType_SCOPE_END_LAB:
+			printf(".");
+			break;
+		case QuadItemType_SCOPE_PAL:
+			const Token* token = tokens + nodes[src1_offset_node].offset_token;
+			printf("@%.*s scope",
+				(int)(token_src1->end - token_src1->start),
+				code + token_src1->start);
+			break;
+		case QuadItemType_SCOPE_END_PAL:
+			printf(".");
 			break;
 		case QuadItemType_MOVE:
 			printf("mov ");

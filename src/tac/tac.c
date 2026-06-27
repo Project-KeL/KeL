@@ -5,6 +5,7 @@
 #include "tac.h"
 #include "tac_expression.h"
 #include "tac_quadruple.h"
+#include "tac_stab.h"
 #include <stdio.h>
 void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
@@ -102,14 +103,31 @@ TAC* tac) {
 		const size_t depth = stack_depth[top];
 		// record ID in the symbol table
 		if((nodes[i].type == NodeType_DECL_VAR
+		 || nodes[i].type == NodeType_DECL_LAB
 		 || nodes[i].type == NodeType_DECL_PAL)
 		&& nodes[start_subtree[i]].type == NodeType_ID) {
 			tac_stab_push_entry(
 				start_subtree[i],
 				&tac->stab);
 
-			if(nodes[i].type ==  NodeType_DECL_PAL
-			&& nodes[i - 1].type == NodeType_INIT_PAL) {
+			if(nodes[i].type == NodeType_DECL_LAB
+			&& nodes[i - 1].type == NodeType_INIT_LAB) {
+				tac_stab_push_scope(&tac->stab);
+				QuadEntry entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_SCOPE_LAB,
+						.offset_node = i},
+					.src1 = (QuadItem) {
+						.type = QuadItemType_KEY,
+						.offset_node = start_subtree[i]},
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
+				quadlist_append(
+					&entry,
+					&tac->quadlist);
+			} else if(nodes[i].type == NodeType_DECL_PAL
+			       && nodes[i - 1].type == NodeType_INIT_PAL) {
+				tac_stab_push_scope(&tac->stab);
 				QuadEntry entry = (QuadEntry) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_PAL,
@@ -125,7 +143,8 @@ TAC* tac) {
 			}
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE
-			   && nodes[i + 1].type != NodeType_INIT_PAL) {
+			   && nodes[i + 1].type != NodeType_INIT_LAB
+		       && nodes[i + 1].type != NodeType_INIT_PAL) {
 			tac_stab_push_scope(&tac->stab);
 			QuadEntry entry = (QuadEntry) {
 				.op = (QuadItem) {
@@ -142,7 +161,15 @@ TAC* tac) {
 			tac_stab_pop_scope(&tac->stab);
 			QuadEntry entry;
 
-			if(nodes[i + 2].type == NodeType_INIT_PAL) { // i is well defined (SCOPE_END + sentinel at least)
+			if(nodes[i + 2].type == NodeType_INIT_LAB) { // i is well defined (SCOPE_END + sentinel at least)
+				entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_SCOPE_END_LAB,
+						.offset_node = i},
+					.src1 = create_quaditem_null(),
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
+			} else if(nodes[i + 2].type == NodeType_INIT_PAL) {
 				entry = (QuadEntry) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_END_PAL,

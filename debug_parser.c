@@ -43,8 +43,10 @@ const Node* node) {
 	case NodeType_EXP: type = "EXP"; break;
 // Keys actions
 	case NodeType_DECL_VAR: type = "DECL VAR"; break;
+	case NodeType_DECL_LAB: type = "DECL LAB"; break;
 	case NodeType_DECL_PAL: type = "DECL PAL"; break;
 	case NodeType_INIT_VAR: type = "INIT VAR"; break;
+	case NodeType_INIT_LAB: type = "INIT LAB"; break;
 	case NodeType_INIT_PAL: type = "INIT PAL"; break;
 	case NodeType_TYPE_VAR: type = "TYPE VAR"; break;
 	case NodeType_TYPE_PAL: type = "TYPE PAL"; break;

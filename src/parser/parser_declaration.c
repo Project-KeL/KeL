@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stddef.h>
+#include <string.h>
 #include "allocator.h"
 #include "parser_declaration.h"
 #include "lexer.h"
@@ -8,7 +9,7 @@
 #include "parser_expression.h"
 #include "parser_type.h"
 #include "parser_utils.h"
-
+#include <stdio.h>
 static bool if_ID_create_leaf(
 size_t* i,
 size_t* j,
@@ -37,6 +38,7 @@ MemoryStack* stack_operator,
 MemoryStack* stack_buffer,
 Parser* parser) {
 	assert(DECL == NodeType_DECL_VAR
+	    || DECL == NodeType_DECL_LAB
 	    || DECL == NodeType_DECL_PAL);
 
 	Token* tokens = parser->lexer->tokens.base;
@@ -98,10 +100,11 @@ Parser* parser) {
 			&buffer_j,
 			stack_operator,
 			parser);
-	} else if(DECL == NodeType_DECL_PAL) {
+	} else if(DECL == NodeType_DECL_LAB
+		   || DECL == NodeType_DECL_PAL) {
 		if(parser_is_LSCOPE_start(tokens + buffer_i)) {
 			Operator operator = (Operator) {
-				.type = NodeType_INIT_PAL,
+				.type = DECL == NodeType_DECL_LAB ? NodeType_INIT_LAB : NodeType_INIT_PAL,
 				.precedence = 0,
 				.count_arity = 0,
 				.offset_token = buffer_i};
@@ -130,25 +133,34 @@ Parser* parser) {
 	assert(parser != NULL);
 
 	const Token* tokens = (const Token*) parser->lexer->tokens.base;
+	const char* code = parser->lexer->source->content;
 	size_t buffer_i = *i;
 
 	if(tokens[buffer_i].type != TokenType_COM)
 		return false;
 	// `buffer_i` to look for an R parenthesis
-	do {
-		if(parser_is_instruction_exit(tokens + buffer_i))
-			break;
-
-		buffer_i += 1;
-	} while(!parser_is_R_left_parenthesis(tokens + buffer_i));
-
+	buffer_i += 2;
 	NodeType type_DECL = NodeType_NO;
-	size_t buffer_j = *j;
 
-	if(parser_is_R_left_parenthesis(tokens + buffer_i))
-		type_DECL = NodeType_DECL_PAL;
-	else
-		type_DECL = NodeType_DECL_VAR;
+	if(strncmp(
+		"scope",
+		code + tokens[buffer_i].start,
+		tokens[buffer_i].end - tokens[buffer_i].start)
+	== 0) {
+		type_DECL = NodeType_DECL_LAB;
+	} else {
+		do {
+			if(parser_is_instruction_exit(tokens + buffer_i))
+				break;
+
+			buffer_i += 1;
+		} while(!parser_is_R_left_parenthesis(tokens + buffer_i));
+
+		if(parser_is_R_left_parenthesis(tokens + buffer_i))
+			type_DECL = NodeType_DECL_PAL;
+		else
+			type_DECL = NodeType_DECL_VAR;
+	}
 	
 	MemoryStackState stack_state;
 	initialize_memory_stack_state(&stack_state);
@@ -166,6 +178,7 @@ Parser* parser) {
 		stack_operator);
 	// `buffer_i` to look for an identifier
 	buffer_i = *i + 1;
+	size_t buffer_j = *j;
 
 	if(if_ID_create_leaf(
 		&buffer_i,

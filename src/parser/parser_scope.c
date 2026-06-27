@@ -4,6 +4,7 @@
 #include "parser_node.h"
 #include "parser_scope.h"
 #include "parser_utils.h"
+#include <stdio.h>
 
 bool if_LSCOPE_create_context(
 size_t* i,
@@ -70,37 +71,64 @@ Parser* parser) {
 		parser);
 	// if the previous operator is a PAL initialization
 	if(!memory_stack_is_empty(stack_operator)) {
-	Operator* top_operator = memory_stack_top_addr(stack_operator);
-
-	if(top_operator->type == NodeType_INIT_PAL
-	&& top_operator->offset_token == context_scope.token) {
-		Operator pop_operator;
-		memory_stack_pop(
-			(char*) &pop_operator,
-			stack_operator);
-		parser_create_operator(
-			pop_operator.type,
-			1,
-			pop_operator.offset_token,
-			j,
-			stack_operator,
-			parser);
 		Operator* top_operator = memory_stack_top_addr(stack_operator);
-		// a `INIT_VAR` cannot be initialize with a `scope`
-		assert(top_operator->type == NodeType_DECL_PAL);
-		// pop the `DECL_PAL`
-		memory_stack_pop(
-			(char*) &pop_operator,
-			stack_operator);
-		parser_create_operator(
-			pop_operator.type,
-			pop_operator.count_arity,
-			pop_operator.offset_token,
-			j,
-			stack_operator,
-			parser);
+
+		if(top_operator->type == NodeType_INIT_LAB
+		&& top_operator->offset_token == context_scope.token) {
+			Operator pop_operator;
+			memory_stack_pop(
+				(char*) &pop_operator,
+				stack_operator);
+			parser_create_operator(
+				pop_operator.type,
+				1,
+				pop_operator.offset_token,
+				j,
+				stack_operator,
+				parser);
+			Operator* top_operator = memory_stack_top_addr(stack_operator);
+			// a `INIT_VAR` cannot be initialize with a `scope` (except for labels)
+			assert(top_operator->type == NodeType_DECL_LAB);
+			// pop the `DECL_LAB` or the `DECL_PAL`
+			memory_stack_pop(
+				(char*) &pop_operator,
+				stack_operator);
+			parser_create_operator(
+				pop_operator.type,
+				pop_operator.count_arity,
+				pop_operator.offset_token,
+				j,
+				stack_operator,
+				parser);
+		} else if(top_operator->type == NodeType_INIT_PAL
+		       && top_operator->offset_token == context_scope.token) {
+			Operator pop_operator;
+			memory_stack_pop(
+				(char*) &pop_operator,
+				stack_operator);
+			parser_create_operator(
+				pop_operator.type,
+				1,
+				pop_operator.offset_token,
+				j,
+				stack_operator,
+				parser);
+			Operator* top_operator = memory_stack_top_addr(stack_operator);
+			// a `INIT_VAR` cannot be initialize with a `scope` (except for labels)
+			assert(top_operator->type == NodeType_DECL_PAL);
+			// pop the `DECL_LAB` or the `DECL_PAL`
+			memory_stack_pop(
+				(char*) &pop_operator,
+				stack_operator);
+			parser_create_operator(
+				pop_operator.type,
+				pop_operator.count_arity,
+				pop_operator.offset_token,
+				j,
+				stack_operator,
+				parser);
+		}
 	}
-}
 
 	top_context = memory_stack_top_addr(stack_context);
 	top_context->count_child += 1;
