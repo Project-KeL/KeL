@@ -107,10 +107,10 @@ TAC* tac) {
 			Node* right;
 			Node* left;
 			memory_stack_pop(
-				(char*) &left,
+				(char*) &right,
 				stack_buffer);
 			memory_stack_pop(
-				(char*) &right,
+				(char*) &left,
 				stack_buffer);
 
 			const Token* tokens = parser->lexer->tokens.base;
