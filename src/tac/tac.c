@@ -124,24 +124,45 @@ TAC* tac) {
 					&tac->quadlist);
 			}
 		// start a new frame in the symbol table
-		} else if(nodes[i].type == NodeType_SCOPE) {
+		} else if(nodes[i].type == NodeType_SCOPE
+			   && nodes[i + 1].type != NodeType_INIT_PAL) {
 			tac_stab_push_scope(&tac->stab);
+			QuadEntry entry = (QuadEntry) {
+				.op = (QuadItem) {
+					.type = QuadItemType_SCOPE,
+					.offset_node = i},
+				.src1 = create_quaditem_null(),
+				.src2 = create_quaditem_null(),
+				.dst = create_quaditem_null()};
+			quadlist_append(
+				&entry,
+				&tac->quadlist);
 		// pop the scope
 		} else if(nodes[i].type == NodeType_SCOPE_END) {
 			tac_stab_pop_scope(&tac->stab);
+			QuadEntry entry;
 
 			if(nodes[i + 2].type == NodeType_INIT_PAL) { // i is well defined (SCOPE_END + sentinel at least)
-				QuadEntry entry = (QuadEntry) {
+				entry = (QuadEntry) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_END_PAL,
 						.offset_node = i},
 					.src1 = create_quaditem_null(),
 					.src2 = create_quaditem_null(),
 					.dst = create_quaditem_null()};
-				quadlist_append(
-					&entry,
-					&tac->quadlist);
+			} else {
+				entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_SCOPE_END,
+						.offset_node = i},
+					.src1 = create_quaditem_null(),
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
 			}
+
+			quadlist_append(
+				&entry,
+				&tac->quadlist);
 		} else if(nodes[i].type == NodeType_EXP) {
 			size_t dst = 0;
 

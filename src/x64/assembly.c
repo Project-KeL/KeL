@@ -49,6 +49,7 @@ Assembly* assembly) {
 
 static void create_operator_algebraic(
 const char* op,
+size_t count_tab,
 const QuadEntry* entry,
 Assembly* assembly) {
 	printf("mov ");
@@ -59,7 +60,14 @@ Assembly* assembly) {
 	create_operand_right(
 		&entry->src1,
 		assembly);
-	printf("\n\t");
+	printf("\n");
+
+		for(
+		size_t j = 0;
+		j < count_tab;
+		j += 1) {
+			printf("\t");
+		}
 	printf(
 		"%s ",
 		op);
@@ -112,6 +120,7 @@ bool destroy_assembly(Assembly* assembly) {
 
 bool assembly_file_write(Assembly* assembly) {
 	const QuadList* quadlist = &assembly->tac->quadlist;
+	size_t count_tab = 0;
 
 	for(
 	size_t i = 1;
@@ -132,9 +141,26 @@ bool assembly_file_write(Assembly* assembly) {
 		Reg reg_src2 = regmap_from_slot_to_physical(slot_src2->slot);
 		Reg reg_dst = regmap_from_slot_to_physical(slot_dst->slot);
 
-		printf("\t");
+		if(entry->op.type == QuadItemType_SCOPE_END)
+			count_tab -= 1;
+
+		for(
+		size_t j = 0;
+		j < count_tab;
+		j += 1) {
+			printf("\t");
+		}
+
+		if(entry->op.type == QuadItemType_SCOPE)
+			count_tab += 1;
 
 		switch(entry->op.type) {
+		case QuadItemType_SCOPE:
+			printf("SCOPE");
+			break;
+		case QuadItemType_SCOPE_END:
+			printf("SCOPE END");
+			break;
 		case QuadItemType_MOVE:
 			printf("mov ");
 			create_operand_left(
@@ -148,15 +174,17 @@ bool assembly_file_write(Assembly* assembly) {
 		case QuadItemType_ADD:
 			create_operator_algebraic(
 				"add",
+				count_tab,
 				entry,
 				assembly);
 			break;
 		case QuadItemType_SUB:
 			create_operator_algebraic(
 				"sub",
+				count_tab,
 				entry,
 				assembly);
-			break;	
+			break;
 		default: break;
 		}
 

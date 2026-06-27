@@ -25,7 +25,7 @@ void debug_print_x64_register(RegSlots* regslots) {
 	}
 
 	printf(
-		"Number of intervals: %zu\n",
+		"\nNumber of intervals: %zu\n",
 		count_range);
 }
 

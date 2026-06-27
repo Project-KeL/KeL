@@ -7,7 +7,9 @@
 typedef enum: uint64_t {
 #define QUAD_TYPE(type) QuadItemType_ ## type
 	QUAD_TYPE(NO) = 0,
-//
+// scop
+	QUAD_TYPE(SCOPE),
+	QUAD_TYPE(SCOPE_END),
 	QUAD_TYPE(SCOPE_PAL),
 	QUAD_TYPE(SCOPE_END_PAL),
 //

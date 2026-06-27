@@ -47,6 +47,8 @@ const QuadEntry* quadentry) {
 	const char* type;
 
 	switch(quadentry->op.type) {
+	case QuadItemType_SCOPE: type = "SCOPE"; break;
+	case QuadItemType_SCOPE_END: type = "SCOPE END"; break;
 	case QuadItemType_SCOPE_PAL: type = "SCOPE PAL"; break;
 	case QuadItemType_SCOPE_END_PAL: type = "SCOPE END PAL"; break;
 	case QuadItemType_MOVE: type = "MOVE"; break;
@@ -110,7 +112,7 @@ void debug_print_quadruple_list(const TAC* tac) {
 	}
 
 	printf(
-		"\nNumber of quadruplets: %zu\n",
+		"\nNumber of quadruplets: %zu.\n",
 		count - 2);
 }
 

@@ -71,6 +71,10 @@ Parser* parser) {
 		token,
 		j,
 		parser);
+
+	if(memory_stack_is_empty(stack_operator))
+		return;
+
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 	top_operator->count_arity += 1;
 }

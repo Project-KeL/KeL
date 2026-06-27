@@ -69,9 +69,11 @@ Parser* parser) {
 		stack_operator,
 		parser);
 	// if the previous operator is a PAL initialization
+	if(!memory_stack_is_empty(stack_operator)) {
 	Operator* top_operator = memory_stack_top_addr(stack_operator);
 
-	if(top_operator->type == NodeType_INIT_PAL) {
+	if(top_operator->type == NodeType_INIT_PAL
+	&& top_operator->offset_token == context_scope.token) {
 		Operator pop_operator;
 		memory_stack_pop(
 			(char*) &pop_operator,
@@ -98,6 +100,7 @@ Parser* parser) {
 			stack_operator,
 			parser);
 	}
+}
 
 	top_context = memory_stack_top_addr(stack_context);
 	top_context->count_child += 1;
