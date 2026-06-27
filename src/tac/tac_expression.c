@@ -3,7 +3,7 @@
 #include "tac_expression.h"
 #include "parser.h"
 #include "parser_utils.h"
-#include "stab.h"
+#include "tac_stab.h"
 #include "tac_quadruple.h"
 #include <stdio.h>
 

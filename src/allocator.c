@@ -270,7 +270,6 @@ MemoryChain* chain) {
 	chain->top = chain->first->area.base;
 	return true;
 ERROR:
-	free(chain->first);
 	destroy_memory_chain(chain);
 	return false;
 }

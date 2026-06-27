@@ -2,10 +2,7 @@
 #define TAC_EXPRESSION_H
 
 #include <stddef.h>
-#include "stab.h"
 #include "tac.h"
-#include "parser.h"
-#include "tac_quadruple.h"
 
 void tac_create_expression(
 	size_t start,

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "allocator.h"
 #include "parser.h"
-#include "stab.h"
+#include "tac_stab.h"
 #include "tac.h"
 #include "tac_expression.h"
 #include "tac_quadruple.h"
