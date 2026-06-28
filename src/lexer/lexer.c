@@ -103,12 +103,14 @@ static bool lexer_allocator_shrink_append_null(Lexer* lexer) {
 	// there is at least the same amount of tokens and characters
 	assert(lexer->tokens.count <= (size_t) lexer->source->length);
 
-	const bool error = memory_area_realloc(
+	if(memory_area_realloc(
 		lexer->tokens.count + 1, // null token
-		&lexer->tokens);
+		&lexer->tokens)
+	== false)
+		return false;
 	// for the parser
 	create_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
-	return error;
+	return true;
 }
 
 static void lexer_destroy_allocator(Lexer* lexer) {
@@ -180,7 +182,7 @@ Lexer* lexer) {
 	return true;
 }
 
-static int get_Q(
+static bool get_Q(
 long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
@@ -193,7 +195,7 @@ Lexer* lexer) {
 	size_t buffer_i = *i;
 
 	if(code[*start] == ']')
-		return 0;
+		return false;
 
 	do {
 		Token* const tokens = lexer->tokens.base;
@@ -211,11 +213,11 @@ Lexer* lexer) {
 	     && code[*start] != ']');
 
 	if(isgraph(code[*end])) {
-		return 0;
+		return false;
 	}
 
 	*i = buffer_i;
-	return 1;
+	return true;
 }
 
 static int if_Q_create_tokens(
@@ -232,15 +234,13 @@ Lexer* lexer) {
 	|| isgraph(code[buffer_start - 1]))
 		return 0;
 
-	switch(get_Q(
+	if(get_Q(
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
-		lexer)) {
-	case -1: return -1;
-	case 0: return 0;
-	case 1: /* fall through */;
-	}
+		lexer)
+	== false)
+		return false;
 
 	*start = buffer_start;
 	*end = buffer_end;

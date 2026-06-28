@@ -57,27 +57,29 @@ TAC* tac) {
 		const Token* token = tokens + node->offset_token;
 
 		if(node->type == NodeType_CALLEE) {
-			for(
-			size_t j = 0;
-			j < node->arity;
-			j += 1) {
-				Node* node_arg;
-				memory_stack_pop(
-					(char*) &node_arg,
-					stack_buffer);
+			{
+				// read arguments in the reverse order to simplify quadruples emission
+				Node** top_addr = (Node**) stack_buffer->top - node->arity;
 
-				QuadEntry entry_arg = (QuadEntry) {
-					.op = (QuadItem) {
-						.type = QuadItemType_ARG,
-						.offset_node = i},
-					.src1 = get_operand(
-						node_arg,
-						tac),
-					.src2 = create_quaditem_null(),
-					.dst = create_quaditem_null()};
-				quadlist_append(
-					&entry_arg,
-					&tac->quadlist);
+				for(
+				size_t j = 0;
+				j < node->arity;
+				j += 1) {
+					QuadEntry entry_arg = (QuadEntry) {
+						.op = (QuadItem) {
+							.type = QuadItemType_ARG,
+							.offset_node = i},
+						.src1 = get_operand(
+							top_addr[j],
+							tac),
+						.src2 = create_quaditem_null(),
+						.dst = create_quaditem_null()};
+					quadlist_append(
+						&entry_arg,
+						&tac->quadlist);
+				}
+
+				stack_buffer->top = top_addr;
 			}
 
 			QuadEntry entry_call = (QuadEntry) {

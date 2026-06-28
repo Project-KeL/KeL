@@ -182,7 +182,6 @@ bool assembly_file_write(Assembly* assembly) {
 			printf(".");
 			break;
 		case QuadItemType_SCOPE_PAL:
-			const Token* token = tokens + nodes[src1_offset_node].offset_token;
 			printf("@%.*s scope",
 				(int)(token_src1->end - token_src1->start),
 				code + token_src1->start);

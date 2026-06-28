@@ -9,6 +9,7 @@ size_t* j,
 Parser* parser) {
 	assert(j != NULL);
 	assert(parser != NULL);
+	assert(*j < parser->nodes.count);
 
 	Node* nodes = parser->nodes.base;
 	nodes[*j] = (Node) {
@@ -45,6 +46,7 @@ size_t* j,
 Parser* parser) {
 	assert(j != NULL);
 	assert(parser != NULL);
+	assert(*j < parser->nodes.count);
 
 	Node* nodes = parser->nodes.base;
 	nodes[*j] = (Node) {

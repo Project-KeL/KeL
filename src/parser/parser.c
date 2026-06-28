@@ -50,12 +50,14 @@ Parser* parser) {
 static bool parser_allocator_shrink_append_null(Parser* parser) {
 	assert(parser->nodes.count <= (size_t) parser->lexer->source->length);
 
-	const bool error = memory_area_realloc(
+	if(memory_area_realloc(
 		parser->nodes.count + 1, // null token
-		&parser->nodes);
+		&parser->nodes)
+	== false)
+		return false;
 	// sentinel
 	create_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
-	return error;
+	return true;
 }
 
 static void parser_destroy_allocator(Parser* parser) {

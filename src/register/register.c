@@ -190,6 +190,13 @@ RegSlots* regslots) {
 		}
 
 		interval->slot = regslots_alloc(regslots);
+
+		if(interval->slot.spilled == false
+		&& interval->slot.slot == 0) {
+			error = true;
+			break;
+		}
+
 		regslots->lifetimes[interval->offset_node].slot = interval->slot;
 		lifetime_active[count_active] = interval;
 		count_active += 1;
