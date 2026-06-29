@@ -3,6 +3,15 @@
 #include "tac_quadruple.h"
 #include "x64_mapping.h"
 
+static void create_tab(size_t count_tab) {
+	for(
+		size_t i = 0;
+		i < count_tab;
+		i += 1) {
+			printf("\t");
+	}
+}
+
 static void create_operand_left(
 const QuadItem* item,
 Assembly* assembly) {
@@ -61,13 +70,7 @@ Assembly* assembly) {
 		&entry->src1,
 		assembly);
 	printf("\n");
-
-		for(
-		size_t j = 0;
-		j < count_tab;
-		j += 1) {
-			printf("\t");
-		}
+	create_tab(count_tab);
 	printf(
 		"%s ",
 		op);
@@ -78,6 +81,97 @@ Assembly* assembly) {
 	create_operand_right(
 		&entry->src2,
 		assembly);
+}
+
+static void create_call(
+size_t i,
+size_t count_tab,
+const QuadEntry* entry,
+Assembly* assembly
+) {
+	const TAC* tac = assembly->tac;
+	const RegMap* regmap = assembly->regmap;
+	static Reg saved_caller[] = {
+		Reg_RDI,
+		Reg_RSI,
+		Reg_RDX,
+		Reg_RCX,
+		Reg_R8,
+		Reg_R9,
+		Reg_R10,
+		Reg_R11,
+		Reg_RAX};
+	constexpr size_t count = sizeof(saved_caller) / sizeof(Reg);
+	Reg reg_pushed[count] = {};
+	size_t count_reg_pushed = 0;
+	// caller-saved
+	for(
+	size_t j = 0;
+	j < count;
+	j += 1) {
+		if(regmap_caller_saved(
+			i,
+			saved_caller[j],
+			tac,
+			regmap)
+		== true) {
+			printf(
+				"push %s\n",
+				regmap_to_str(saved_caller[j]));
+			create_tab(count_tab);
+			reg_pushed[count_reg_pushed] = saved_caller[j];
+			count_reg_pushed += 1;
+		}
+	}
+	// record the arguments
+	size_t arity = entry->src2.offset_node;
+	const QuadEntry* base_entry = tac->quadlist.quadruples.area.base;
+
+	for(
+	size_t j = i - arity;
+	j != i;
+	j += 1) {
+		size_t k = j - (i - arity);
+		const QuadEntry* entry_arg = base_entry + j;
+		printf(
+			"mov %s, ",
+			regmap_to_str(saved_caller[k]));
+		create_operand_right(
+			&entry_arg->src1,
+			assembly);
+		printf("\n");
+		create_tab(count_tab);
+	}
+	// emit the call
+	const Token* tokens = tac->stab.parser->lexer->tokens.base;
+	const Node* nodes = tac->stab.parser->nodes.base;
+	size_t src1_offset_node = entry->src1.offset_node;
+	const Token* token_PAL = tokens + nodes[src1_offset_node].offset_token;
+	printf(
+		"call %.*s\n",
+		(int)(token_PAL->end - token_PAL->start),
+		tac->stab.parser->lexer->source->content + token_PAL->start);
+	// get the return value
+	size_t dst_offset_node = entry->dst.offset_node;
+	Reg reg_dst = regmap_from_slot_to_physical(
+		(assembly->regmap->regslots.lifetimes + dst_offset_node)->slot.slot);
+
+	if(reg_dst != Reg_RAX) {
+		create_tab(count_tab);
+		printf(
+			"mov %s, rax\n",
+			regmap_to_str(reg_dst));
+	}
+	// restore caller-saved
+	for(
+	size_t j = count_reg_pushed;
+	j > 0;
+	j -= 1) {
+		create_tab(count_tab);
+		printf(
+			"pop %s\n",
+			regmap_to_str(reg_pushed[j - 1]));
+	}
 }
 
 void initialize_assembly(Assembly* assembly) {
@@ -131,6 +225,10 @@ bool assembly_file_write(Assembly* assembly) {
 	i < quadlist->quadruples.area.count - 1;
 	i += 1) {
 		const QuadEntry* entry = (QuadEntry*) quadlist->quadruples.area.base + i;
+
+		if(entry->op.type == QuadItemType_ARG)
+			continue; // create call already process the arguments (to avoid extra tab)
+
 		size_t src1_offset_node = entry->src1.offset_node;
 		size_t src2_offset_node = entry->src2.offset_node;
 		size_t dst_offset_node = entry->dst.offset_node;
@@ -168,26 +266,26 @@ bool assembly_file_write(Assembly* assembly) {
 
 		switch(entry->op.type) {
 		case QuadItemType_SCOPE:
-			printf("scope");
+			printf("scope\n");
 			break;
 		case QuadItemType_SCOPE_END:
-			printf(".");
+			printf(".\n");
 			break;
 		case QuadItemType_SCOPE_LAB:
-			printf("#%.*s scope",
+			printf("#%.*s scope\n",
 				(int)(token_src1->end - token_src1->start),
 				code + token_src1->start);
 			break;
 		case QuadItemType_SCOPE_END_LAB:
-			printf(".");
+			printf(".\n");
 			break;
 		case QuadItemType_SCOPE_PAL:
-			printf("@%.*s scope",
+			printf("@%.*s scope\n",
 				(int)(token_src1->end - token_src1->start),
 				code + token_src1->start);
 			break;
 		case QuadItemType_SCOPE_END_PAL:
-			printf(".");
+			printf(".\n");
 			break;
 		case QuadItemType_MOVE:
 			printf("mov ");
@@ -198,6 +296,7 @@ bool assembly_file_write(Assembly* assembly) {
 			create_operand_right(
 				&entry->src1,
 				assembly);
+			printf("\n");
 			break;
 		case QuadItemType_ADD:
 			create_operator_algebraic(
@@ -205,6 +304,7 @@ bool assembly_file_write(Assembly* assembly) {
 				count_tab,
 				entry,
 				assembly);
+			printf("\n");
 			break;
 		case QuadItemType_SUB:
 			create_operator_algebraic(
@@ -212,11 +312,18 @@ bool assembly_file_write(Assembly* assembly) {
 				count_tab,
 				entry,
 				assembly);
+			printf("\n");
+			break;
+		case QuadItemType_CALL:
+			create_call(
+				i,
+				count_tab,
+				entry,
+				assembly);
 			break;
 		default: break;
 		}
 
-		printf("\n");
 	}
 
 	return true;

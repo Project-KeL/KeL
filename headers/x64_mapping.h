@@ -8,24 +8,23 @@
 #define REGMAP_COUNT_SPILLED 512
 
 typedef enum: uint32_t {
-	Reg_NO = 0,
-	Reg_RAX,
-	Reg_RBX,
-	Reg_RCX,
-	Reg_RDX,
-	Reg_RSI,
-	Reg_RDI,
-	Reg_RBP,
-	Reg_RSP,
-	Reg_R8,
-	Reg_R9,
-	Reg_R10,
-	Reg_R11,
-	Reg_R12,
-	Reg_R13,
-	Reg_R14,
-	Reg_R15,
-	Reg_COUNT,
+	 Reg_NO = 0,
+	 Reg_RBX,
+	 Reg_R12,
+	 Reg_R13,
+	 Reg_R14,
+	 Reg_R15,
+	 Reg_R11,
+	 Reg_R10,
+	 Reg_R9,
+	 Reg_R8,
+	 Reg_RSI,
+	 Reg_RDI,
+	 Reg_RCX,
+	 Reg_RDX,
+	 Reg_RAX,
+	 Reg_RBP,
+	 Reg_RSP,
 } Reg;
 
 typedef struct {
@@ -40,5 +39,11 @@ void destroy_regmap(RegMap* regmap);
 Reg regmap_from_slot_to_physical(uint32_t slot);
 uint32_t regmap_from_physical_to_slot(Reg reg);
 const char* regmap_to_str(Reg reg);
+bool regmap_is_caller_saved(Reg reg);
+bool regmap_caller_saved(
+	size_t i,
+	Reg reg,
+	const TAC* tac,
+	const RegMap* regmap);
 
 #endif

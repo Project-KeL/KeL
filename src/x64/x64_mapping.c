@@ -89,3 +89,51 @@ const char* regmap_to_str(Reg reg) {
 	default: return NULL;
 	}
 }
+
+bool regmap_is_caller_saved(Reg reg) {
+	switch(reg) {
+	case Reg_R11:
+	case Reg_R10:
+	case Reg_R9:
+	case Reg_R8:
+	case Reg_RSI:
+	case Reg_RDI:
+	case Reg_RCX:
+	case Reg_RDX:
+	case Reg_RAX:
+		return true;
+	default: return false;
+	}
+}
+
+bool regmap_caller_saved(
+size_t i,
+Reg reg,
+const TAC* tac,
+const RegMap* regmap) {
+#ifndef NDEBUG
+	if(!regmap_is_caller_saved(reg))
+		assert(false); // useless case
+#endif
+
+	const SlotLifetime* lifetimes = regmap->regslots.lifetimes;
+
+	for(
+	size_t j = 1;
+	j < tac->stab.parser->nodes.count - 1;
+	j += 1) {
+		const SlotLifetime* lifetime = lifetimes + j;
+
+		if(lifetime->start == 0)
+			continue;
+		// the register does not pass through a PAL call and a PAL end
+		if(lifetime->start >= i
+		|| lifetime->end <= i)
+			continue;
+
+		if(regmap_from_slot_to_physical(lifetime->slot.slot) == reg)
+			return true;
+	}
+
+	return false;
+}
