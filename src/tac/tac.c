@@ -102,10 +102,11 @@ TAC* tac) {
 		size_t i = stack_index[top];
 		const size_t depth = stack_depth[top];
 		// record ID in the symbol table
-		if((nodes[i].type == NodeType_DECL_VAR
-		 || nodes[i].type == NodeType_DECL_LAB
-		 || nodes[i].type == NodeType_DECL_PAL)
-		&& nodes[start_subtree[i]].type == NodeType_ID) {
+		if(((nodes[i].type == NodeType_DECL_VAR
+		  || nodes[i].type == NodeType_DECL_LAB
+		  || nodes[i].type == NodeType_DECL_PAL)
+		 && nodes[start_subtree[i]].type == NodeType_ID)
+		|| nodes[i].type == NodeType_PARAM) {
 			tac_stab_push_entry(
 				start_subtree[i],
 				&tac->stab);
