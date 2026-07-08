@@ -285,7 +285,7 @@ bool assembly_file_write(Assembly* assembly) {
 				code + token_src1->start);
 			break;
 		case QuadItemType_SCOPE_END_PAL:
-			printf(".\n");
+			printf(".\n\n");
 			break;
 		case QuadItemType_MOVE:
 			printf("mov ");

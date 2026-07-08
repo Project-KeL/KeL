@@ -9,11 +9,11 @@ const char* code,
 const Token* token,
 const QuadItem* quaditem) {
 	printf("\t\t");
-
 	switch(quaditem->type) {
 	case QuadItemType_NO: break;
 	case QuadItemType_KEY:
 	case QuadItemType_LIT:
+	case QuadItemType_PARAM:
 	case QuadItemType_PAL:
 		printf(
 			"%.*s",
@@ -60,6 +60,7 @@ const QuadEntry* quadentry) {
 	case QuadItemType_DIV: type = "DIV"; break;
 	case QuadItemType_ARG: type = "ARG"; break;
 	case QuadItemType_CALL: type = "CALL"; break;
+	case QuadItemType_PARAM: type = "PARAM"; break;
 	case QuadItemType_PAL: type = "PAL"; break;
 	case QuadItemType_COUNT: type = "COUNT"; break;
 	default: assert(false);

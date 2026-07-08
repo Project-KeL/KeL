@@ -97,42 +97,93 @@ TAC* tac) {
 		end = start - 1;
 	}
 
+	size_t count_param = 0; // to query a slot
+	size_t prototype_high = 0;
+	size_t prototype_low = 1;
+
 	while(top != 0) {
 		top -= 1;
 		size_t i = stack_index[top];
 		const size_t depth = stack_depth[top];
 		// record ID in the symbol table
-		if(((nodes[i].type == NodeType_DECL_VAR
+		if((nodes[i].type == NodeType_DECL_VAR
 		  || nodes[i].type == NodeType_DECL_LAB
 		  || nodes[i].type == NodeType_DECL_PAL)
-		 && nodes[start_subtree[i]].type == NodeType_ID)
-		|| nodes[i].type == NodeType_PARAM) {
-			tac_stab_push_entry(
-				start_subtree[i],
-				&tac->stab);
-			QuadItemType type = QuadItemType_NO;
-			
-			if(nodes[i].type == NodeType_DECL_LAB
-			&& nodes[i - 1].type == NodeType_INIT_LAB) {
-				type = QuadItemType_SCOPE_LAB;
-			} else if(nodes[i].type == NodeType_DECL_PAL
-			       && nodes[i - 1].type == NodeType_INIT_PAL)
-				type = QuadItemType_SCOPE_PAL;
+		 && nodes[start_subtree[i]].type == NodeType_ID) {
+			// PAL without initialization
+			if(nodes[i].type == NodeType_DECL_PAL
+			&& nodes[i - 1].type != NodeType_INIT_PAL) {
+				tac_stab_push_entry(
+					start_subtree[i],
+					&tac->stab);
 
-			if(type != QuadItemType_NO) {
-				tac_stab_push_scope(&tac->stab);
+				prototype_low = start_subtree[i];
+				prototype_high = i;
+
 				QuadEntry entry = (QuadEntry) {
-				.op = (QuadItem) {
-					.type = type,
-					.offset_node = i},
-				.src1 = (QuadItem) {
-					.type = QuadItemType_KEY,
-					.offset_node = start_subtree[i]},
-				.src2 = create_quaditem_null(),
-				.dst = create_quaditem_null()};
+					.op = (QuadItem) {
+						.type = QuadItemType_PAL,
+						.offset_node = i},
+					.src1 = (QuadItem) {
+						.type = QuadItemType_KEY,
+						.offset_node = start_subtree[i]},
+					.src2 = create_quaditem_null(),
+					.dst = create_quaditem_null()};
 				quadlist_append(
 					&entry,
 					&tac->quadlist);
+				} else {
+					tac_stab_push_entry(
+						start_subtree[i],
+						&tac->stab);
+					QuadItemType type = QuadItemType_NO;
+
+					if(nodes[i].type == NodeType_DECL_LAB
+					&& nodes[i - 1].type == NodeType_INIT_LAB) {
+						type = QuadItemType_SCOPE_LAB;
+					} else if(nodes[i].type == NodeType_DECL_PAL) {
+						type = QuadItemType_SCOPE_PAL;
+					}
+
+					if(type != QuadItemType_NO) {
+						tac_stab_push_scope(&tac->stab);
+						count_param = 0;
+						QuadEntry entry = (QuadEntry) {
+							.op = (QuadItem) {
+								.type = type,
+								.offset_node = i},
+							.src1 = (QuadItem) {
+								.type = QuadItemType_KEY,
+								.offset_node = start_subtree[i]},
+							.src2 = create_quaditem_null(),
+							.dst = create_quaditem_null()};
+						quadlist_append(
+							&entry,
+							&tac->quadlist);
+					}
+				}
+		// process parameters, except for PAL prototype
+		} else if(nodes[i].type == NodeType_PARAM) {
+			if(prototype_low > i
+			|| i >= prototype_high) {
+				tac_stab_push_entry(
+					start_subtree[i],
+					&tac->stab);
+				QuadEntry entry = (QuadEntry) {
+					.op = (QuadItem) {
+						.type = QuadItemType_PARAM,
+						.offset_node = i},
+					.src1 = create_quaditem_null(),
+					.src2 = (QuadItem) {
+						.type = QuadItemType_COUNT,
+						.offset_node = count_param},
+					.dst = (QuadItem) {
+						.type = QuadItemType_KEY,
+						.offset_node = start_subtree[i]}};
+				quadlist_append(
+					&entry,
+					&tac->quadlist);
+				count_param += 1;
 			}
 		// start a new frame in the symbol table
 		} else if(nodes[i].type == NodeType_SCOPE
