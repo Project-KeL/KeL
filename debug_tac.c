@@ -105,6 +105,9 @@ void debug_print_quadruple_list(const TAC* tac) {
 		? 0
 		: (size_t)((const char*) quadruple_list->quadruples.top - (const char*) base) / sizeof(QuadEntry);
 
+	if(count <= 1)
+		return;
+
 	for(
 	size_t i = 1;
 	i < count - 1;

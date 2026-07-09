@@ -126,11 +126,11 @@ TAC* tac) {
 						.type = QuadItemType_MOVE,
 						.offset_node = i},
 					.src1 = get_operand(
-						left,
+						right,
 						tac),
 					.src2 = create_quaditem_null(),
 					.dst = get_operand(
-						right,
+						left,
 						tac)};
 				node = right; // WARNING
 			} else {

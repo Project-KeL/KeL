@@ -83,6 +83,25 @@ Assembly* assembly) {
 		assembly);
 }
 
+static void create_param(
+const QuadEntry* entry,
+Assembly* assembly) {
+	static const Reg reg_param[] = {
+		Reg_RDI,
+		Reg_RSI,
+		Reg_RDX,
+		Reg_RCX,
+		Reg_R8,
+		Reg_R9};
+	printf("mov ");
+	create_operand_left(
+		&entry->dst,
+		assembly);
+	printf(
+		", %s\n",
+		regmap_to_str(reg_param[entry->src2.offset_node]));
+}
+
 static void create_call(
 size_t i,
 size_t count_tab,
@@ -313,6 +332,11 @@ bool assembly_file_write(Assembly* assembly) {
 				entry,
 				assembly);
 			printf("\n");
+			break;
+		case QuadItemType_PARAM:
+			create_param(
+				entry,
+				assembly);
 			break;
 		case QuadItemType_CALL:
 			create_call(
