@@ -22,21 +22,21 @@ char** argv) {
 	bool exit_status = true;
 	Source source;
 	MemoryArea area;
-	Binary binary;
 	Lexer lexer;
 	Parser parser;
 	TAC tac;
 	RegMap regmap;
 	Assembly assembly;
+	Binary binary;
 
 	initialize_source(&source);
 	initialize_memory_area(&area); // for the lexer
-	initialize_binary(&binary);
 	initialize_lexer(&lexer);
 	initialize_parser(&parser);
 	initialize_tac(&tac);
 	initialize_regmap(&regmap);
 	initialize_assembly(&assembly);
+	initialize_binary(&binary);
 
 	if((exit_status = create_source(
 		argv[1],
@@ -57,12 +57,6 @@ char** argv) {
 			void (*fn)(void);
 			size_t size;}),
 		&area))
-	== false)
-		goto END;
-
-	if((exit_status = create_binary(
-		"./bin",
-		&binary))
 	== false)
 		goto END;
 
@@ -111,18 +105,28 @@ char** argv) {
 		goto END;
 
 	assembly_file_write(&assembly);
+
+	if((exit_status = create_binary(
+		"./bin",
+		&binary))
+	== false)
+		goto END;
+
+	binary_x64_elf_write(
+		&assembly,
+		&binary);
 /*
 	binary_x64(
 		&binary,
 		&parser);
 */
 END:
+	destroy_binary(&binary);
 	destroy_assembly(&assembly);
 	destroy_regmap(&regmap);
 	destroy_tac(&tac);
 	destroy_parser(&parser);
 	destroy_lexer(&lexer);
-	destroy_binary(&binary);
 	destroy_memory_area(&area);
 	destroy_source(&source);
 	return exit_status ? EXIT_SUCCESS : EXIT_FAILURE;

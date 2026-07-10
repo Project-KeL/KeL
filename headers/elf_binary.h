@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "assembly.h"
 
 typedef struct {
 	const char* path;
@@ -17,10 +18,8 @@ bool destroy_binary(Binary* restrict binary);
 bool binary_append_byte(
 	Binary* restrict binary,
 	uint8_t byte);
-/*
-bool binary_x64(
-	Binary* restrict binary,
-	const Parser* restrict parser);
-*/
+bool binary_x64_elf_write(
+	const Assembly* assembly,
+	Binary* binary);
 
 #endif

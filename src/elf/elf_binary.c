@@ -1,8 +1,7 @@
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include "elf_binary.h"
 #include "elf.h"
+#include "elf_binary.h"
 
 void initialize_binary(Binary* binary) {
 	binary->path = NULL;
@@ -75,8 +74,10 @@ uint16_t byte) {
 #define APPEND_WORD(word) binary_append_big_endian_word( \
 	binary, \
 	word)
-/*
-static void binary_x64_elf_initialize(Binary* restrict binary) {
+
+static void binary_x64_elf_initialize(
+const Assembly* assembly,
+Binary* binary) {
 	ELF_EHDR ehdr = (ELF_EHDR) {
 		.e_ident = {
 			[ELF_E_INDEX_MAGIC_0] = ELF_E_MAGIC_0,
@@ -122,9 +123,11 @@ static void binary_x64_elf_initialize(Binary* restrict binary) {
 		binary->file);
 }
 
-static void binary_x64_elf_terminate(Binary* restrict binary) {
+static void binary_x64_elf_terminate(
+const Assembly* assembly,
+Binary* binary) {
+	long int file_size = ftell(binary->file);
 	// insert the size of the file at p_filesz and p_memsz
-	uint64_t file_size = ftell(binary->file);
 	fseek(
 		binary->file,
 		0x60,
@@ -141,13 +144,22 @@ static void binary_x64_elf_terminate(Binary* restrict binary) {
 		binary->file);
 }
 
-bool binary_x64(
-Binary* restrict binary,
-const Parser* restrict parser) {
-	binary_x64_elf_initialize(binary);
-	binary_x64_elf_terminate(binary);
+bool binary_x64_elf_write(
+const Assembly* assembly,
+Binary* binary) {
+	binary_x64_elf_initialize(
+		assembly,
+		binary);
+	static const uint8_t exit[] = {
+		0xBF, 0x2A, 0x00, 0x00, 0x00,
+		0xB8, 0x3C, 0x00, 0x00, 0x00,
+		0x0F, 0x05};
+	fwrite(exit, 1, sizeof(exit), binary->file);
+	binary_x64_elf_terminate(
+		assembly,
+		binary);
 	return true;
 }
-*/
+
 #undef APPEND_WORD
 #undef APPEND_BYTE
