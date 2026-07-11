@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "elf.h"
+#include "x64_mapping.h"
 #include "elf_binary.h"
 
 void initialize_binary(Binary* binary) {
@@ -38,42 +39,14 @@ bool destroy_binary(Binary* binary) {
 }
 
 bool binary_append_byte(
-Binary* restrict binary,
-uint8_t byte) {
+uint8_t byte,
+Binary* restrict binary) {
 	return fwrite(
 		&byte,
 		1,
 		1,
 		binary->file) == 1;
 }
-
-bool binary_append_little_endian_word(
-Binary* restrict binary,
-uint16_t byte) {
-	return fwrite(
-		&byte,
-		2,
-		1,
-		binary->file) == 1;
-}
-
-bool binary_append_big_endian_word(
-Binary* restrict binary,
-uint16_t byte) {
-	return fwrite(
-		&byte,
-		1,
-		2,
-		binary->file) == 1;
-}
-
-#define LEN(array) (sizeof(array) / sizeof(array[0]))
-#define APPEND_BYTE(byte) binary_append_byte( \
-	binary, \
-	byte)
-#define APPEND_WORD(word) binary_append_big_endian_word( \
-	binary, \
-	word)
 
 static void binary_x64_elf_initialize(
 const Assembly* assembly,
@@ -144,6 +117,75 @@ Binary* binary) {
 		binary->file);
 }
 
+static void create_imm_u32_le(
+uint32_t u32,
+Binary* binary) {
+	binary_append_byte(
+		u32 & 0xFF,
+		binary);
+	binary_append_byte(
+		(u32 >> 8) & 0xFF,
+		binary);
+	binary_append_byte(
+		(u32 >> 16) & 0xFF,
+		binary);
+	binary_append_byte(
+		(u32 >> 24) & 0xFF,
+		binary);
+}
+
+static void create_u64_le(
+uint64_t u64,
+Binary* binary) {
+	create_imm_u32_le(
+		(uint32_t) u64,
+		binary);
+	create_imm_u32_le(
+		(uint32_t)(u64 >> 32),
+		binary);
+}
+
+static uint8_t create_modrm(
+RegMod mod,
+Reg rm,
+Reg reg) {
+	uint8_t x64_rm = regmap_from_physical_to_x64(rm);
+	uint8_t x64_reg = regmap_from_physical_to_x64(reg);
+	return (((uint8_t) mod) << 6) | ((x64_reg & 0x07) << 3) | (x64_rm & 0x07);
+}
+
+static void create_mov_r64_r64(
+Reg dst,
+Reg src,
+Binary* binary) {
+	uint8_t x64_dst = regmap_from_physical_to_x64(dst);
+	uint8_t x64_src = regmap_from_physical_to_x64(src);
+	uint8_t rex = 0x48
+		| ((x64_src & 0x08) >> 1)
+		| ((x64_dst & 0x08) >> 3);
+	binary_append_byte(
+		rex,
+		binary);
+	binary_append_byte(
+		0x89,
+		binary);
+	binary_append_byte(
+		create_modrm(
+			RegMod_REG,
+			dst,
+			src),
+		binary);
+}
+
+static void create_syscall(Binary* binary) {
+	binary_append_byte(
+		0x0F,
+		binary);
+	binary_append_byte(
+		0x05,
+		binary);
+}
+
 bool binary_x64_elf_write(
 const Assembly* assembly,
 Binary* binary) {
@@ -160,6 +202,3 @@ Binary* binary) {
 		binary);
 	return true;
 }
-
-#undef APPEND_WORD
-#undef APPEND_BYTE

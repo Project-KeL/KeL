@@ -86,11 +86,9 @@ char** argv) {
 #ifndef NDEBUG
 	debug_print_quadruple_list(&tac);
 #endif
-	if((exit_status = create_regslots(
-		16,
-		512,
+	if((exit_status = create_regmap(
 		&tac,
-		&regmap.regslots))
+		&regmap))
 	== false)
 		goto END;
 #ifndef NDEBUG
