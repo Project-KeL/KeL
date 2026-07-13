@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "assembly.h"
+#include "x64_mapping.h"
 
 typedef struct {
 	const char* path;
@@ -22,8 +22,32 @@ bool create_binary(
 	const char* restrict path,
 	Binary* restrict binary);
 bool destroy_binary(Binary* restrict binary);
-bool binary_x64_elf_write(
-	const Assembly* assembly,
+bool binary_append_byte(
+	uint8_t byte,
+	Binary* restrict binary);
+void binary_x64_elf_initialize(Binary* binary);
+void binary_x64_elf_terminate(Binary* binary);
+
+void create_imm_u32_le(
+	uint32_t u32,
+	Binary* binary);
+void create_u64_le(
+	uint64_t u64,
+	Binary* binary);
+
+uint8_t create_modrm(
+	RegMod mod,
+	Reg rm,
+	Reg reg);
+
+void create_mov_r64_r64(
+	Reg dst,
+	Reg src,
+	Binary* binary);
+void create_syscall(Binary* binary);
+void create_mov_r64_imm64(
+	Reg dst,
+	uint64_t imm64,
 	Binary* binary);
 
 #endif

@@ -108,15 +108,23 @@ bool regmap_is_caller_saved(Reg reg) {
 
 uint8_t regmap_from_physical_to_x64(Reg reg) {
 	switch(reg) {
-	case Reg_RAX: return 0b000;
-	case Reg_RCX: return 0b001;
-	case Reg_RDX: return 0b010;
-	case Reg_RBX: return 0b011;
-	case Reg_RSP: return 0b100;
-	case Reg_RBP: return 0b101;
-	case Reg_RSI: return 0b110;
-	case Reg_RDI: return 0b111;
-	defualt: assert(false);
+	case Reg_RAX: return 0b0000;
+	case Reg_RCX: return 0b0001;
+	case Reg_RDX: return 0b0010;
+	case Reg_RBX: return 0b0011;
+	case Reg_RSP: return 0b0100;
+	case Reg_RBP: return 0b0101;
+	case Reg_RSI: return 0b0110;
+	case Reg_RDI: return 0b0111;
+	case Reg_R8: return 0b1000;
+	case Reg_R9: return 0b1001;
+	case Reg_R10: return 0b1010;
+	case Reg_R11: return 0b1011;
+	case Reg_R12: return 0b1100;
+	case Reg_R13: return 0b1101;
+	case Reg_R14: return 0b1110;
+	case Reg_R15: return 0b1111;
+	default: assert(false);
 	}
 }
 

@@ -1,4 +1,6 @@
+#include <string.h>
 #include "assembly.h"
+#include "elf_binary.h"
 #include "register.h"
 #include "tac_quadruple.h"
 #include "x64_mapping.h"
@@ -10,6 +12,59 @@ static void create_tab(size_t count_tab) {
 		i += 1) {
 			printf("\t");
 	}
+}
+
+static uint64_t lit_to_u64(
+const QuadItem* item,
+const Assembly* assembly) {
+	const Parser* parser = assembly->tac->stab.parser;
+	const Node* nodes = parser->nodes.base;
+	const Token* tokens = parser->lexer->tokens.base;
+	const Token* token = tokens + nodes[item->offset_node].offset_token;
+	const char* code = parser->lexer->source->content;
+	long int i = token->start;
+	uint64_t base = 10;
+
+	if(code[i] == '0'
+	&& i + 1 < token->end) {
+		char base_code = code[i + 1];
+
+		switch(base_code) {
+		case 'b': base = 2; break;
+		case 'o': base = 8; break;
+		case 'x': base = 16; break;
+		default: goto BASE_10;
+		}
+
+		i += 2;
+	}
+BASE_10:
+	uint64_t value = 0;
+
+	for(
+	;
+	i < token->end;
+	i += 1) {
+		const char c = code[i];
+
+		if(c == '`')
+			continue;
+
+		uint64_t digit;
+
+		if(c >= '0'
+		&& c <= '9') {
+			digit = (uint64_t)(c - '0');
+		} else if(c >= 'A'
+		       && c <= 'F') {
+			digit = (uint64_t)(c - 'A' + 10);
+		} else
+			break;
+
+		value = value * base + digit;
+	}
+
+	return value;
 }
 
 static void create_operand_left(
@@ -106,6 +161,7 @@ static void create_call(
 size_t i,
 size_t count_tab,
 const QuadEntry* entry,
+Binary* binary,
 Assembly* assembly
 ) {
 	const TAC* tac = assembly->tac;
@@ -162,34 +218,76 @@ Assembly* assembly
 		create_tab(count_tab);
 	}
 	// emit the call
+	const char* code = tac->stab.parser->lexer->source->content;
 	const Token* tokens = tac->stab.parser->lexer->tokens.base;
 	const Node* nodes = tac->stab.parser->nodes.base;
 	size_t src1_offset_node = entry->src1.offset_node;
 	const Token* token_PAL = tokens + nodes[src1_offset_node].offset_token;
-	printf(
-		"call %.*s\n",
-		(int)(token_PAL->end - token_PAL->start),
-		tac->stab.parser->lexer->source->content + token_PAL->start);
-	// get the return value
-	size_t dst_offset_node = entry->dst.offset_node;
-	Reg reg_dst = regmap_from_slot_to_physical(
-		(assembly->regmap->regslots.lifetimes + dst_offset_node)->slot.slot);
+	// hard coding `syscall_exit`
+	if(token_PAL->end - token_PAL->start == 4
+	&& strncmp(
+		"exit",
+		code + token_PAL->start,
+		4)
+	== 0) {
+		const QuadItem* arg = &(base_entry + i - 1)->src1;
+		// KASM
+		printf("mov rdi, ");
+		create_operand_right(
+			arg,
+			assembly);
+		printf("\n");
+		create_tab(count_tab);
+		printf("mov rax, 60\n");
+		create_tab(count_tab);
+		printf("syscall\n");
+		// ELF64
+		if(arg->type == QuadItemType_LIT) {
+			create_mov_r64_imm64(
+				Reg_RDI,
+				lit_to_u64(
+					arg,
+					assembly),
+				binary);
+		} else {
+			create_mov_r64_r64(
+				Reg_RDI,
+				Reg_RAX,
+				binary);
+		}
 
-	if(reg_dst != Reg_RAX) {
-		create_tab(count_tab);
+		create_mov_r64_imm64(
+			Reg_RAX,
+			60,
+			binary);
+		create_syscall(binary);
+	// other cases
+	} else {
 		printf(
-			"mov %s, rax\n",
-			regmap_to_str(reg_dst));
-	}
-	// restore caller-saved
-	for(
-	size_t j = count_reg_pushed;
-	j > 0;
-	j -= 1) {
-		create_tab(count_tab);
-		printf(
-			"pop %s\n",
-			regmap_to_str(reg_pushed[j - 1]));
+			"call %.*s\n",
+			(int)(token_PAL->end - token_PAL->start),
+			tac->stab.parser->lexer->source->content + token_PAL->start);
+		// get the return value
+		size_t dst_offset_node = entry->dst.offset_node;
+		Reg reg_dst = regmap_from_slot_to_physical(
+			(assembly->regmap->regslots.lifetimes + dst_offset_node)->slot.slot);
+
+		if(reg_dst != Reg_RAX) {
+			create_tab(count_tab);
+			printf(
+				"mov %s, rax\n",
+				regmap_to_str(reg_dst));
+		}
+		// restore caller-saved
+		for(
+		size_t j = count_reg_pushed;
+		j > 0;
+		j -= 1) {
+			create_tab(count_tab);
+			printf(
+				"pop %s\n",
+				regmap_to_str(reg_pushed[j - 1]));
+		}
 	}
 }
 
@@ -231,7 +329,9 @@ bool destroy_assembly(Assembly* assembly) {
 	return true;
 }
 
-bool assembly_file_write(Assembly* assembly) {
+bool assembly_file_write(
+Binary* binary,
+Assembly* assembly) {
 	const char* code = assembly->tac->stab.parser->lexer->source->content;
 	const Parser* parser = assembly->tac->stab.parser;
 	const Node* nodes = parser->nodes.base;
@@ -307,6 +407,7 @@ bool assembly_file_write(Assembly* assembly) {
 			printf(".\n\n");
 			break;
 		case QuadItemType_MOVE:
+			// KASM
 			printf("mov ");
 			create_operand_left(
 				&entry->dst,
@@ -316,6 +417,20 @@ bool assembly_file_write(Assembly* assembly) {
 				&entry->src1,
 				assembly);
 			printf("\n");
+			// ELF64
+			if(entry->src1.type == QuadItemType_LIT) {
+				create_mov_r64_imm64(
+					reg_dst,
+					lit_to_u64(
+						&entry->src1,
+						assembly),
+					binary);
+			} else {
+				create_mov_r64_r64(
+					reg_dst,
+					reg_src1,
+					binary);
+			}
 			break;
 		case QuadItemType_ADD:
 			create_operator_algebraic(
@@ -343,6 +458,7 @@ bool assembly_file_write(Assembly* assembly) {
 				i,
 				count_tab,
 				entry,
+				binary,
 				assembly);
 			break;
 		default: break;

@@ -48,9 +48,7 @@ Binary* restrict binary) {
 		binary->file) == 1;
 }
 
-static void binary_x64_elf_initialize(
-const Assembly* assembly,
-Binary* binary) {
+void binary_x64_elf_initialize(Binary* binary) {
 	ELF_EHDR ehdr = (ELF_EHDR) {
 		.e_ident = {
 			[ELF_E_INDEX_MAGIC_0] = ELF_E_MAGIC_0,
@@ -96,9 +94,7 @@ Binary* binary) {
 		binary->file);
 }
 
-static void binary_x64_elf_terminate(
-const Assembly* assembly,
-Binary* binary) {
+void binary_x64_elf_terminate(Binary* binary) {
 	long int file_size = ftell(binary->file);
 	// insert the size of the file at p_filesz and p_memsz
 	fseek(
@@ -117,7 +113,7 @@ Binary* binary) {
 		binary->file);
 }
 
-static void create_imm_u32_le(
+void create_imm_u32_le(
 uint32_t u32,
 Binary* binary) {
 	binary_append_byte(
@@ -134,7 +130,7 @@ Binary* binary) {
 		binary);
 }
 
-static void create_u64_le(
+void create_u64_le(
 uint64_t u64,
 Binary* binary) {
 	create_imm_u32_le(
@@ -145,7 +141,7 @@ Binary* binary) {
 		binary);
 }
 
-static uint8_t create_modrm(
+uint8_t create_modrm(
 RegMod mod,
 Reg rm,
 Reg reg) {
@@ -154,7 +150,7 @@ Reg reg) {
 	return (((uint8_t) mod) << 6) | ((x64_reg & 0x07) << 3) | (x64_rm & 0x07);
 }
 
-static void create_mov_r64_r64(
+void create_mov_r64_r64(
 Reg dst,
 Reg src,
 Binary* binary) {
@@ -177,7 +173,23 @@ Binary* binary) {
 		binary);
 }
 
-static void create_syscall(Binary* binary) {
+void create_mov_r64_imm64(
+Reg dst,
+uint64_t imm64,
+Binary* binary) {
+	uint8_t x64_dst = regmap_from_physical_to_x64(dst);
+	binary_append_byte(
+		0x48 | ((x64_dst & 0x08) >> 3),
+		binary);
+	binary_append_byte(
+		0xB8 + (x64_dst & 0x07),
+		binary);
+	create_u64_le(
+		imm64,
+		binary);
+}
+
+void create_syscall(Binary* binary) {
 	binary_append_byte(
 		0x0F,
 		binary);
@@ -187,18 +199,13 @@ static void create_syscall(Binary* binary) {
 }
 
 bool binary_x64_elf_write(
-const Assembly* assembly,
 Binary* binary) {
-	binary_x64_elf_initialize(
-		assembly,
-		binary);
+	binary_x64_elf_initialize(binary);
 	static const uint8_t exit[] = {
 		0xBF, 0x2A, 0x00, 0x00, 0x00,
 		0xB8, 0x3C, 0x00, 0x00, 0x00,
 		0x0F, 0x05};
 	fwrite(exit, 1, sizeof(exit), binary->file);
-	binary_x64_elf_terminate(
-		assembly,
-		binary);
+	binary_x64_elf_terminate(binary);
 	return true;
 }

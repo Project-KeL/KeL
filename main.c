@@ -102,17 +102,17 @@ char** argv) {
 	== false)
 		goto END;
 
-	assembly_file_write(&assembly);
-
 	if((exit_status = create_binary(
 		"./bin",
 		&binary))
 	== false)
 		goto END;
 
-	binary_x64_elf_write(
-		&assembly,
-		&binary);
+	binary_x64_elf_initialize(&binary);
+	assembly_file_write(
+		&binary,
+		&assembly);
+	binary_x64_elf_terminate(&binary);
 /*
 	binary_x64(
 		&binary,

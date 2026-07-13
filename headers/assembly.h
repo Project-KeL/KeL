@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "elf_binary.h"
 #include "tac_quadruple.h"
 #include "x64_mapping.h"
 
@@ -20,6 +21,8 @@ bool create_assembly(
 	const RegMap* regmap,
 	Assembly* restrict assembly);
 bool destroy_assembly(Assembly* restrict assembly);
-bool assembly_file_write(Assembly* assembly);
+bool assembly_file_write(
+	Binary* binary,
+	Assembly* assembly);
 
 #endif
