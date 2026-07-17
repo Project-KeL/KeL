@@ -143,22 +143,71 @@ Binary* binary) {
 
 uint8_t create_modrm(
 RegMod mod,
-Reg rm,
-Reg reg) {
-	uint8_t x64_rm = regmap_from_physical_to_x64(rm);
-	uint8_t x64_reg = regmap_from_physical_to_x64(reg);
-	return (((uint8_t) mod) << 6) | ((x64_reg & 0x07) << 3) | (x64_rm & 0x07);
+uint8_t rm,
+uint8_t reg) {
+	return (((uint8_t) mod) << 6)
+	     | ((reg & 0x07) << 3)
+	     | (rm & 0x07);
+}
+
+void create_alu_r64_r64(
+uint8_t opcode,
+Reg dst,
+Reg src,
+Binary* binary) {
+	const uint8_t x64_dst = regmap_from_physical_to_x64(dst);
+	const uint8_t x64_src = regmap_from_physical_to_x64(src);
+	const uint8_t rex = 0x48
+	            | ((x64_src & 0x08) >> 1)
+	            | ((x64_dst & 0x08) >> 3);
+	binary_append_byte(
+		rex,
+		binary);
+	binary_append_byte(
+		opcode,
+		binary);
+	binary_append_byte(
+		create_modrm(
+			RegMod_REG,
+			x64_dst,
+			x64_src),
+		binary);
+}
+
+void create_alu_r64_imm32(
+uint8_t digit,
+Reg dst,
+uint32_t imm32,
+Binary* binary) {
+	const uint8_t x64_dst = regmap_from_physical_to_x64(dst);
+	const uint8_t rex = 0x48
+	            | ((x64_dst & 0x08) >> 3);
+	binary_append_byte(
+		rex,
+		binary);
+	binary_append_byte(
+		0x81,
+		binary);
+	binary_append_byte(
+		create_modrm(
+			RegMod_REG,
+			x64_dst,
+			digit),
+		binary);
+	create_imm_u32_le(
+		imm32,
+		binary);
 }
 
 void create_mov_r64_r64(
 Reg dst,
 Reg src,
 Binary* binary) {
-	uint8_t x64_dst = regmap_from_physical_to_x64(dst);
-	uint8_t x64_src = regmap_from_physical_to_x64(src);
-	uint8_t rex = 0x48
-		| ((x64_src & 0x08) >> 1)
-		| ((x64_dst & 0x08) >> 3);
+	const uint8_t x64_dst = regmap_from_physical_to_x64(dst);
+	const uint8_t x64_src = regmap_from_physical_to_x64(src);
+	const uint8_t rex = 0x48
+	            | ((x64_src & 0x08) >> 1)
+	            | ((x64_dst & 0x08) >> 3);
 	binary_append_byte(
 		rex,
 		binary);
@@ -168,8 +217,8 @@ Binary* binary) {
 	binary_append_byte(
 		create_modrm(
 			RegMod_REG,
-			dst,
-			src),
+			x64_dst,
+			x64_src),
 		binary);
 }
 

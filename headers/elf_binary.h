@@ -37,8 +37,19 @@ void create_u64_le(
 
 uint8_t create_modrm(
 	RegMod mod,
-	Reg rm,
-	Reg reg);
+	uint8_t rm,
+	uint8_t reg);
+
+void create_alu_r64_r64(
+	uint8_t opcode,
+	Reg dst,
+	Reg src,
+	Binary* binary);
+void create_alu_r64_imm32(
+	uint8_t digit,
+	Reg dst,
+	uint32_t imm32,
+	Binary* binary);
 
 void create_mov_r64_r64(
 	Reg dst,

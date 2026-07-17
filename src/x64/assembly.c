@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 #include "assembly.h"
 #include "elf_binary.h"
@@ -67,6 +68,35 @@ BASE_10:
 	return value;
 }
 
+static Reg get_reg_from_key_or_tmp(
+const QuadItem* item,
+const Assembly* assembly) {
+	const Slot* slot = &(assembly->regmap->regslots.lifetimes + item->offset_node)->slot;
+	return regmap_from_slot_to_physical(slot->slot);
+}
+
+static void create_load_dst(
+const QuadEntry* entry,
+Reg reg_dst,
+Binary* binary,
+Assembly* assembly) {
+	if(entry->src1.type == QuadItemType_LIT) {
+		create_mov_r64_imm64(
+			reg_dst,
+			lit_to_u64(
+				&entry->src1,
+				assembly),
+			binary);
+	} else {
+		create_mov_r64_r64(
+			reg_dst,
+			get_reg_from_key_or_tmp(
+				&entry->src1,
+				assembly),
+			binary);
+	}
+}
+
 static void create_operand_left(
 const QuadItem* item,
 Assembly* assembly) {
@@ -111,11 +141,12 @@ Assembly* assembly) {
 	}
 }
 
-static void create_operator_algebraic(
-const char* op,
+static void create_add(
 size_t count_tab,
 const QuadEntry* entry,
+Binary* binary,
 Assembly* assembly) {
+	// KASM
 	printf("mov ");
 	create_operand_left(
 		&entry->dst,
@@ -126,9 +157,7 @@ Assembly* assembly) {
 		assembly);
 	printf("\n");
 	create_tab(count_tab);
-	printf(
-		"%s ",
-		op);
+	printf("add ");
 	create_operand_left(
 		&entry->dst,
 		assembly);
@@ -136,7 +165,92 @@ Assembly* assembly) {
 	create_operand_right(
 		&entry->src2,
 		assembly);
+	// ELF64
+	Reg reg_dst = get_reg_from_key_or_tmp(
+		&entry->dst,
+		assembly);
+	create_load_dst(
+		entry,
+		reg_dst,
+		binary,
+		assembly);
+
+	if(entry->src2.type == QuadItemType_LIT) {
+		const uint64_t imm = lit_to_u64(
+			&entry->src2,
+			assembly);
+		assert(imm <= INT32_MAX);
+		create_alu_r64_imm32(
+			0x00,
+			reg_dst,
+			(uint32_t) imm,
+			binary);
+	} else {
+		create_alu_r64_r64(
+			0x01,
+			reg_dst,
+			get_reg_from_key_or_tmp(
+				&entry->src2,
+				assembly),
+			binary);
+	}
 }
+
+static void create_sub(
+size_t count_tab,
+const QuadEntry* entry,
+Binary* binary,
+Assembly* assembly) {
+	// KASM
+	printf("mov ");
+	create_operand_left(
+		&entry->dst,
+		assembly);
+	printf(", ");
+	create_operand_right(
+		&entry->src1,
+		assembly);
+	printf("\n");
+	create_tab(count_tab);
+	printf("sub ");
+	create_operand_left(
+		&entry->dst,
+		assembly);
+	printf(", ");
+	create_operand_right(
+		&entry->src2,
+		assembly);
+	// ELF64
+	Reg reg_dst = get_reg_from_key_or_tmp(
+		&entry->dst,
+		assembly);
+	create_load_dst(
+		entry,
+		reg_dst,
+		binary,
+		assembly);
+
+	if(entry->src2.type == QuadItemType_LIT) {
+		const uint64_t imm = lit_to_u64(
+			&entry->src2,
+			assembly);
+		assert(imm <= INT32_MAX);
+		create_alu_r64_imm32(
+			0x05,
+			reg_dst,
+			(uint32_t) imm,
+			binary);
+	} else {
+		create_alu_r64_r64(
+			0x29,
+			reg_dst,
+			get_reg_from_key_or_tmp(
+				&entry->src2,
+				assembly),
+			binary);
+	}
+}
+
 
 static void create_param(
 const QuadEntry* entry,
@@ -252,7 +366,9 @@ Assembly* assembly
 		} else {
 			create_mov_r64_r64(
 				Reg_RDI,
-				Reg_RAX,
+				get_reg_from_key_or_tmp(
+					arg,
+					assembly),
 				binary);
 		}
 
@@ -365,7 +481,6 @@ Assembly* assembly) {
 		Reg reg_src2 = regmap_from_slot_to_physical(slot_src2->slot);
 		Reg reg_dst = regmap_from_slot_to_physical(slot_dst->slot);
 
-
 		if(entry->op.type == QuadItemType_SCOPE_END
 		|| entry->op.type == QuadItemType_SCOPE_END_LAB
 		|| entry->op.type == QuadItemType_SCOPE_END_PAL)
@@ -433,18 +548,18 @@ Assembly* assembly) {
 			}
 			break;
 		case QuadItemType_ADD:
-			create_operator_algebraic(
-				"add",
+			create_add(
 				count_tab,
 				entry,
+				binary,
 				assembly);
 			printf("\n");
 			break;
 		case QuadItemType_SUB:
-			create_operator_algebraic(
-				"sub",
+			create_sub(
 				count_tab,
 				entry,
+				binary,
 				assembly);
 			printf("\n");
 			break;
