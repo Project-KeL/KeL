@@ -8,6 +8,7 @@
 typedef struct {
 	const char* path;
 	FILE* file;
+	long int offset_entry;
 } Binary;
 
 typedef enum: uint8_t {

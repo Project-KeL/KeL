@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include "allocator.h"
 #include "parser.h"
 #include "tac_stab.h"
@@ -7,11 +8,42 @@
 #include "tac_quadruple.h"
 #include "tac_stab.h"
 #include <stdio.h>
+
+static bool scope_is_entry(
+size_t start,
+const Node* nodes,
+const Parser* parser) {
+	if(start < 2)
+		return false;
+
+	const size_t start_grp = start - 1;
+
+	if(nodes[start_grp].type != NodeType_GRP_Q)
+		return false;
+
+	const size_t start_q = start_grp - 1;
+
+	if(nodes[start_q].type != NodeType_Q)
+		return false;
+
+	const char* code = parser->lexer->source->content;
+	const Token* tokens = parser->lexer->tokens.base;
+	const Token* token = tokens + nodes[start_q].offset_token;
+
+	return token->end - token->start == 5
+	    && strncmp(
+			"entry",
+			code + token->start,
+			5)
+		== 0;
+}
+
 void initialize_tac(TAC* tac) {
 	assert(tac != NULL);
 
 	initialize_tac_stab(&tac->stab);
 	initialize_quadlist(&tac->quadlist);
+	tac->offset_entry = 0;
 }
 
 bool create_tac(
@@ -97,6 +129,7 @@ TAC* tac) {
 		end = start - 1;
 	}
 
+	size_t offset_entry = 0;
 	size_t count_param = 0; // to query a slot
 	size_t prototype_high = 0;
 	size_t prototype_low = 1;
@@ -146,6 +179,14 @@ TAC* tac) {
 					}
 
 					if(type != QuadItemType_NO) {
+						if(scope_is_entry(
+								start_subtree[i],
+								nodes,
+								parser)
+						&& nodes[i].type != NodeType_DECL_VAR) {
+							offset_entry = i;
+						}
+
 						tac_stab_push_scope(&tac->stab);
 						count_param = 0;
 						QuadEntry entry = (QuadEntry) {
@@ -189,6 +230,14 @@ TAC* tac) {
 		} else if(nodes[i].type == NodeType_SCOPE
 			   && nodes[i + 1].type != NodeType_INIT_LAB
 		       && nodes[i + 1].type != NodeType_INIT_PAL) {
+			if(scope_is_entry(
+					start_subtree[i],
+					nodes,
+					parser)
+			&& nodes[i].type != NodeType_DECL_VAR) {
+				offset_entry = i;
+			}
+
 			tac_stab_push_scope(&tac->stab);
 			QuadEntry entry = (QuadEntry) {
 				.op = (QuadItem) {
@@ -269,6 +318,8 @@ TAC* tac) {
 
 	if(!quadlist_allocator_shrink_append_null(&tac->quadlist))
 		error = true;
+
+	tac->offset_entry = offset_entry;
 END:
 	free(stack_depth);
 	free(stack_index);

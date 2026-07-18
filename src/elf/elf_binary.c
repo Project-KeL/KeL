@@ -7,6 +7,7 @@
 void initialize_binary(Binary* binary) {
 	binary->path = NULL;
 	binary->file = NULL;
+	binary->offset_entry = -1;
 }
 
 bool create_binary(
@@ -33,8 +34,7 @@ bool destroy_binary(Binary* binary) {
 		return false;
 	}
 
-	binary->path = NULL;
-	binary->file = NULL;
+	initialize_binary(binary);
 	return true;
 }
 
@@ -111,6 +111,16 @@ void binary_x64_elf_terminate(Binary* binary) {
 		1,
 		8,
 		binary->file);
+
+	if(binary->offset_entry != -1) {
+		fseek(
+			binary->file,
+			0x18, // the entry point
+			SEEK_SET);
+		create_u64_le(
+			0x400000 + (uint64_t)  binary->offset_entry,
+			binary);
+	}
 }
 
 void create_imm_u32_le(

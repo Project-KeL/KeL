@@ -495,8 +495,12 @@ Assembly* assembly) {
 
 		if(entry->op.type == QuadItemType_SCOPE
 		|| entry->op.type == QuadItemType_SCOPE_LAB
-		|| entry->op.type == QuadItemType_SCOPE_PAL)
+		|| entry->op.type == QuadItemType_SCOPE_PAL) {
+			if(entry->op.offset_node == assembly->tac->offset_entry)
+				binary->offset_entry = ftell(binary->file);
+
 			count_tab += 1;
+		}
 
 		switch(entry->op.type) {
 		case QuadItemType_SCOPE:

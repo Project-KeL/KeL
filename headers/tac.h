@@ -9,6 +9,7 @@
 typedef struct {
 	STab stab;
 	QuadList quadlist;
+	size_t offset_entry;
 } TAC;
 
 void initialize_tac(TAC* tac);

@@ -118,6 +118,9 @@ void debug_print_quadruple_list(const TAC* tac) {
 	}
 
 	printf(
+		"\n\toffset_entry = %zu.\n",
+		tac->offset_entry);
+	printf(
 		"\nNumber of quadruplets: %zu.\n",
 		count - 2);
 }
