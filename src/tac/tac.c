@@ -165,44 +165,42 @@ TAC* tac) {
 				quadlist_append(
 					&entry,
 					&tac->quadlist);
-				} else {
-					tac_stab_push_entry(
-						start_subtree[i],
-						&tac->stab);
-					QuadItemType type = QuadItemType_NO;
+			} else {
+				tac_stab_push_entry(
+					start_subtree[i],
+					&tac->stab);
+				QuadItemType type = QuadItemType_NO;
 
-					if(nodes[i].type == NodeType_DECL_LAB
-					&& nodes[i - 1].type == NodeType_INIT_LAB) {
-						type = QuadItemType_SCOPE_LAB;
-					} else if(nodes[i].type == NodeType_DECL_PAL) {
-						type = QuadItemType_SCOPE_PAL;
+				if(nodes[i].type == NodeType_DECL_LAB)
+					type = QuadItemType_SCOPE_LAB;
+				else if(nodes[i].type == NodeType_DECL_PAL)
+					type = QuadItemType_SCOPE_PAL;
+
+				if(type != QuadItemType_NO) {
+					if(scope_is_entry(
+							start_subtree[i],
+							nodes,
+							parser)
+					&& nodes[i].type != NodeType_DECL_VAR) {
+						offset_entry = i;
 					}
 
-					if(type != QuadItemType_NO) {
-						if(scope_is_entry(
-								start_subtree[i],
-								nodes,
-								parser)
-						&& nodes[i].type != NodeType_DECL_VAR) {
-							offset_entry = i;
-						}
-
-						tac_stab_push_scope(&tac->stab);
-						count_param = 0;
-						QuadEntry entry = (QuadEntry) {
-							.op = (QuadItem) {
-								.type = type,
-								.offset_node = i},
-							.src1 = (QuadItem) {
-								.type = QuadItemType_KEY,
-								.offset_node = start_subtree[i]},
-							.src2 = create_quaditem_null(),
-							.dst = create_quaditem_null()};
-						quadlist_append(
-							&entry,
-							&tac->quadlist);
-					}
+					tac_stab_push_scope(&tac->stab);
+					count_param = 0;
+					QuadEntry entry = (QuadEntry) {
+						.op = (QuadItem) {
+							.type = type,
+							.offset_node = i},
+						.src1 = (QuadItem) {
+							.type = QuadItemType_KEY,
+							.offset_node = start_subtree[i]},
+						.src2 = create_quaditem_null(),
+						.dst = create_quaditem_null()};
+					quadlist_append(
+						&entry,
+						&tac->quadlist);
 				}
+			}
 		// process parameters, except for PAL prototype
 		} else if(nodes[i].type == NodeType_PARAM) {
 			if(prototype_low > i
