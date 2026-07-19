@@ -493,32 +493,42 @@ Assembly* assembly) {
 			printf("\t");
 		}
 
+		if(entry->op.type == QuadItemType_SCOPE_START
+		|| entry->op.type == QuadItemType_SCOPE_START_LAB
+		|| entry->op.type == QuadItemType_SCOPE_START_PAL) {
+			count_tab += 1;
+		}
+
 		if(entry->op.type == QuadItemType_SCOPE
-		|| entry->op.type == QuadItemType_SCOPE_LAB
-		|| entry->op.type == QuadItemType_SCOPE_PAL) {
+		|| entry->op.type == QuadItemType_SCOPE_START
+		|| entry->op.type == QuadItemType_SCOPE_START_LAB
+		|| entry->op.type == QuadItemType_SCOPE_START_PAL) {
 			if(entry->op.offset_node == assembly->tac->offset_entry)
 				binary->offset_entry = ftell(binary->file);
-
-			count_tab += 1;
 		}
 
 		switch(entry->op.type) {
 		case QuadItemType_SCOPE:
-			printf("scope\n");
+			printf("#%.*s scope\n",
+				(int)(token_src1->end - token_src1->start),
+				code + token_src1->start);
+			break;
+		case QuadItemType_SCOPE_START:
+			printf("scope start\n");
 			break;
 		case QuadItemType_SCOPE_END:
 			printf(".\n");
 			break;
-		case QuadItemType_SCOPE_LAB:
-			printf("#%.*s scope\n",
+		case QuadItemType_SCOPE_START_LAB:
+			printf("#%.*s scope start\n",
 				(int)(token_src1->end - token_src1->start),
 				code + token_src1->start);
 			break;
 		case QuadItemType_SCOPE_END_LAB:
 			printf(".\n");
 			break;
-		case QuadItemType_SCOPE_PAL:
-			printf("@%.*s scope\n",
+		case QuadItemType_SCOPE_START_PAL:
+			printf("@%.*s scope start\n",
 				(int)(token_src1->end - token_src1->start),
 				code + token_src1->start);
 			break;

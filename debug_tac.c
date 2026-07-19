@@ -48,10 +48,11 @@ const QuadEntry* quadentry) {
 
 	switch(quadentry->op.type) {
 	case QuadItemType_SCOPE: type = "SCOPE"; break;
+	case QuadItemType_SCOPE_START: type = "SCOPE START"; break;
 	case QuadItemType_SCOPE_END: type = "SCOPE END"; break;
-	case QuadItemType_SCOPE_LAB: type = "SCOPE LAB"; break;
+	case QuadItemType_SCOPE_START_LAB: type = "SCOPE START LAB"; break;
 	case QuadItemType_SCOPE_END_LAB: type = "SCOPE END LAB"; break;
-	case QuadItemType_SCOPE_PAL: type = "SCOPE PAL"; break;
+	case QuadItemType_SCOPE_START_PAL: type = "SCOPE START PAL"; break;
 	case QuadItemType_SCOPE_END_PAL: type = "SCOPE END PAL"; break;
 	case QuadItemType_MOVE: type = "MOVE"; break;
 	case QuadItemType_ADD: type = "ADD"; break;
