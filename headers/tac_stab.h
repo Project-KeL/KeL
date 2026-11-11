@@ -1,6 +1,7 @@
 #ifndef STAB_H
 #define STAB_H
 
+#include "allocator.h"
 #include "parser.h"
 
 typedef struct {
@@ -14,7 +15,11 @@ typedef struct {
 	MemoryStack stack_watermark; // a stack of `MemoryStackState`
 } STab; //Symbol Table
 
-void initialize_tac_stab(STab* stab);
+static inline STab setup_tac_stab(void) {
+	return (STab) {
+		.stack_entry = setup_memory_stack(),
+		.stack_watermark = setup_memory_stack()};
+}
 bool create_tac_stab(
 	Parser* parser,
 	STab* stab);

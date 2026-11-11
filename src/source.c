@@ -3,12 +3,6 @@
 #include <stdlib.h>
 #include "source.h"
 
-void initialize_source(Source* source) {
-	source->path = NULL;
-	source->content = NULL;
-	source->length = 0;
-}
-
 bool create_source(
 const char* restrict path,
 Source* restrict source) {
@@ -79,5 +73,5 @@ void destroy_source(Source* source) {
 		return;
 
 	free(source->content);
-	initialize_source(source);
+	*source = setup_source();
 }

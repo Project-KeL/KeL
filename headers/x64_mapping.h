@@ -31,7 +31,10 @@ typedef struct {
 	RegSlots regslots;
 } RegMap;
 
-void initialize_regmap(RegMap* regmap);
+static inline RegMap setup_regmap(void) {
+	return (RegMap) {
+		.regslots = setup_regslots()};
+}
 bool create_regmap(
 	TAC* tac,
 	RegMap* regmap);

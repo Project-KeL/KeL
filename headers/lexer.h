@@ -83,7 +83,10 @@ typedef struct {
 	MemoryArea tokens;
 } Lexer;
 
-void initialize_lexer(Lexer* lexer);
+static inline Lexer setup_lexer(void) {
+	return (Lexer) {
+		.tokens = setup_memory_area()};
+}
 bool create_lexer(
 	const Source* source,
 	MemoryArea* restrict memArea,

@@ -1,10 +1,6 @@
 #include "x64_mapping.h"
 #include "register.h"
 
-void initialize_regmap(RegMap* regmap) {
-	initialize_regslots(&regmap->regslots);
-}
-
 bool create_regmap(
 TAC* tac,
 RegMap* regmap) {
@@ -24,6 +20,7 @@ void destroy_regmap(RegMap* regmap) {
 		return;
 
 	destroy_regslots(&regmap->regslots);
+	*regmap = setup_regmap();
 }
 
 Reg regmap_from_slot_to_physical(uint32_t slot) {

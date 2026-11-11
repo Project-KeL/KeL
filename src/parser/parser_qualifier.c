@@ -17,8 +17,7 @@ Parser* parser) {
 		.count_arity = 0,
 		.offset_token = buffer_i};
 
-	MemoryStackState stack_operator_state;
-	initialize_memory_stack_state(&stack_operator_state);
+	auto stack_operator_state = setup_memory_stack_state();
 	memory_stack_state_save(
 		stack_operator,
 		&stack_operator_state);

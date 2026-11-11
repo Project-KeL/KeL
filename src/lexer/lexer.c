@@ -76,12 +76,6 @@ static void create_token_null(Token* token) {
 		.end = 0};
 }
 
-static void lexer_initialize_allocator(Lexer* lexer) {
-	assert(lexer != NULL);
-
-	initialize_memory_area(&lexer->tokens);
-}
-
 static bool lexer_create_allocator_limit(
 size_t limit,
 Lexer* lexer) {
@@ -525,11 +519,6 @@ Token* token) {
 	return true;
 }
 
-void initialize_lexer(Lexer* lexer) {
-	lexer->source = NULL;
-	initialize_memory_area(&lexer->tokens);
-}
-
 bool create_lexer(
 const Source* source,
 MemoryArea* restrict memArea,
@@ -553,8 +542,6 @@ Lexer* lexer) {
 		memArea)
 	== false)
 		return false;
-
-	lexer_initialize_allocator(lexer);
 
 	if(lexer_create_allocator_limit(
 		lexer->source->length + 1,
@@ -736,5 +723,5 @@ void destroy_lexer(Lexer* lexer) {
 		return;
 	
 	lexer_destroy_allocator(lexer);
-	initialize_lexer(lexer);
+	*lexer = setup_lexer();
 }

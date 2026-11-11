@@ -15,7 +15,9 @@ typedef struct {
 	size_t offset;
 } MemoryAreaIterator;
 
-void initialize_memory_area(MemoryArea* area);
+static inline MemoryArea setup_memory_area(void) {
+	return (MemoryArea) {};
+}
 bool create_memory_area(
 	size_t count,
 	size_t size_type,
@@ -41,7 +43,10 @@ typedef struct {
 	void* top;
 } MemoryStackState;
 
-void initialize_memory_stack(MemoryStack* tack);
+static inline MemoryStack setup_memory_stack(void) {
+	return (MemoryStack) {
+		.area = setup_memory_area()};
+}
 bool create_memory_stack(
 	size_t count,
 	size_t size_type,
@@ -63,7 +68,9 @@ void memory_stack_top(
 void* memory_stack_top_addr(MemoryStack* stack);
 bool memory_stack_is_empty(MemoryStack* stack);
 
-void initialize_memory_stack_state(MemoryStackState* memStackState);
+static inline MemoryStackState setup_memory_stack_state(void) {
+	return (MemoryStackState) {};
+}
 void memory_stack_state_save(
 	MemoryStack* stack,
 	MemoryStackState* memStackState);
@@ -98,7 +105,9 @@ typedef struct {
 	void* addr;
 } MemoryChainIterator;
 
-void initialize_memory_chain(MemoryChain* chain);
+static inline MemoryChain setup_memory_chain(void) {
+	return (MemoryChain) {};
+}
 bool create_memory_chain(
 	size_t count,
 	size_t size_type,
@@ -112,7 +121,9 @@ bool memory_chain_reserve_data(
 	size_t count,
 	MemoryChain* chain);
 
-void initialize_memory_chain_state(MemoryChainState* chain_state);
+static inline MemoryChainState setup_memory_chain_state(void) {
+	return (MemoryChainState) {};
+}
 void memory_chain_state_save(
 	const MemoryChain* chain,
 	MemoryChainState* chain_state);

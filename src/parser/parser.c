@@ -27,12 +27,6 @@ static void create_node_null(Node* token) {
 		.offset_token = 0};
 }
 
-static void parser_initialize_allocator(Parser* parser) {
-	assert(parser != NULL);
-
-	initialize_memory_area(&parser->nodes);
-}
-
 static bool parser_create_allocator_limit(
 size_t limit,
 Parser* parser) {
@@ -67,13 +61,6 @@ static void parser_destroy_allocator(Parser* parser) {
 	destroy_memory_area(&parser->nodes);
 }
 
-void initialize_parser(Parser* parser) {
-	assert(parser != NULL);
-
-	parser->lexer = NULL;
-	initialize_memory_area(&parser->nodes);
-}
-
 bool create_parser(
 const Lexer* lexer,
 Parser* parser) {
@@ -84,12 +71,9 @@ Parser* parser) {
 
 	parser->lexer = lexer;
 
-	MemoryStack stack_context;
-	MemoryStack stack_operator;
-	MemoryStack stack_buffer;
-	initialize_memory_stack(&stack_context);
-	initialize_memory_stack(&stack_operator);
-	initialize_memory_stack(&stack_buffer);
+	auto stack_context = setup_memory_stack();
+	auto stack_operator = setup_memory_stack();
+	auto stack_buffer = setup_memory_stack();
 
 	if(!create_memory_stack(
 		1024,
@@ -116,7 +100,6 @@ Parser* parser) {
 	memory_stack_push(
 		(char*) &context_scope_0,
 		&stack_context);
-	parser_initialize_allocator(parser);
 	
 	if(parser_create_allocator_limit(
 		lexer->source->length,
@@ -230,7 +213,7 @@ void destroy_parser(Parser* parser) {
 		return;
 
 	parser_destroy_allocator(parser);
-	initialize_parser(parser);
+	*parser = setup_parser();
 }
 
 #undef DEFINE_OPERATOR

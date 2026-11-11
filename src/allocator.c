@@ -3,14 +3,6 @@
 #include <string.h>
 #include "allocator.h"
 
-void initialize_memory_area(MemoryArea* area) {
-	assert(area != NULL);
-
-	area->base = NULL;
-	area->count = 0;
-	area->size_type = 0;
-}
-
 bool create_memory_area(
 size_t count,
 size_t size_type,
@@ -36,7 +28,7 @@ void destroy_memory_area(MemoryArea* area) {
 		return;
 
 	free(area->base);
-	initialize_memory_area(area);
+	*area = setup_memory_area();
 }
 
 bool memory_area_realloc(
@@ -94,13 +86,6 @@ bool memory_area_iterator_next(MemoryAreaIterator* area_it) {
 	return check_bounderies;
 }
 
-void initialize_memory_stack(MemoryStack* stack) {
-	assert(stack != NULL);
-
-	initialize_memory_area(&stack->area);
-	stack->top = NULL;
-}
-
 bool create_memory_stack(
 size_t count,
 size_t size_type,
@@ -120,7 +105,7 @@ void destroy_memory_stack(MemoryStack* stack) {
 		return;
 
 	destroy_memory_area(&stack->area);
-	stack->top = NULL;
+	*stack = setup_memory_stack();
 }
 
 bool memory_stack_realloc(
@@ -207,12 +192,6 @@ bool memory_stack_is_empty(MemoryStack* stack) {
 	return stack->top == stack->area.base;
 }
 
-void initialize_memory_stack_state(MemoryStackState* stack_state) {
-	assert(stack_state != NULL);
-
-	stack_state->top = NULL;
-}
-
 void memory_stack_state_save(
 MemoryStack* stack,
 MemoryStackState* stack_state) {
@@ -229,16 +208,6 @@ MemoryStackState* stack_state) {
 	assert(stack_state != NULL);
 
 	stack->top = stack_state->top;
-}
-
-void initialize_memory_chain(MemoryChain* chain) {
-	assert(chain != NULL);
-
-	chain->first = NULL;
-	chain->count = 0;
-	chain->last = NULL;
-	chain->previous = NULL;
-	chain->top = NULL;
 }
 
 bool create_memory_chain(
@@ -283,7 +252,7 @@ void destroy_memory_chain(MemoryChain* chain) {
 
 	destroy_memory_area(&chain->first->area);
 	free(chain->first);
-	initialize_memory_chain(chain);
+	*chain = setup_memory_chain();
 }
 
 void memory_chain_destroy_memory_area_last(MemoryChain* chain) {
@@ -361,14 +330,6 @@ MemoryChain* chain) {
 	}
 
 	return true;
-}
-
-void initialize_memory_chain_state(MemoryChainState* chain_state) {
-	assert(chain_state != NULL);
-
-	chain_state->buffer_count = 0;
-	chain_state->buffer_previous = NULL;
-	chain_state->buffer_top = NULL;
 }
 
 void memory_chain_state_save(

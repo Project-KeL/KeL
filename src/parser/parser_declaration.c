@@ -10,6 +10,7 @@
 #include "parser_type.h"
 #include "parser_utils.h"
 #include <stdio.h>
+
 static bool if_ID_create_leaf(
 size_t* i,
 size_t* j,
@@ -50,8 +51,7 @@ Parser* parser) {
 	size_t buffer_j = *j;
 
 	if(DECL == NodeType_DECL_VAR) {
-		MemoryStackState stack_state;
-		initialize_memory_stack_state(&stack_state);
+		auto stack_state = setup_memory_stack_state();
 		memory_stack_state_save(
 			stack_operator,
 			&stack_state);
@@ -160,8 +160,7 @@ Parser* parser) {
 			type_DECL = NodeType_DECL_VAR;
 	}
 	
-	MemoryStackState stack_state;
-	initialize_memory_stack_state(&stack_state);
+	MemoryStackState stack_state = setup_memory_stack_state();
 	memory_stack_state_save(
 		stack_operator,
 		&stack_state);

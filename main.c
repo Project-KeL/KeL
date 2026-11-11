@@ -7,6 +7,9 @@
 #include "debug_register.h"
 #include "elf_binary.h"
 #include "debug.h"
+#include "lexer.h"
+#include "parser.h"
+#include "source.h"
 #include "tac.h"
 #include "register.h"
 #include "x64_mapping.h"
@@ -20,23 +23,14 @@ char** argv) {
 	}
 
 	bool exit_status = true;
-	Source source;
-	MemoryArea area;
-	Lexer lexer;
-	Parser parser;
-	TAC tac;
-	RegMap regmap;
-	Assembly assembly;
-	Binary binary;
-
-	initialize_source(&source);
-	initialize_memory_area(&area); // for the lexer
-	initialize_lexer(&lexer);
-	initialize_parser(&parser);
-	initialize_tac(&tac);
-	initialize_regmap(&regmap);
-	initialize_assembly(&assembly);
-	initialize_binary(&binary);
+	auto source = setup_source();
+	auto area = setup_memory_area(); // for the lexer
+	auto lexer = setup_lexer();
+	auto parser = setup_parser();
+	auto tac = setup_tac();
+	auto regmap = setup_regmap();
+	auto assembly = setup_assembly();
+	auto binary = setup_binary();
 
 	if((exit_status = create_source(
 		argv[1],

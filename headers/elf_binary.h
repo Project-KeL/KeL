@@ -18,7 +18,10 @@ typedef enum: uint8_t {
 	RegMod_REG = 0b11,
 } RegMod;
 
-void initialize_binary(Binary* binary);
+static inline Binary setup_binary(void) {
+	return (Binary) {
+		.offset_entry = -1};
+}
 bool create_binary(
 	const char* restrict path,
 	Binary* restrict binary);

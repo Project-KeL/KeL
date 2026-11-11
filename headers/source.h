@@ -7,7 +7,9 @@ typedef struct {
 	long int length;
 } Source;
 
-void initialize_source(Source* source);
+static inline Source setup_source(void) {
+	return (Source) {};
+}
 bool create_source(
 	const char* path,
 	Source* source);

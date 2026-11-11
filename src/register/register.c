@@ -49,12 +49,6 @@ RegSlots* regslots) {
 	else
 		regslots->pool.reg [slot.slot] = true;
 }
-void initialize_regslots(RegSlots* regslots) {
-	regslots->lifetimes = NULL;
-	initialize_memory_stack(&regslots->stack_range);
-	regslots->pool.reg = NULL;
-	regslots->pool.stack = NULL;
-}
 
 bool create_regslots(
 size_t count_reg,
@@ -220,5 +214,5 @@ void destroy_regslots(RegSlots* regslots) {
 	free(regslots->pool.reg);
 	destroy_memory_stack(&regslots->stack_range);
 	free(regslots->lifetimes);
-	initialize_regslots(regslots);
+	*regslots = setup_regslots();
 }

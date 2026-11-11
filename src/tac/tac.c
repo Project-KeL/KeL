@@ -38,20 +38,9 @@ const Parser* parser) {
 		== 0;
 }
 
-void initialize_tac(TAC* tac) {
-	assert(tac != NULL);
-
-	initialize_tac_stab(&tac->stab);
-	initialize_quadlist(&tac->quadlist);
-	tac->offset_entry = 0;
-}
-
 bool create_tac(
 Parser* parser,
 TAC* tac) {
-	initialize_tac_stab(&tac->stab);
-	initialize_quadlist(&tac->quadlist);
-
 	if(!create_tac_stab(
 		parser,
 		&tac->stab)
@@ -71,8 +60,7 @@ TAC* tac) {
 		return false;
 	// traverse nodes
 	// substree = root + descendant nodes
-	MemoryStack stack_buffer;
-	initialize_memory_stack(&stack_buffer);
+	auto stack_buffer = setup_memory_stack();
 	size_t* start_subtree = calloc(
 		count,
 		sizeof(size_t));
@@ -344,5 +332,5 @@ void destroy_tac(TAC* tac) {
 
 	destroy_quadlist(&tac->quadlist);
 	destroy_tac_stab(&tac->stab);
-	initialize_tac(tac);
+	*tac = setup_tac();
 }

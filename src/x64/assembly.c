@@ -407,11 +407,6 @@ Assembly* assembly
 	}
 }
 
-void initialize_assembly(Assembly* assembly) {
-	assembly->path = NULL;
-	assembly->file = NULL;
-}
-
 bool create_assembly(
 const char* restrict path,
 const TAC* tac,
@@ -440,8 +435,7 @@ bool destroy_assembly(Assembly* assembly) {
 		return false;
 	}
 
-	assembly->path = NULL;
-	assembly->file = NULL;
+	*assembly = setup_assembly();
 	return true;
 }
 

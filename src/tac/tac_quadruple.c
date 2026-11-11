@@ -32,12 +32,6 @@ bool quadlist_allocator_shrink_append_null(QuadList* quadlist) {
 	return error;
 }
 
-void initialize_quadlist(QuadList* quadruple_list) {
-	assert(quadruple_list != NULL);
-
-	initialize_memory_stack(&quadruple_list->quadruples);
-}
-
 bool create_quadlist(
 Parser* parser,
 QuadList* quadlist) {
@@ -64,7 +58,7 @@ void destroy_quadlist(QuadList* tac_quadruples) {
 		return;
 
 	destroy_memory_stack(&tac_quadruples->quadruples);
-	initialize_quadlist(tac_quadruples);
+	*tac_quadruples = setup_quadlist();
 }
 
 void quadlist_append(

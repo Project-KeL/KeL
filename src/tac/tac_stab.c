@@ -3,12 +3,6 @@
 #include "parser_utils.h"
 #include "tac_stab.h"
 #include <stdio.h>
-void initialize_tac_stab(STab* stab) {
-	assert(stab != NULL);
-
-	initialize_memory_stack(&stab->stack_entry);
-	initialize_memory_stack(&stab->stack_watermark);
-}
 
 bool create_tac_stab(
 Parser* parser,
@@ -46,7 +40,7 @@ void destroy_tac_stab(STab* stab) {
 
 	destroy_memory_stack(&stab->stack_watermark);
 	destroy_memory_stack(&stab->stack_entry);
-	initialize_tac_stab(stab);
+	*stab = setup_tac_stab();
 }
 
 void tac_stab_push_entry(
@@ -62,8 +56,7 @@ STab* stab) {
 }
 
 void tac_stab_push_scope(STab* stab) {
-	MemoryStackState stack_state;
-	initialize_memory_stack_state(&stack_state);
+	auto stack_state = setup_memory_stack_state();
 	memory_stack_state_save(
 		&stab->stack_entry,
 		&stack_state);

@@ -4,12 +4,6 @@
 #include "x64_mapping.h"
 #include "elf_binary.h"
 
-void initialize_binary(Binary* binary) {
-	binary->path = NULL;
-	binary->file = NULL;
-	binary->offset_entry = -1;
-}
-
 bool create_binary(
 const char* restrict path,
 Binary* restrict binary) {
@@ -34,7 +28,7 @@ bool destroy_binary(Binary* binary) {
 		return false;
 	}
 
-	initialize_binary(binary);
+	*binary = setup_binary();
 	return true;
 }
 

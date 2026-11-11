@@ -12,7 +12,11 @@ typedef struct {
 	size_t offset_entry;
 } TAC;
 
-void initialize_tac(TAC* tac);
+static inline TAC setup_tac(void) {
+	return (TAC) {
+		.stab = setup_tac_stab(),
+		.quadlist = setup_quadlist()};
+}
 bool create_tac(
 	Parser* parser,
 	TAC* tac);

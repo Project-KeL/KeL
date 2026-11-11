@@ -54,7 +54,10 @@ typedef struct {
 
 QuadItem create_quaditem_null(void);
 bool quadlist_allocator_shrink_append_null(QuadList* quadlist);
-void initialize_quadlist(QuadList* quadlist);
+static inline QuadList setup_quadlist(void) {
+	return (QuadList) {
+		.quadruples = setup_memory_stack()};
+}
 bool create_quadlist(
 	Parser* parser,
 	QuadList* quadlist);

@@ -104,7 +104,10 @@ typedef struct {
 	MemoryArea nodes;
 } Parser;
 
-void initialize_parser(Parser* parser);
+static inline Parser setup_parser(void) {
+	return (Parser) {
+		.nodes = setup_memory_area()};
+}
 bool create_parser(
 	const Lexer* lexer,
 	Parser* parser);

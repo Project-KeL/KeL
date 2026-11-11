@@ -14,7 +14,9 @@ typedef struct {
 	const RegMap* regmap;
 } Assembly;
 
-void initialize_assembly(Assembly* assembly);
+static inline Assembly setup_assembly(void) {
+	return (Assembly) {};
+}
 bool create_assembly(
 	const char* restrict path,
 	const TAC* tac,

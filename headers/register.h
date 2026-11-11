@@ -31,7 +31,10 @@ typedef struct {
 	SlotPool pool;
 } RegSlots;
 
-void initialize_regslots(RegSlots* regslots);
+static inline RegSlots setup_regslots(void) {
+	return (RegSlots) {
+		.stack_range = setup_memory_stack()};
+}
 	bool create_regslots(
 	size_t count_reg,
 	size_t count_spilled,
