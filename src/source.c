@@ -9,38 +9,37 @@ Source* restrict source) {
 	assert(path != NULL);
 	assert(source != NULL);
 
-	source->path = path;
-
 	bool error = false;
+
 	FILE* source_file = fopen(
 		path,
-		"r");
+		"rb");
 
 	if(source_file == NULL) {
-		error = true;
-		goto END;
+		return false;
 	}
-	// get length
-	fseek(
-		source_file,
-		0,
-		SEEK_END);
-	source->length = ftell(source_file);
-	fseek(
-		source_file,
-		0,
-		SEEK_SET);
 
-	if(ferror(source_file) != 0) {
+	source->path = path;
+	// get length
+	if(fseek(
+		source_file,
+		0,
+		SEEK_END) != 0
+	|| (source->length = ftell(source_file)) < 0
+	|| fseek(
+		source_file,
+		0,
+		SEEK_SET)
+	!= 0) {
 		error = true;
-		goto END;
+		goto CLOSE;
 	}
 	// get source as a string and add sentinel at start and at end
 	source->content = malloc(source->length * sizeof(char) + 2);
 
 	if(source->content == NULL) {
 		error = true;
-		goto END;
+		goto CLOSE;
 	}
 
 	source->content[0] = '\0'; // will prevent errors with indexes
@@ -51,16 +50,16 @@ Source* restrict source) {
 		source->length,
 		source_file)
 	!= (size_t) source->length) {
-		error =true;
-		goto END;
+		error = true;
+		goto CLOSE;
 	}
-END:
+
+	source->content[(size_t) source->length + 1] = '\0';
+CLOSE:
 	if(fclose(source_file) == EOF)
 		error = true;
 
-	source->content[(size_t) source->length + 1] = '\0';
-
-	if(error == true) {
+	if(error) {
 		destroy_source(source);
 		return false;
 	}
