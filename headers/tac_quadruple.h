@@ -28,9 +28,9 @@ typedef enum: uint64_t {
 // key
 	QUAD_TYPE(KEY),
 // PAL
+	QUAD_TYPE(PARAM),
 	QUAD_TYPE(ARG),
 	QUAD_TYPE(CALL),
-	QUAD_TYPE(PARAM),
 	QUAD_TYPE(PAL),
 	QUAD_TYPE(COUNT),
 #undef QUAD_TYPE
