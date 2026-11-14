@@ -52,7 +52,10 @@ typedef struct {
 	MemoryStack quadruples; // never popping stack
 } QuadList;
 
-QuadItem create_quaditem_null(void);
+
+static inline QuadItem setup_quaditem(void) {
+	return (QuadItem) {};
+}
 bool quadlist_allocator_shrink_append_null(QuadList* quadlist);
 static inline QuadList setup_quadlist(void) {
 	return (QuadList) {

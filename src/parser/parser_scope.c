@@ -6,7 +6,7 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
-bool if_LSCOPE_create_context(
+bool if_LSCOPE_push_context(
 size_t* i,
 MemoryStack* stack_context,
 MemoryStack* stack_operator,
@@ -29,7 +29,7 @@ Parser* parser) {
 	return true;
 }
 
-bool if_LSCOPE_end_destroy_context(
+bool if_LSCOPE_end_pop_context(
 size_t* i,
 size_t* j,
 MemoryStack* stack_context,
@@ -57,12 +57,12 @@ Parser* parser) {
 		(char*) &context_scope,
 		stack_context);
 	// `raw` to bypass the flush
-	parser_create_leaf_raw(
+	parser_emit_leaf_raw(
 		NodeType_SCOPE_END,
 		context_scope.token,
 		j,
 		parser);
-	parser_create_operator(
+	parser_emit_operator(
 		NodeType_SCOPE,
 		context_scope.count_child + 1,
 		context_scope.token,
@@ -79,7 +79,7 @@ Parser* parser) {
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);
-			parser_create_operator(
+			parser_emit_operator(
 				pop_operator.type,
 				1,
 				pop_operator.offset_token,
@@ -93,7 +93,7 @@ Parser* parser) {
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);
-			parser_create_operator(
+			parser_emit_operator(
 				pop_operator.type,
 				pop_operator.count_arity,
 				pop_operator.offset_token,
@@ -106,7 +106,7 @@ Parser* parser) {
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);
-			parser_create_operator(
+			parser_emit_operator(
 				pop_operator.type,
 				1,
 				pop_operator.offset_token,
@@ -118,7 +118,7 @@ Parser* parser) {
 			memory_stack_pop(
 				(char*) &pop_operator,
 				stack_operator);
-			parser_create_operator(
+			parser_emit_operator(
 				pop_operator.type,
 				pop_operator.count_arity,
 				pop_operator.offset_token,

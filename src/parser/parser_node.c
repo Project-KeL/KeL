@@ -2,7 +2,7 @@
 #include "allocator.h"
 #include <stdio.h>
 
-void parser_create_leaf_raw(
+void parser_emit_leaf_raw(
 NodeType type,
 size_t token,
 size_t* j,
@@ -19,7 +19,7 @@ Parser* parser) {
 	*j += 1;
 }
 
-void parser_create_leaf(
+void parser_emit_leaf(
 NodeType type,
 size_t token,
 size_t* j,
@@ -29,7 +29,7 @@ Parser* parser) {
 	assert(stack_operator != NULL);
 	assert(parser != NULL);
 
-	parser_create_leaf_raw(
+	parser_emit_leaf_raw(
 		type,
 		token,
 		j,
@@ -38,7 +38,7 @@ Parser* parser) {
 	top_operator->count_arity += 1;
 }
 
-void parser_create_operator_raw(
+void parser_emit_operator_raw(
 NodeType type,
 uint32_t arity,
 size_t token,
@@ -56,7 +56,7 @@ Parser* parser) {
 	*j += 1;
 }
 
-void parser_create_operator(
+void parser_emit_operator(
 NodeType type,
 uint32_t arity,
 size_t token,
@@ -67,7 +67,7 @@ Parser* parser) {
 	assert(stack_operator != NULL);
 	assert(parser != NULL);
 
-	parser_create_operator_raw(
+	parser_emit_operator_raw(
 		type,
 		arity,
 		token,
@@ -104,7 +104,7 @@ Parser* parser) {
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_operator);
-		parser_create_operator_raw(
+		parser_emit_operator_raw(
 			pop_operator.type,
 			pop_operator.count_arity,
 			pop_operator.offset_token,

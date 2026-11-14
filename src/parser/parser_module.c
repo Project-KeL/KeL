@@ -2,7 +2,7 @@
 #include "parser_node.h"
 #include "parser_utils.h"
 
-bool if_MOD_create_operator(
+bool if_MOD_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -23,7 +23,7 @@ Parser* parser) {
 		buffer_i += 1;
 
 		while(parser_is_key(tokens + buffer_i)) {
-			parser_create_leaf(
+			parser_emit_leaf(
 				NodeType_IMOD,
 				buffer_i,
 				&buffer_j,
@@ -43,7 +43,7 @@ Parser* parser) {
 		buffer_i += 1;
 
 		while(parser_is_key(tokens + buffer_i)) {
-			parser_create_leaf(
+			parser_emit_leaf(
 				NodeType_OMOD,
 				buffer_i,
 				&buffer_j,

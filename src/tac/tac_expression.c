@@ -40,7 +40,7 @@ TAC* tac) {
 	}
 }
 
-void tac_create_expression(
+void tac_emit_expression(
 size_t start,
 size_t end,
 size_t dst,
@@ -72,8 +72,8 @@ TAC* tac) {
 						.src1 = get_operand(
 							top_addr[j],
 							tac),
-						.src2 = create_quaditem_null(),
-						.dst = create_quaditem_null()};
+						.src2 = setup_quaditem(),
+						.dst = setup_quaditem()};
 					quadlist_append(
 						&entry_arg,
 						&tac->quadlist);
@@ -128,7 +128,7 @@ TAC* tac) {
 					.src1 = get_operand(
 						right,
 						tac),
-					.src2 = create_quaditem_null(),
+					.src2 = setup_quaditem(),
 					.dst = get_operand(
 						left,
 						tac)};
@@ -182,7 +182,7 @@ TAC* tac) {
 			.src1 = get_operand(
 				result,
 				tac),
-			.src2 = create_quaditem_null(),
+			.src2 = setup_quaditem(),
 			.dst = get_operand(
 				(Node*) parser->nodes.base + dst,
 				tac)};

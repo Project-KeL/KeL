@@ -3,7 +3,7 @@
 #include "parser_qualifier.h"
 #include "parser_utils.h"
 
-bool if_GRP_Q_create_operator(
+bool if_GRP_Q_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_context,
@@ -28,7 +28,7 @@ Parser* parser) {
 	// consumes all Q
 	if(parser_is_Q(tokens + buffer_i)) {
 		do {
-			parser_create_leaf(
+			parser_emit_leaf(
 				NodeType_Q,
 				buffer_i,
 				j,
@@ -47,7 +47,7 @@ Parser* parser) {
 	memory_stack_pop(
 		(char*) &pop_operator_GRP_Q,
 		stack_operator);
-	parser_create_operator_raw(
+	parser_emit_operator_raw(
 		pop_operator_GRP_Q.type,
 		pop_operator_GRP_Q.count_arity,
 		pop_operator_GRP_Q.offset_token,

@@ -11,7 +11,7 @@
 #include "parser_utils.h"
 #include <stdio.h>
 
-static bool if_ID_create_leaf(
+static bool if_ID_emit_leaf(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -21,7 +21,7 @@ Parser* parser) {
 	if(!parser_is_ID(tokens + *i))
 		return false;
 
-	parser_create_leaf(
+	parser_emit_leaf(
 		NodeType_ID,
 		*i,
 		j,
@@ -31,7 +31,7 @@ Parser* parser) {
 	return true;
 }
 
-static void if_INIT_create_operator(
+static void if_INIT_emit_operator(
 NodeType DECL, // VAR or PAL
 size_t* i,
 size_t* j,
@@ -65,7 +65,7 @@ Parser* parser) {
 			(char*) &operator,
 			stack_operator);
 
-		if(if_EXP_create_operator(
+		if(if_EXP_emit_operator(
 			&buffer_i,
 			&buffer_j,
 			stack_operator,
@@ -82,7 +82,7 @@ Parser* parser) {
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_operator);
-		parser_create_operator(
+		parser_emit_operator(
 			pop_operator.type,
 			pop_operator.count_arity,
 			pop_operator.offset_token,
@@ -93,7 +93,7 @@ Parser* parser) {
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_operator);
-		parser_create_operator(
+		parser_emit_operator(
 			pop_operator.type,
 			pop_operator.count_arity,
 			pop_operator.offset_token,
@@ -118,7 +118,7 @@ Parser* parser) {
 	*j = buffer_j;
 }
 
-bool if_DECL_create_operator(
+bool if_DECL_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_context,
@@ -177,7 +177,7 @@ Parser* parser) {
 	buffer_i = *i + 1;
 	size_t buffer_j = *j;
 
-	if(if_ID_create_leaf(
+	if(if_ID_emit_leaf(
 		&buffer_i,
 		&buffer_j,
 		stack_operator,
@@ -185,7 +185,7 @@ Parser* parser) {
 	== false)
 		goto POP;
 	//`buffer_i` to look for a type
-	if(if_TYPE_create_operator(
+	if(if_TYPE_emit_operator(
 		&buffer_i,
 		&buffer_j,
 		stack_operator,
@@ -193,7 +193,7 @@ Parser* parser) {
 	== false)
 		goto POP;
 	// initialization
-	if_INIT_create_operator(
+	if_INIT_emit_operator(
 		type_DECL,
 		&buffer_i,
 		&buffer_j,

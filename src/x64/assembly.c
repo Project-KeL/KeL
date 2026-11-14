@@ -75,7 +75,7 @@ const Assembly* assembly) {
 	return regmap_from_slot_to_physical(slot->slot);
 }
 
-static void create_load_dst(
+static void emit_load_dst(
 const QuadEntry* entry,
 Reg reg_dst,
 Binary* binary,
@@ -97,7 +97,7 @@ Assembly* assembly) {
 	}
 }
 
-static void create_operand_left(
+static void emit_operand_left(
 const QuadItem* item,
 Assembly* assembly) {
 	switch(item->type) {
@@ -113,7 +113,7 @@ Assembly* assembly) {
 	}
 }
 
-static void create_operand_right(
+static void emit_operand_right(
 const QuadItem* item,
 Assembly* assembly) {
 	const char* code = assembly->tac->stab.parser->lexer->source->content;
@@ -141,35 +141,35 @@ Assembly* assembly) {
 	}
 }
 
-static void create_add(
+static void emit_add(
 size_t count_tab,
 const QuadEntry* entry,
 Binary* binary,
 Assembly* assembly) {
 	// KASM
 	printf("mov ");
-	create_operand_left(
+	emit_operand_left(
 		&entry->dst,
 		assembly);
 	printf(", ");
-	create_operand_right(
+	emit_operand_right(
 		&entry->src1,
 		assembly);
 	printf("\n");
 	create_tab(count_tab);
 	printf("add ");
-	create_operand_left(
+	emit_operand_left(
 		&entry->dst,
 		assembly);
 	printf(", ");
-	create_operand_right(
+	emit_operand_right(
 		&entry->src2,
 		assembly);
 	// ELF64
 	Reg reg_dst = get_reg_from_key_or_tmp(
 		&entry->dst,
 		assembly);
-	create_load_dst(
+	emit_load_dst(
 		entry,
 		reg_dst,
 		binary,
@@ -196,35 +196,35 @@ Assembly* assembly) {
 	}
 }
 
-static void create_sub(
+static void emit_sub(
 size_t count_tab,
 const QuadEntry* entry,
 Binary* binary,
 Assembly* assembly) {
 	// KASM
 	printf("mov ");
-	create_operand_left(
+	emit_operand_left(
 		&entry->dst,
 		assembly);
 	printf(", ");
-	create_operand_right(
+	emit_operand_right(
 		&entry->src1,
 		assembly);
 	printf("\n");
 	create_tab(count_tab);
 	printf("sub ");
-	create_operand_left(
+	emit_operand_left(
 		&entry->dst,
 		assembly);
 	printf(", ");
-	create_operand_right(
+	emit_operand_right(
 		&entry->src2,
 		assembly);
 	// ELF64
 	Reg reg_dst = get_reg_from_key_or_tmp(
 		&entry->dst,
 		assembly);
-	create_load_dst(
+	emit_load_dst(
 		entry,
 		reg_dst,
 		binary,
@@ -252,7 +252,7 @@ Assembly* assembly) {
 }
 
 
-static void create_param(
+static void emit_param(
 const QuadEntry* entry,
 Assembly* assembly) {
 	static const Reg reg_param[] = {
@@ -263,7 +263,7 @@ Assembly* assembly) {
 		Reg_R8,
 		Reg_R9};
 	printf("mov ");
-	create_operand_left(
+	emit_operand_left(
 		&entry->dst,
 		assembly);
 	printf(
@@ -271,13 +271,12 @@ Assembly* assembly) {
 		regmap_to_str(reg_param[entry->src2.offset_node]));
 }
 
-static void create_call(
+static void emit_call(
 size_t i,
 size_t count_tab,
 const QuadEntry* entry,
 Binary* binary,
-Assembly* assembly
-) {
+Assembly* assembly) {
 	const TAC* tac = assembly->tac;
 	const RegMap* regmap = assembly->regmap;
 	static Reg saved_caller[] = {
@@ -325,7 +324,7 @@ Assembly* assembly
 		printf(
 			"mov %s, ",
 			regmap_to_str(saved_caller[k]));
-		create_operand_right(
+		emit_operand_right(
 			&entry_arg->src1,
 			assembly);
 		printf("\n");
@@ -347,7 +346,7 @@ Assembly* assembly
 		const QuadItem* arg = &(base_entry + i - 1)->src1;
 		// KASM
 		printf("mov rdi, ");
-		create_operand_right(
+		emit_operand_right(
 			arg,
 			assembly);
 		printf("\n");
@@ -532,11 +531,11 @@ Assembly* assembly) {
 		case QuadItemType_MOVE:
 			// KASM
 			printf("mov ");
-			create_operand_left(
+			emit_operand_left(
 				&entry->dst,
 				assembly);
 			printf(", ");
-			create_operand_right(
+			emit_operand_right(
 				&entry->src1,
 				assembly);
 			printf("\n");
@@ -556,7 +555,7 @@ Assembly* assembly) {
 			}
 			break;
 		case QuadItemType_ADD:
-			create_add(
+			emit_add(
 				count_tab,
 				entry,
 				binary,
@@ -564,7 +563,7 @@ Assembly* assembly) {
 			printf("\n");
 			break;
 		case QuadItemType_SUB:
-			create_sub(
+			emit_sub(
 				count_tab,
 				entry,
 				binary,
@@ -572,12 +571,12 @@ Assembly* assembly) {
 			printf("\n");
 			break;
 		case QuadItemType_PARAM:
-			create_param(
+			emit_param(
 				entry,
 				assembly);
 			break;
 		case QuadItemType_CALL:
-			create_call(
+			emit_call(
 				i,
 				count_tab,
 				entry,

@@ -3,7 +3,7 @@
 
 #include "parser.h"
 
-bool if_GRP_Q_create_operator(
+bool if_GRP_Q_emit_operator(
 	size_t* i,
 	size_t* j,
 	MemoryStack* stack_context,

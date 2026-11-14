@@ -6,7 +6,7 @@
 #include "parser.h"
 
 
-bool if_EXP_create_operator(
+bool if_EXP_emit_operator(
 	size_t* i,
 	size_t* j,
 	MemoryStack* stack_operator,

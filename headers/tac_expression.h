@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include "tac.h"
 
-void tac_create_expression(
+void tac_emit_expression(
 	size_t start,
 	size_t end,
 	size_t dst,

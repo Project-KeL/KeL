@@ -1,18 +1,12 @@
 #include <assert.h>
 #include "tac_quadruple.h"
 
-QuadItem create_quaditem_null(void) {
-	return (QuadItem) {
-		.type = QuadItemType_NO,
-		.offset_node = 0};
-}
-
 static void create_quadentry_null(QuadEntry* entry) {
 	*entry = (QuadEntry) {
-		.op = create_quaditem_null(),
-		.src1 = create_quaditem_null(),
-		.src2 = create_quaditem_null(),
-		.dst = create_quaditem_null()};
+		.op = setup_quaditem(),
+		.src1 = setup_quaditem(),
+		.src2 = setup_quaditem(),
+		.dst = setup_quaditem()};
 }
 
 bool quadlist_allocator_shrink_append_null(QuadList* quadlist) {

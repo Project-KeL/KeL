@@ -5,7 +5,7 @@
 #include "parser_type.h"
 #include "parser_utils.h"
 
-static bool if_TYPE_VAR_create_leaf(
+static bool if_TYPE_VAR_emit_leaf(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -16,7 +16,7 @@ Parser* parser) {
 	&& tokens[*i].type != TokenType_RSCOPE)
 		return false;
 
-	parser_create_leaf(
+	parser_emit_leaf(
 		NodeType_TYPE_VAR,
 		*i,
 		j,
@@ -26,7 +26,7 @@ Parser* parser) {
 	return true;
 }
 
-static bool if_PARAM_create_leaf(
+static bool if_PARAM_emit_leaf(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -36,7 +36,7 @@ Parser* parser) {
 	if(!parser_is_key(tokens + *i))
 		return false;
 
-	parser_create_leaf(
+	parser_emit_leaf(
 		NodeType_PARAM,
 		*i,
 		j,
@@ -46,7 +46,7 @@ Parser* parser) {
 	return true;
 }
 
-static bool if_GRP_RPARES_create_operator(
+static bool if_GRP_RPARES_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -73,7 +73,7 @@ Parser* parser) {
 			if(parser_is_instruction_exit(tokens + buffer_i))
 				return false;
 
-			if(if_PARAM_create_leaf(
+			if(if_PARAM_emit_leaf(
 				&buffer_i,
 				&buffer_j,
 				stack_operator,
@@ -81,7 +81,7 @@ Parser* parser) {
 			== false)
 				return false;
 
-			if(if_TYPE_VAR_create_leaf(
+			if(if_TYPE_VAR_emit_leaf(
 				&buffer_i,
 				&buffer_j,
 				stack_operator,
@@ -99,18 +99,19 @@ Parser* parser) {
 				buffer_i += 1;
 		} while(!parser_is_R_right_parenthesis(tokens + buffer_i));
 	} else {
-		parser_create_leaf(
+		parser_emit_leaf(
 			NodeType_TYPE_PAL_VOID,
 			*i, // set the token at the start of the GRP `(`
 			&buffer_j,
 			stack_operator,
 			parser);
 	}
+
 	Operator pop_operator;
 	memory_stack_pop(
 		(char*) &pop_operator,
 		stack_operator);
-	parser_create_operator(
+	parser_emit_operator(
 		pop_operator.type,
 		pop_operator.count_arity,
 		pop_operator.offset_token,
@@ -122,7 +123,7 @@ Parser* parser) {
 	return true;
 }
 
-bool if_TYPE_create_operator(
+bool if_TYPE_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -142,7 +143,7 @@ Parser* parser) {
 	size_t buffer_j = *j;
 	bool maybe_type_return = false;
 
-	if(if_TYPE_VAR_create_leaf(
+	if(if_TYPE_VAR_emit_leaf(
 		&buffer_i,
 		&buffer_j,
 		stack_operator,
@@ -152,7 +153,7 @@ Parser* parser) {
 	// buffer_i is at `(` if it is a PAL
 	if(parser_is_R_left_parenthesis(tokens + buffer_i)) {
 		if(!maybe_type_return) {
-			parser_create_leaf(
+			parser_emit_leaf(
 				NodeType_TYPE_PAL_VOID,
 				buffer_i,
 				&buffer_j,
@@ -160,7 +161,7 @@ Parser* parser) {
 				parser);
 		}
 
-		if(if_GRP_RPARES_create_operator(
+		if(if_GRP_RPARES_emit_operator(
 			&buffer_i,
 			&buffer_j,
 			stack_operator,
@@ -171,7 +172,7 @@ Parser* parser) {
 
 		Operator* top_operator = memory_stack_top_addr(stack_operator);
 		top_operator->count_arity -= 2; // TYPE_PAL = TYPE_VAR + GRP_PARES
-		parser_create_operator(
+		parser_emit_operator(
 			NodeType_TYPE_PAL,
 			2,
 			*i, // is left untouch, points to the first R parenthesis or the return type

@@ -29,7 +29,7 @@ uint32_t* precedence) {
 		*type = NodeType_NO;
 }
 
-bool if_EXP_create_operator(
+bool if_EXP_emit_operator(
 size_t* i,
 size_t* j,
 MemoryStack* stack_operator,
@@ -71,7 +71,7 @@ Parser* parser) {
 				stack_buffer);
 			buffer_i += 1;
 		} else if(parser_is_key(tokens + buffer_i)) {
-			parser_create_leaf_raw(
+			parser_emit_leaf_raw(
 				NodeType_KEY,
 				buffer_i,
 				&buffer_j,
@@ -87,7 +87,7 @@ Parser* parser) {
 			default: assert(false);
 			}
 
-			parser_create_leaf_raw(
+			parser_emit_leaf_raw(
 				type,
 				buffer_i,
 				&buffer_j,
@@ -121,7 +121,7 @@ Parser* parser) {
 				memory_stack_pop(
 					(char*) &pop_operator,
 					stack_buffer);
-				parser_create_operator_raw(
+				parser_emit_operator_raw(
 					pop_operator.type,
 					2,
 					pop_operator.offset_token,
@@ -144,7 +144,7 @@ Parser* parser) {
 				memory_stack_pop(
 					(char*) &pop_operator,
 					stack_buffer);
-				parser_create_operator_raw(
+				parser_emit_operator_raw(
 					pop_operator.type,
 					2,
 					pop_operator.offset_token,
@@ -170,7 +170,7 @@ Parser* parser) {
 				memory_stack_pop(
 					(char*) &pop_operator,
 					stack_buffer);
-				parser_create_operator_raw(
+				parser_emit_operator_raw(
 					pop_operator.type,
 					2,
 					pop_operator.offset_token,
@@ -195,7 +195,7 @@ Parser* parser) {
 				uint32_t count_arg = parser_is_L_left_parenthesis(tokens + buffer_i - 1)
 					? 0
 					: pop_operator_rparenthesis.count_arity + 1;
-				parser_create_operator_raw(
+				parser_emit_operator_raw(
 					NodeType_CALLEE,
 					count_arg,
 					pop_operator.offset_token,
@@ -214,7 +214,7 @@ Parser* parser) {
 		memory_stack_pop(
 			(char*) &pop_operator,
 			stack_buffer);
-		parser_create_operator_raw(
+		parser_emit_operator_raw(
 			pop_operator.type,
 			2,
 			pop_operator.offset_token,

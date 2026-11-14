@@ -4,7 +4,7 @@
 #include "allocator.h"
 #include "parser.h"
 
-bool if_DECL_create_operator(
+bool if_DECL_emit_operator(
 	size_t* i,
 	size_t* j,
 	MemoryStack* stack_contexts,

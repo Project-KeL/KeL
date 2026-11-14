@@ -20,7 +20,7 @@ static int set_error(int value) {
 	return value;
 }
 
-static void create_node_null(Node* token) {
+static void emit_node_null(Node* token) {
 	*token = (Node) {
 		.type = NodeType_NO,
 		.arity = 0,
@@ -37,7 +37,7 @@ Parser* parser) {
 	== false)
 		return false;
 
-	create_node_null((Node*) parser->nodes.base);
+	emit_node_null((Node*) parser->nodes.base);
 	return true;
 }
 
@@ -50,7 +50,7 @@ static bool parser_allocator_shrink_append_null(Parser* parser) {
 	== false)
 		return false;
 	// sentinel
-	create_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
+	emit_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
 	return true;
 }
 
@@ -114,7 +114,7 @@ Parser* parser) {
 	size_t j = 1; // node position
 
 	while(i < lexer->tokens.count - 1) {
-		if(if_GRP_Q_create_operator(
+		if(if_GRP_Q_emit_operator(
 			&i,
 			&j,
 			&stack_context,
@@ -122,14 +122,14 @@ Parser* parser) {
 			parser)
 		== true) {
 			continue;
-		} else if(if_LSCOPE_create_context(
+		} else if(if_LSCOPE_push_context(
 			&i,
 			&stack_context,
 			&stack_operator,
 			parser)
 		== true) {
 			continue; // the comma is optional
-		} else if(if_EXP_create_operator(
+		} else if(if_EXP_emit_operator(
 			&i,
 			&j,
 			&stack_operator,
@@ -137,7 +137,7 @@ Parser* parser) {
 			parser)
 		== true) {
 			// OK
-		} else if(if_DECL_create_operator(
+		} else if(if_DECL_emit_operator(
 			&i,
 			&j,
 			&stack_context,
@@ -150,7 +150,7 @@ Parser* parser) {
 			if(top_operator->type == NodeType_INIT_LAB
 			|| top_operator->type == NodeType_INIT_PAL)
 				continue; // skip to the next instruction
-		} else if(if_MOD_create_operator(
+		} else if(if_MOD_emit_operator(
 			&i,
 			&j,
 			&stack_operator,
@@ -170,7 +170,7 @@ Parser* parser) {
 			// ignore all the `;`
 			while(parser_is_instruction_end(tokens + i))
 				i += 1;
-		} else if(if_LSCOPE_end_destroy_context(
+		} else if(if_LSCOPE_end_pop_context(
 			&i,
 			&j,
 			&stack_context,

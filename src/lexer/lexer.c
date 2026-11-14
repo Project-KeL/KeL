@@ -68,7 +68,7 @@ static int set_error(int value) {
 	return value;
 }
 
-static void create_token_null(Token* token) {
+static void emit_token_null(Token* token) {
 	*token = (Token) {
 		.type = TokenType_NO,
 		.subtype = TokenSubtype_NO,
@@ -89,7 +89,7 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	create_token_null((Token*) lexer->tokens.base);
+	emit_token_null((Token*) lexer->tokens.base);
 	return true;
 }
 
@@ -103,7 +103,7 @@ static bool lexer_allocator_shrink_append_null(Lexer* lexer) {
 	== false)
 		return false;
 	// for the parser
-	create_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
+	emit_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
 	return true;
 }
 
@@ -115,7 +115,7 @@ static void lexer_destroy_allocator(Lexer* lexer) {
 }
 
 
-static void create_token_LSPE(
+static void emit_token_LSPE(
 const char* code,
 long int start,
 Token* token) {
@@ -126,7 +126,7 @@ Token* token) {
 		.end = start + 1};
 }
 
-static void create_token_RSPE(
+static void emit_token_RSPE(
 const char* code,
 long int start,
 Token* token) {
@@ -137,7 +137,7 @@ Token* token) {
 		.end = start + 1};
 }
 
-static bool if_COM_create_token(
+static bool if_COM_emit_token(
 const char* code,
 long int start,
 Token* token) {
@@ -152,7 +152,7 @@ Token* token) {
 	return true;
 }
 
-static bool if_ID_create_token(
+static bool if_ID_emit_token(
 const char* code,
 long int start,
 long int end,
@@ -214,7 +214,7 @@ Lexer* lexer) {
 	return true;
 }
 
-static int if_Q_create_tokens(
+static int if_Q_emit_tokens(
 long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
@@ -242,7 +242,7 @@ Lexer* lexer) {
 	return 1;
 }
 
-static bool if_LR_create_tokens(
+static bool if_LR_emit_tokens(
 long int start,
 long int* end,
 size_t i,
@@ -263,7 +263,7 @@ Lexer* lexer) {
 	return true;
 }
 
-static int if_RSPE_and_R_create_tokens(
+static int if_RSPE_and_R_emit_tokens(
 long int start,
 long int* end,
 size_t* i,
@@ -283,7 +283,7 @@ Lexer* lexer) {
 	if(lexer_is_operator_modifier(code[start])) {
 		do {
 			Token* const tokens = lexer->tokens.base;
-			create_token_RSPE(
+			emit_token_RSPE(
 				code,
 				start,
 				tokens + buffer_i);
@@ -295,7 +295,7 @@ Lexer* lexer) {
 		} while(lexer_is_operator_modifier(code[start]));
 	} else if(code[start] == '_') {
 		Token* const tokens = lexer->tokens.base;
-		create_token_RSPE(
+		emit_token_RSPE(
 			code,
 			start,
 			tokens + buffer_i);
@@ -339,7 +339,7 @@ Lexer* lexer) {
 }
 
 
-static bool if_L_create_token(
+static bool if_L_emit_token(
 long int start,
 long int* end,
 size_t* i,
@@ -421,7 +421,7 @@ Lexer* lexer) {
 	return true;
 }
 // later: check the literal (for 0b0110, we have to check what follows `b`, it has to be `0` or `1`)
-static bool if_LIT_create_token(
+static bool if_LIT_emit_token(
 const char* code,
 long int start,
 long int* end,
@@ -488,7 +488,7 @@ Token* token) {
 	return true;
 }
 
-static bool if_PL_create_token(
+static bool if_PL_emit_token(
 const char* code,
 long int start,
 long int* end,
@@ -564,13 +564,13 @@ Lexer* lexer) {
 		// create tokens
 		Token* token = (Token*) lexer->tokens.base + i;
 
-		if(if_COM_create_token(
+		if(if_COM_emit_token(
 			code,
 			start,
 			token)
 		== true) {
 			// OK
-		} else if(if_ID_create_token(
+		} else if(if_ID_emit_token(
 			code,
 			start,
 			end,
@@ -579,14 +579,14 @@ Lexer* lexer) {
 		== true) {
 			// OK
 		} else if(set_error(
-			if_Q_create_tokens(
+			if_Q_emit_tokens(
 				&start,
 				&end,
 				&i,
 				lexer))
 		== 1) {
 			// OK
-		} else if(if_LR_create_tokens(
+		} else if(if_LR_emit_tokens(
 			start,
 			&end,
 			i,
@@ -594,14 +594,14 @@ Lexer* lexer) {
 		== true)  {
 			// OK
 		} else if(set_error(
-			if_RSPE_and_R_create_tokens(
+			if_RSPE_and_R_emit_tokens(
 				start,
 				&end,
 				&i,
 				lexer))
 		== 1) {
 			if(code[end] == '(') {
-				create_token_RSPE(
+				emit_token_RSPE(
 					code,
 					end,
 					token + 1);
@@ -609,21 +609,21 @@ Lexer* lexer) {
 				end += 1;
 				i += 1;
 			}
-		} else if(if_L_create_token(
+		} else if(if_L_emit_token(
 			start,
 			&end,
 			&i,
 			lexer)
 		== true) {
 			// OK
-		} else if(if_PL_create_token(
+		} else if(if_PL_emit_token(
 			code,
 			start,
 			&end,
 			token)
 		== true) {
 			// OK
-		} else if(if_LIT_create_token(
+		} else if(if_LIT_emit_token(
 			code,
 			start,
 			&end,
@@ -647,7 +647,7 @@ Lexer* lexer) {
 				if(code[buffer_start] == ':') {
 					do {
 						Token* const tokens = lexer->tokens.base;
-						create_token_RSPE(
+						emit_token_RSPE(
 							code,
 							start,
 							tokens + buffer_i);
@@ -661,14 +661,14 @@ Lexer* lexer) {
 					end -= 1;
 					i = buffer_i - 1;
 				} else {
-					create_token_LSPE(
+					emit_token_LSPE(
 						code,
 						start,
 						token);
 				}
 			} else if(code[start] == ':') {
 				if(code[start + 1] == '(') {
-					create_token_RSPE(
+					emit_token_RSPE(
 						code,
 						start + 1,
 						token);
@@ -684,13 +684,13 @@ Lexer* lexer) {
 			} else if(code[start] == ')'
 			       && count_RSPE_parenthesis_nest
 			> 0) {
-				create_token_RSPE(
+				emit_token_RSPE(
 					code,
 					start,
 					token);
 				count_RSPE_parenthesis_nest -= 1;
 			} else {
-				create_token_LSPE(
+				emit_token_LSPE(
 					code,
 					start,
 					token);
