@@ -68,12 +68,8 @@ static int set_error(int value) {
 	return value;
 }
 
-static void make_token_null(Token* token) {
-	*token = (Token) {
-		.type = TokenType_NO,
-		.subtype = TokenSubtype_NO,
-		.start = 0,
-		.end = 0};
+static Token make_token_null(void) {
+	return (Token) {};
 }
 
 static bool lexer_create_allocator_limit(
@@ -89,7 +85,7 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	make_token_null((Token*) lexer->tokens.base);
+	*((Token*) lexer->tokens.base) = make_token_null();
 	return true;
 }
 
@@ -103,7 +99,7 @@ static bool lexer_allocator_shrink_append_null(Lexer* lexer) {
 	== false)
 		return false;
 	// for the parser
-	make_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
+	*((Token*) lexer->tokens.base + lexer->tokens.count - 1) = make_token_null();
 	return true;
 }
 

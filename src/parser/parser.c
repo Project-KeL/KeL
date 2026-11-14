@@ -20,11 +20,8 @@ static int set_error(int value) {
 	return value;
 }
 
-static void make_node_null(Node* token) {
-	*token = (Node) {
-		.type = NodeType_NO,
-		.arity = 0,
-		.offset_token = 0};
+static Node make_node_null(void) {
+	return (Node) {};
 }
 
 static bool parser_create_allocator_limit(
@@ -37,7 +34,7 @@ Parser* parser) {
 	== false)
 		return false;
 
-	make_node_null((Node*) parser->nodes.base);
+	*((Node*) parser->nodes.base) = make_node_null();
 	return true;
 }
 
@@ -50,7 +47,7 @@ static bool parser_allocator_shrink_append_null(Parser* parser) {
 	== false)
 		return false;
 	// sentinel
-	make_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
+	*((Node*) parser->nodes.base + parser->nodes.count - 1) = make_node_null();
 	return true;
 }
 
