@@ -1,12 +1,12 @@
 #include <assert.h>
 #include "tac_quadruple.h"
 
-static void create_quadentry_null(QuadEntry* entry) {
+static void make_quadentry_null(QuadEntry* entry) {
 	*entry = (QuadEntry) {
-		.op = setup_quaditem(),
-		.src1 = setup_quaditem(),
-		.src2 = setup_quaditem(),
-		.dst = setup_quaditem()};
+		.op = make_quaditem_null(),
+		.src1 = make_quaditem_null(),
+		.src2 = make_quaditem_null(),
+		.dst = make_quaditem_null()};
 }
 
 bool quadlist_allocator_shrink_append_null(QuadList* quadlist) {
@@ -19,7 +19,7 @@ bool quadlist_allocator_shrink_append_null(QuadList* quadlist) {
 		&quadlist->quadruples);
 	// sentinel
 	QuadEntry entry;
-	create_quadentry_null(&entry);
+	make_quadentry_null(&entry);
 	memory_stack_push(
 		(char*) &entry,
 		&quadlist->quadruples);
@@ -40,7 +40,7 @@ QuadList* quadlist) {
 		return false;
 
 	QuadEntry entry;
-	create_quadentry_null(&entry);
+	make_quadentry_null(&entry);
 	memory_stack_push(
 		(char*) &entry,
 		&quadlist->quadruples);

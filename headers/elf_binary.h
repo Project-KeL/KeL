@@ -32,35 +32,35 @@ bool binary_append_byte(
 void binary_x64_elf_initialize(Binary* binary);
 void binary_x64_elf_terminate(Binary* binary);
 
-void create_imm_u32_le(
+void emit_imm_u32_le(
 	uint32_t u32,
 	Binary* binary);
-void create_u64_le(
+void emit_u64_le(
 	uint64_t u64,
 	Binary* binary);
 
-uint8_t create_modrm(
+uint8_t make_modrm(
 	RegMod mod,
 	uint8_t rm,
 	uint8_t reg);
 
-void create_alu_r64_r64(
+void emit_alu_r64_r64(
 	uint8_t opcode,
 	Reg dst,
 	Reg src,
 	Binary* binary);
-void create_alu_r64_imm32(
+void emit_alu_r64_imm32(
 	uint8_t digit,
 	Reg dst,
 	uint32_t imm32,
 	Binary* binary);
 
-void create_mov_r64_r64(
+void emit_mov_r64_r64(
 	Reg dst,
 	Reg src,
 	Binary* binary);
-void create_syscall(Binary* binary);
-void create_mov_r64_imm64(
+void emit_syscall(Binary* binary);
+void emit_mov_r64_imm64(
 	Reg dst,
 	uint64_t imm64,
 	Binary* binary);

@@ -20,7 +20,7 @@ static int set_error(int value) {
 	return value;
 }
 
-static void emit_node_null(Node* token) {
+static void make_node_null(Node* token) {
 	*token = (Node) {
 		.type = NodeType_NO,
 		.arity = 0,
@@ -37,7 +37,7 @@ Parser* parser) {
 	== false)
 		return false;
 
-	emit_node_null((Node*) parser->nodes.base);
+	make_node_null((Node*) parser->nodes.base);
 	return true;
 }
 
@@ -50,7 +50,7 @@ static bool parser_allocator_shrink_append_null(Parser* parser) {
 	== false)
 		return false;
 	// sentinel
-	emit_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
+	make_node_null((Node*) parser->nodes.base + parser->nodes.count - 1);
 	return true;
 }
 

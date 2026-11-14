@@ -111,13 +111,13 @@ void binary_x64_elf_terminate(Binary* binary) {
 			binary->file,
 			0x18, // the entry point
 			SEEK_SET);
-		create_u64_le(
+		emit_u64_le(
 			0x400000 + (uint64_t)  binary->offset_entry,
 			binary);
 	}
 }
 
-void create_imm_u32_le(
+void emit_imm_u32_le(
 uint32_t u32,
 Binary* binary) {
 	binary_append_byte(
@@ -134,18 +134,18 @@ Binary* binary) {
 		binary);
 }
 
-void create_u64_le(
+void emit_u64_le(
 uint64_t u64,
 Binary* binary) {
-	create_imm_u32_le(
+	emit_imm_u32_le(
 		(uint32_t) u64,
 		binary);
-	create_imm_u32_le(
+	emit_imm_u32_le(
 		(uint32_t)(u64 >> 32),
 		binary);
 }
 
-uint8_t create_modrm(
+uint8_t make_modrm(
 RegMod mod,
 uint8_t rm,
 uint8_t reg) {
@@ -154,7 +154,7 @@ uint8_t reg) {
 	     | (rm & 0x07);
 }
 
-void create_alu_r64_r64(
+void emit_alu_r64_r64(
 uint8_t opcode,
 Reg dst,
 Reg src,
@@ -171,14 +171,14 @@ Binary* binary) {
 		opcode,
 		binary);
 	binary_append_byte(
-		create_modrm(
+		make_modrm(
 			RegMod_REG,
 			x64_dst,
 			x64_src),
 		binary);
 }
 
-void create_alu_r64_imm32(
+void emit_alu_r64_imm32(
 uint8_t digit,
 Reg dst,
 uint32_t imm32,
@@ -193,17 +193,17 @@ Binary* binary) {
 		0x81,
 		binary);
 	binary_append_byte(
-		create_modrm(
+		make_modrm(
 			RegMod_REG,
 			x64_dst,
 			digit),
 		binary);
-	create_imm_u32_le(
+	emit_imm_u32_le(
 		imm32,
 		binary);
 }
 
-void create_mov_r64_r64(
+void emit_mov_r64_r64(
 Reg dst,
 Reg src,
 Binary* binary) {
@@ -219,14 +219,14 @@ Binary* binary) {
 		0x89,
 		binary);
 	binary_append_byte(
-		create_modrm(
+		make_modrm(
 			RegMod_REG,
 			x64_dst,
 			x64_src),
 		binary);
 }
 
-void create_mov_r64_imm64(
+void emit_mov_r64_imm64(
 Reg dst,
 uint64_t imm64,
 Binary* binary) {
@@ -237,12 +237,12 @@ Binary* binary) {
 	binary_append_byte(
 		0xB8 + (x64_dst & 0x07),
 		binary);
-	create_u64_le(
+	emit_u64_le(
 		imm64,
 		binary);
 }
 
-void create_syscall(Binary* binary) {
+void emit_syscall(Binary* binary) {
 	binary_append_byte(
 		0x0F,
 		binary);

@@ -68,7 +68,7 @@ static int set_error(int value) {
 	return value;
 }
 
-static void emit_token_null(Token* token) {
+static void make_token_null(Token* token) {
 	*token = (Token) {
 		.type = TokenType_NO,
 		.subtype = TokenSubtype_NO,
@@ -89,7 +89,7 @@ Lexer* lexer) {
 	== false)
 		return false;
 
-	emit_token_null((Token*) lexer->tokens.base);
+	make_token_null((Token*) lexer->tokens.base);
 	return true;
 }
 
@@ -103,7 +103,7 @@ static bool lexer_allocator_shrink_append_null(Lexer* lexer) {
 	== false)
 		return false;
 	// for the parser
-	emit_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
+	make_token_null((Token*) lexer->tokens.base + lexer->tokens.count - 1);
 	return true;
 }
 

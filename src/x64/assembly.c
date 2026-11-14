@@ -6,7 +6,7 @@
 #include "tac_quadruple.h"
 #include "x64_mapping.h"
 
-static void create_tab(size_t count_tab) {
+static void emit_tab(size_t count_tab) {
 	for(
 		size_t i = 0;
 		i < count_tab;
@@ -81,14 +81,14 @@ Reg reg_dst,
 Binary* binary,
 Assembly* assembly) {
 	if(entry->src1.type == QuadItemType_LIT) {
-		create_mov_r64_imm64(
+		emit_mov_r64_imm64(
 			reg_dst,
 			lit_to_u64(
 				&entry->src1,
 				assembly),
 			binary);
 	} else {
-		create_mov_r64_r64(
+		emit_mov_r64_r64(
 			reg_dst,
 			get_reg_from_key_or_tmp(
 				&entry->src1,
@@ -156,7 +156,7 @@ Assembly* assembly) {
 		&entry->src1,
 		assembly);
 	printf("\n");
-	create_tab(count_tab);
+	emit_tab(count_tab);
 	printf("add ");
 	emit_operand_left(
 		&entry->dst,
@@ -180,13 +180,13 @@ Assembly* assembly) {
 			&entry->src2,
 			assembly);
 		assert(imm <= INT32_MAX);
-		create_alu_r64_imm32(
+		emit_alu_r64_imm32(
 			0x00,
 			reg_dst,
 			(uint32_t) imm,
 			binary);
 	} else {
-		create_alu_r64_r64(
+		emit_alu_r64_r64(
 			0x01,
 			reg_dst,
 			get_reg_from_key_or_tmp(
@@ -211,7 +211,7 @@ Assembly* assembly) {
 		&entry->src1,
 		assembly);
 	printf("\n");
-	create_tab(count_tab);
+	emit_tab(count_tab);
 	printf("sub ");
 	emit_operand_left(
 		&entry->dst,
@@ -235,13 +235,13 @@ Assembly* assembly) {
 			&entry->src2,
 			assembly);
 		assert(imm <= INT32_MAX);
-		create_alu_r64_imm32(
+		emit_alu_r64_imm32(
 			0x05,
 			reg_dst,
 			(uint32_t) imm,
 			binary);
 	} else {
-		create_alu_r64_r64(
+		emit_alu_r64_r64(
 			0x29,
 			reg_dst,
 			get_reg_from_key_or_tmp(
@@ -306,7 +306,7 @@ Assembly* assembly) {
 			printf(
 				"push %s\n",
 				regmap_to_str(saved_caller[j]));
-			create_tab(count_tab);
+			emit_tab(count_tab);
 			reg_pushed[count_reg_pushed] = saved_caller[j];
 			count_reg_pushed += 1;
 		}
@@ -328,7 +328,7 @@ Assembly* assembly) {
 			&entry_arg->src1,
 			assembly);
 		printf("\n");
-		create_tab(count_tab);
+		emit_tab(count_tab);
 	}
 	// emit the call
 	const char* code = tac->stab.parser->lexer->source->content;
@@ -350,20 +350,20 @@ Assembly* assembly) {
 			arg,
 			assembly);
 		printf("\n");
-		create_tab(count_tab);
+		emit_tab(count_tab);
 		printf("mov rax, 60\n");
-		create_tab(count_tab);
+		emit_tab(count_tab);
 		printf("syscall\n");
 		// ELF64
 		if(arg->type == QuadItemType_LIT) {
-			create_mov_r64_imm64(
+			emit_mov_r64_imm64(
 				Reg_RDI,
 				lit_to_u64(
 					arg,
 					assembly),
 				binary);
 		} else {
-			create_mov_r64_r64(
+			emit_mov_r64_r64(
 				Reg_RDI,
 				get_reg_from_key_or_tmp(
 					arg,
@@ -371,11 +371,11 @@ Assembly* assembly) {
 				binary);
 		}
 
-		create_mov_r64_imm64(
+		emit_mov_r64_imm64(
 			Reg_RAX,
 			60,
 			binary);
-		create_syscall(binary);
+		emit_syscall(binary);
 	// other cases
 	} else {
 		printf(
@@ -388,7 +388,7 @@ Assembly* assembly) {
 			(assembly->regmap->regslots.lifetimes + dst_offset_node)->slot.slot);
 
 		if(reg_dst != Reg_RAX) {
-			create_tab(count_tab);
+			emit_tab(count_tab);
 			printf(
 				"mov %s, rax\n",
 				regmap_to_str(reg_dst));
@@ -398,7 +398,7 @@ Assembly* assembly) {
 		size_t j = count_reg_pushed;
 		j > 0;
 		j -= 1) {
-			create_tab(count_tab);
+			emit_tab(count_tab);
 			printf(
 				"pop %s\n",
 				regmap_to_str(reg_pushed[j - 1]));
@@ -541,14 +541,14 @@ Assembly* assembly) {
 			printf("\n");
 			// ELF64
 			if(entry->src1.type == QuadItemType_LIT) {
-				create_mov_r64_imm64(
+				emit_mov_r64_imm64(
 					reg_dst,
 					lit_to_u64(
 						&entry->src1,
 						assembly),
 					binary);
 			} else {
-				create_mov_r64_r64(
+				emit_mov_r64_r64(
 					reg_dst,
 					reg_src1,
 					binary);

@@ -148,8 +148,8 @@ TAC* tac) {
 					.src1 = (QuadItem) {
 						.type = QuadItemType_KEY,
 						.offset_node = start_subtree[i]},
-					.src2 = setup_quaditem(),
-					.dst = setup_quaditem()};
+					.src2 = make_quaditem_null(),
+					.dst = make_quaditem_null()};
 				quadlist_append(
 					&entry,
 					&tac->quadlist);
@@ -190,8 +190,8 @@ TAC* tac) {
 						.src1 = (QuadItem) {
 							.type = QuadItemType_KEY,
 							.offset_node = start_subtree[i]},
-						.src2 = setup_quaditem(),
-						.dst = setup_quaditem()};
+						.src2 = make_quaditem_null(),
+						.dst = make_quaditem_null()};
 					quadlist_append(
 						&entry,
 						&tac->quadlist);
@@ -208,7 +208,7 @@ TAC* tac) {
 					.op = (QuadItem) {
 						.type = QuadItemType_PARAM,
 						.offset_node = i},
-					.src1 = setup_quaditem(),
+					.src1 = make_quaditem_null(),
 					.src2 = (QuadItem) {
 						.type = QuadItemType_COUNT,
 						.offset_node = count_param},
@@ -237,9 +237,9 @@ TAC* tac) {
 				.op = (QuadItem) {
 					.type = QuadItemType_SCOPE_START,
 					.offset_node = i},
-				.src1 = setup_quaditem(),
-				.src2 = setup_quaditem(),
-				.dst = setup_quaditem()};
+				.src1 = make_quaditem_null(),
+				.src2 = make_quaditem_null(),
+				.dst = make_quaditem_null()};
 			quadlist_append(
 				&entry,
 				&tac->quadlist);
@@ -253,25 +253,25 @@ TAC* tac) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_END_LAB,
 						.offset_node = i},
-					.src1 = setup_quaditem(),
-					.src2 = setup_quaditem(),
-					.dst = setup_quaditem()};
+					.src1 = make_quaditem_null(),
+					.src2 = make_quaditem_null(),
+					.dst = make_quaditem_null()};
 			} else if(nodes[i + 2].type == NodeType_INIT_PAL) {
 				entry = (QuadEntry) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_END_PAL,
 						.offset_node = i},
-					.src1 = setup_quaditem(),
-					.src2 = setup_quaditem(),
-					.dst = setup_quaditem()};
+					.src1 = make_quaditem_null(),
+					.src2 = make_quaditem_null(),
+					.dst = make_quaditem_null()};
 			} else {
 				entry = (QuadEntry) {
 					.op = (QuadItem) {
 						.type = QuadItemType_SCOPE_END,
 						.offset_node = i},
-					.src1 = setup_quaditem(),
-					.src2 = setup_quaditem(),
-					.dst = setup_quaditem()};
+					.src1 = make_quaditem_null(),
+					.src2 = make_quaditem_null(),
+					.dst = make_quaditem_null()};
 			}
 
 			quadlist_append(

@@ -5,7 +5,7 @@
 #include "tac_quadruple.h"
 #include <stdio.h>
 
-static Slot create_slot_null(void) {
+static Slot make_slot_null(void) {
 	return (Slot) {
 		.spilled = false,
 		.slot = 0};
@@ -105,7 +105,7 @@ RegSlots* regslots) {
 				.start = i,
 				.end = i,
 				.offset_node = n,
-				.slot = create_slot_null()};
+				.slot = make_slot_null()};
 		}
 
 		if(entry->src1.type == QuadItemType_TEMP

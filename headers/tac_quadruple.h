@@ -53,7 +53,7 @@ typedef struct {
 } QuadList;
 
 
-static inline QuadItem setup_quaditem(void) {
+static inline QuadItem make_quaditem_null(void) {
 	return (QuadItem) {};
 }
 bool quadlist_allocator_shrink_append_null(QuadList* quadlist);
