@@ -455,7 +455,7 @@ Assembly* assembly) {
 		const QuadEntry* entry = (QuadEntry*) quadlist->quadruples.area.base + i;
 
 		if(entry->op.type == QuadItemType_ARG)
-			continue; // create call already process the arguments (to avoid extra tab)
+			continue; // emit call already process the arguments (to avoid extra tab)
 
 		size_t src1_offset_node = entry->src1.offset_node;
 		size_t src2_offset_node = entry->src2.offset_node;

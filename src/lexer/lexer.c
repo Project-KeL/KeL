@@ -367,16 +367,23 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		TokenSubtype subtype = TokenSubtype_IF;
+		const bool tilde_before = tokens[*i - 1].type == TokenType_LSPE
+		                       && tokens[*i - 1].subtype == TokenSubtype_TILDE;
+		// the first token is null and may be at `i - 2` so this index is valid
+		const size_t comma_i = tilde_before ? *i - 2 : *i - 1;
+		const bool comma_before = tokens[comma_i].type == TokenType_LSPE
+		                       && tokens[comma_i].subtype == TokenSubtype_COMMA;
+		TokenSubtype subtype;
 
-		if(code[tokens[*i - 1].start] == '~'
-		&& *i > 1 // do better??
-		&& code[tokens[*i - 2].start] == ',') {
-			subtype = TokenSubtype_ELSE_IF;
-			*i -= 2; // absorb `~` and `,`
-		} else if(code[tokens[*i - 1].start] == '~') {
+		if(comma_before) {
+			subtype = tilde_before ? TokenSubtype_ELSE_IF : TokenSubtype_IF;
+			*i = comma_i;
+		} else if(tilde_before) {
 			subtype = TokenSubtype_ELSE;
 			*i -= 1; // absorb `~`
+		} else {
+			set_error(-1);
+			return false;
 		}
 
 		tokens[*i] = (Token) {
