@@ -39,7 +39,8 @@ Parser* parser) {
 }
 
 static bool parser_allocator_shrink_append_null(Parser* parser) {
-	assert(parser->nodes.count <= (size_t) parser->lexer->source->length);
+	// at most one token per character, plus the null node at start
+	assert(parser->nodes.count <= (size_t) parser->lexer->source->length + 1);
 
 	if(memory_area_realloc(
 		parser->nodes.count + 1, // null token
@@ -99,7 +100,7 @@ Parser* parser) {
 		&stack_context);
 	
 	if(parser_create_allocator_limit(
-		lexer->source->length,
+		lexer->source->length + 1,
 		parser)
 	== false) {
 		set_error(-1);
