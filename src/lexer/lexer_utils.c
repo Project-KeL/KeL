@@ -40,10 +40,20 @@ TokenSubtype lexer_character_to_subtype(char c) {
 	}
 }
 
+bool isBdigit(char c) {
+	return c == '0'
+	    || c == '1';
+}
+
+bool isOdigit(char c) {
+	return c >= '0'
+	    && c <= '7';
+}
+
 bool isXdigit(char c) {
 	return isdigit(c)
 	    || (c >= 'A'
-		 && c <= 'F');
+	     && c <= 'F');
 }
 
 bool lexer_is_delimiter_open(char c) {

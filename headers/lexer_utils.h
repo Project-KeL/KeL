@@ -5,6 +5,8 @@
 #include "lexer.h"
 
 TokenSubtype lexer_character_to_subtype(char c);
+bool isBdigit(char c);
+bool isOdigit(char c);
 bool isXdigit(char c);
 bool lexer_is_delimiter_open(char c);
 bool lexer_is_delimiter_close(char c);

@@ -110,8 +110,7 @@ static void lexer_destroy_allocator(Lexer* lexer) {
 
 static bool lexer_delimiter_update(
 const char* code,
-const Token* token,
-const Token** restrict token_open,
+Token* token,
 MemoryStack* restrict stack_delimiter) {
 	const char c = code[token->start];
 
@@ -122,19 +121,17 @@ MemoryStack* restrict stack_delimiter) {
 	}
 
 	if(lexer_is_delimiter_close(c)) {
-		const Token* buffer_token_open;
+		const Token* token_open;
 
 		if(memory_stack_pop(
-			(char*) &buffer_token_open,
+			(char*) &token_open,
 			stack_delimiter)
 		== false)
 			return false; // nothing to close
 
-		if(token_open != NULL)
-			*token_open = buffer_token_open;
-
+		token->type = token_open->type; // LSPE or RSPE as its delimiter
 		return lexer_is_delimiter_match(
-			code[buffer_token_open->start],
+			code[token_open->start],
 			c);
 	}
 
@@ -499,20 +496,36 @@ Token* token) {
 	long int buffer_end = start + 1;
 
 	if(isdigit(code[start])) {
+#define EXHAUST(is_base) \
+		while(code[buffer_end] != '\0' \
+		   && (is_base(code[buffer_end]) \
+		    || code[buffer_end] == '`')) buffer_end += 1;
 		// base check
 		if(code[start] == '0') {
-			if(code[buffer_end] == 'b'
-			 || code[buffer_end] == 'o'
-			 || code[buffer_end] == 'x') {
-				buffer_end += 1;
-			} else {
-				// 0 alone case
+			switch(code[buffer_end]) {
+				case 'b':
+					buffer_end += 1;
+					EXHAUST(isBdigit);
+					break;
+				case 'o':
+					buffer_end += 1;
+					EXHAUST(isOdigit);
+					break;
+				case 'x':
+					buffer_end += 1;
+					EXHAUST(isXdigit);
+					break;
+				default:
+					break;
 			}
+		// a base must be followed by at least one digit
+			if(buffer_end == start + 2) {
+				set_error(-1);
+				return false;
+			}
+		} else {
+			EXHAUST(isdigit);
 		}
-
-		while(code[buffer_end] != '\0'
-		   && (isXdigit(code[buffer_end])
-		    || code[buffer_end] == '`')) buffer_end += 1;
 		// a number cannot be followed by '`' and must be followed by a blank or a special symbol
 		if(code[buffer_end - 1] == '`'
 		|| (isgraph(code[buffer_end])
@@ -520,7 +533,7 @@ Token* token) {
 			set_error(-1);
 			return false;
 		}
-
+#undef EXHAUST
 		subtype = TokenSubtype_LIT_NUM;
 	} else if(code[start] == '\\') {
 		if(code[start + 1] == '\0'
@@ -619,7 +632,6 @@ Token* tokens) {
 				if(lexer_delimiter_update(
 					code,
 					tokens + buffer_i,
-					NULL,
 					stack_delimiter)
 				== false)
 					set_error(-1);
@@ -642,7 +654,6 @@ Token* tokens) {
 			if(lexer_delimiter_update(
 				code,
 				tokens + *i,
-				NULL,
 				stack_delimiter)
 			== false)
 				set_error(-1);
@@ -656,7 +667,6 @@ Token* tokens) {
 			if(lexer_delimiter_update(
 				code,
 				tokens + *i,
-				NULL,
 				stack_delimiter)
 			== false)
 				set_error(-1);
@@ -669,22 +679,6 @@ Token* tokens) {
 				.start = start,
 				.end = start + 1};
 		}
-	} else if(lexer_is_delimiter_close(code[start])) {
-		const Token* token_open;
-		tokens[*i] = make_token_LSPE(
-			code,
-			start);
-
-		if(lexer_delimiter_update(
-			code,
-			tokens + *i,
-			&token_open,
-			stack_delimiter)
-		== false) {
-			set_error(-1);
-		} else {
-			tokens[*i].type = token_open->type;
-		}
 	} else {
 		tokens[*i] = make_token_LSPE(
 			code,
@@ -693,7 +687,6 @@ Token* tokens) {
 		if(lexer_delimiter_update(
 			code,
 			tokens + *i,
-			NULL,
 			stack_delimiter)
 		== false)
 			set_error(-1);
@@ -794,7 +787,6 @@ Lexer* lexer) {
 				if(lexer_delimiter_update(
 					code,
 					tokens + i,
-					NULL,
 					stack_delimiter)
 				== false)
 					set_error(-1);
