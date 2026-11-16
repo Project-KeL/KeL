@@ -89,7 +89,7 @@ static inline Lexer setup_lexer(void) {
 }
 bool create_lexer(
 	const Source* source,
-	MemoryArea* restrict memArea,
+	MemoryStack* stack_delimiter,
 	Lexer* lexer);
 void destroy_lexer(Lexer* lexer);
 

@@ -159,6 +159,7 @@ bool memory_stack_discard(MemoryStack* stack) {
 bool memory_stack_pop(
 char* data,
 MemoryStack* stack) {
+	assert(data != NULL);
 	assert(stack != NULL);
 
 	if(!memory_stack_discard(stack))

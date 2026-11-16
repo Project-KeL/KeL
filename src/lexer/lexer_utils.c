@@ -133,7 +133,7 @@ bool lexer_is_special(char c) {
 	return lexer_is_interpreted(c) || c == ':';
 }
 
-bool lexer_delimiter_match(
+bool lexer_is_delimiter_match(
 char c1,
 char c2) {
 	if(c1 == '('
@@ -225,7 +225,7 @@ long int* restrict end) {
 		end);
 }
 
-bool lexer_skip_comment(
+int lexer_skip_comment(
 const char* string,
 long int* restrict start,
 long int* restrict end) {
@@ -236,7 +236,7 @@ long int* restrict end) {
 	if(string[*start] == '!') {
 		if(string[*start + 1] != '-'
 		|| string[*start + 2] != '-')
-			return false;
+			return 0;
 
 		*end += 1;
 
@@ -247,23 +247,26 @@ long int* restrict end) {
 	} else if(string[*start] == '|') {
 		if(string[*start + 1] != '-'
 		|| string[*start + 2] != '-')
-			return false;
+			return 0;
 
-		*end += 1;
+		size_t buffer_end = *end + 1;
 
 		do {
-			*end += 1;
-		} while(string[*end] != '-'
-		   || string[*end + 1] != '-'
-		   || string[*end + 2] != '|'); // error checked
-			
-		*end += 3;
+			if(string[buffer_end] == '\0')
+				return -1;
+
+			buffer_end += 1;
+		} while(string[buffer_end] != '-'
+		   || string[buffer_end + 1] != '-'
+		   || string[buffer_end + 2] != '|'); // error checked
+
+		*end = buffer_end + 3;
 	} else
-		return false;
+		return 0;
 
 	lexer_get_next_word(
 		string,
 		start,
 		end);
-	return true;
+	return 1;
 }

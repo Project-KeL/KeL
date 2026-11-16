@@ -17,7 +17,7 @@ bool lexer_is_operator_leveling(char c);
 bool lexer_is_operator_modifier(char c);
 bool lexer_is_operator(char c);
 bool lexer_is_special(char c);
-bool lexer_delimiter_match(
+bool lexer_is_delimiter_match(
 	char c1,
 	char c2);
 bool lexer_is_name(
@@ -37,7 +37,7 @@ bool lexer_get_next_word(
 	const char* string,
 	long int* restrict start,
 	long int* restrict end);
-bool lexer_skip_comment(
+int lexer_skip_comment(
 	const char* string,
 	long int* restrict start,
 	long int* restrict end);

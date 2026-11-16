@@ -24,7 +24,7 @@ char** argv) {
 
 	bool exit_status = true;
 	auto source = setup_source();
-	auto area = setup_memory_area(); // for the lexer
+	auto stack = setup_memory_stack(); // for the lexer
 	auto lexer = setup_lexer();
 	auto parser = setup_parser();
 	auto tac = setup_tac();
@@ -43,20 +43,20 @@ char** argv) {
 
 	printf("%s\n", source.content + 1);
 
-	if((exit_status = create_memory_area(
+	if((exit_status = create_memory_stack(
 		source.length,
 		sizeof(union {
 			uintmax_t uintmax;
 			void* ptr;
 			void (*fn)(void);
 			size_t size;}),
-		&area))
+		&stack))
 	== false)
 		goto END;
 
 	if((exit_status = create_lexer(
 		&source,
-		&area,
+		&stack,
 		&lexer))
 	== false)
 		goto END;
@@ -119,7 +119,7 @@ END:
 	destroy_tac(&tac);
 	destroy_parser(&parser);
 	destroy_lexer(&lexer);
-	destroy_memory_area(&area);
+	destroy_memory_stack(&stack);
 	destroy_source(&source);
 	return exit_status ? EXIT_SUCCESS : EXIT_FAILURE;
 }

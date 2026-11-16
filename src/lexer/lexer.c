@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include "lexer.h"
-#include "lexer_error.h"
 #include "lexer_utils.h"
 
 /*
@@ -56,8 +56,6 @@
  * TODO: ID subtype will differentiate cases like `@a :A` and `a :@A` (left and right)
 */
 
-// more errors will be supported in "lexer_error.c".
-
 static int error = 0;
 
 static int set_error(int value) {
@@ -110,23 +108,53 @@ static void lexer_destroy_allocator(Lexer* lexer) {
 	destroy_memory_area(&lexer->tokens);
 }
 
-
-static void emit_token_LSPE(
+static bool lexer_delimiter_update(
 const char* code,
-long int start,
-Token* token) {
-	*token = (Token) {
+const Token* token,
+const Token** restrict token_open,
+MemoryStack* restrict stack_delimiter) {
+	const char c = code[token->start];
+
+	if(lexer_is_delimiter_open(c)) {
+		return memory_stack_push(
+			(char*) &token,
+			stack_delimiter);
+	}
+
+	if(lexer_is_delimiter_close(c)) {
+		const Token* buffer_token_open;
+
+		if(memory_stack_pop(
+			(char*) &buffer_token_open,
+			stack_delimiter)
+		== false)
+			return false; // nothing to close
+
+		if(token_open != NULL)
+			*token_open = buffer_token_open;
+
+		return lexer_is_delimiter_match(
+			code[buffer_token_open->start],
+			c);
+	}
+
+	return true;
+}
+
+static Token make_token_LSPE(
+const char* code,
+long int start) {
+	return (Token) {
 		.type = TokenType_LSPE,
 		.subtype = lexer_character_to_subtype(code[start]), // missing case checked
 		.start = start,
 		.end = start + 1};
 }
 
-static void emit_token_RSPE(
+static Token make_token_RSPE(
 const char* code,
-long int start,
-Token* token) {
-	*token = (Token) {
+long int start) {
+	return (Token) {
 		.type = TokenType_RSPE,
 		.subtype = lexer_character_to_subtype(code[start]),
 		.start = start,
@@ -172,7 +200,17 @@ Lexer* lexer) {
 	return true;
 }
 
-static bool get_Q(
+static Token make_token_Q(
+long int start,
+long int end) {
+	return (Token) {
+		.type = TokenType_Q,
+		.subtype = TokenSubtype_NO,
+		.start = start,
+		.end = end};
+}
+
+static bool emit_Qs(
 long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
@@ -188,19 +226,27 @@ Lexer* lexer) {
 		return false;
 
 	do {
+		if(lexer_is_name(
+			code,
+			*start,
+			*end)
+		== false)
+			return false;
+
 		Token* const tokens = lexer->tokens.base;
-		tokens[buffer_i] = (Token) {
-			.type = TokenType_Q,
-			.subtype = TokenSubtype_NO,
-			.start = *start,
-			.end = *end};
+		tokens[buffer_i] = make_token_Q(
+			*start,
+			*end);
 		lexer_get_next_word(
 			code,
 			start,
 			end);
+
+		if(code[*end] == '\0')
+			return false;
+
 		buffer_i += 1;
-	} while(code[*end] != '\0'
-	     && code[*start] != ']');
+	} while(code[*start] != ']');
 
 	if(isgraph(code[*end])) {
 		return false;
@@ -210,7 +256,7 @@ Lexer* lexer) {
 	return true;
 }
 
-static int if_Q_emit_tokens(
+static int if_Qs_emit_tokens(
 long int* restrict start,
 long int* restrict end,
 size_t* restrict i,
@@ -224,7 +270,7 @@ Lexer* lexer) {
 	|| isgraph(code[buffer_start - 1]))
 		return 0;
 
-	if(get_Q(
+	if(emit_Qs(
 		&buffer_start,
 		&buffer_end,
 		&buffer_i,
@@ -265,11 +311,18 @@ long int* end,
 size_t* i,
 Lexer* lexer) {
 	const char* code = lexer->source->content;
+	Token* const tokens = lexer->tokens.base;
 	long int buffer_end = start + 1;
 	size_t buffer_i = *i;
+	// the brackets of the modifiers must be closed among them
+	long int count_bracket_open = 0;
+	bool bracket_alone = false;
 
 	if(code[start] != ':')
 		return 0;
+
+	if(code[start - 1] == ':')
+		return -1; // two side by side colons is not permitted
 
 	lexer_get_next_word(
 		code,
@@ -278,11 +331,19 @@ Lexer* lexer) {
 
 	if(lexer_is_operator_modifier(code[start])) {
 		do {
-			Token* const tokens = lexer->tokens.base;
-			emit_token_RSPE(
+			tokens[buffer_i] = make_token_RSPE(
 				code,
-				start,
-				tokens + buffer_i);
+				start);
+
+			if(code[start] == '[') {
+				count_bracket_open += 1;
+			} else if(code[start] == ']') {
+				if(count_bracket_open == 0)
+					bracket_alone = true;
+				else
+					count_bracket_open -= 1;
+			}
+
 			lexer_get_next_word(
 				code,
 				&start,
@@ -290,6 +351,7 @@ Lexer* lexer) {
 			buffer_i += 1;
 		} while(lexer_is_operator_modifier(code[start]));
 	} else if(code[start] == '_') {
+		/*
 		Token* const tokens = lexer->tokens.base;
 		emit_token_RSPE(
 			code,
@@ -298,6 +360,7 @@ Lexer* lexer) {
 		*end = buffer_end;
 		*i = buffer_i;
 		return 1;
+		*/
 	}
 
 	if(lexer_is_name(
@@ -307,6 +370,10 @@ Lexer* lexer) {
 	== false)
 		return 0;
 
+	if(bracket_alone
+	|| count_bracket_open != 0)
+		return -1;
+
 	*end = buffer_end;
 
 	if(*end - start == 5 // as much as character than in `scope`
@@ -315,14 +382,12 @@ Lexer* lexer) {
 		code + start,
 		*end - start)
 	== 0) {
-		Token* const tokens = lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_RSCOPE,
 			.subtype = TokenSubtype_NO,
 			.start = start,
 			.end = *end};
 	} else {
-		Token* const tokens = lexer->tokens.base;
 		tokens[buffer_i] = (Token) {
 			.type = TokenType_R,
 			.subtype = TokenSubtype_NO,
@@ -369,7 +434,7 @@ Lexer* lexer) {
 	== 0) {
 		const bool tilde_before = tokens[*i - 1].type == TokenType_LSPE
 		                       && tokens[*i - 1].subtype == TokenSubtype_TILDE;
-		// the first token is null and may be at `i - 2` so this index is valid
+		// the first token is null, if `i - 1` is a tilde, it must be at least at `i - 2`
 		const size_t comma_i = tilde_before ? *i - 2 : *i - 1;
 		const bool comma_before = tokens[comma_i].type == TokenType_LSPE
 		                       && tokens[comma_i].subtype == TokenSubtype_COMMA;
@@ -524,11 +589,12 @@ Token* token) {
 
 bool create_lexer(
 const Source* source,
-MemoryArea* restrict memArea,
+MemoryStack* stack_delimiter,
 Lexer* lexer) {
 	assert(source != NULL);
-	assert(memArea != NULL);
+	assert(stack_delimiter != NULL);
 	assert(lexer != NULL);
+	assert(stack_delimiter->area.size_type == sizeof(Token*));
 
 	error = 0;
 
@@ -537,14 +603,7 @@ Lexer* lexer) {
 	const char* code = source->content;
 	long int start = 0;
 	long int end = 1;
-	long int count_RSPE_parenthesis_nest = 0;
 	size_t i = 1;
-
-	if(lexer_scan_errors(
-		source,
-		memArea)
-	== false)
-		return false;
 
 	if(lexer_create_allocator_limit(
 		lexer->source->length + 1,
@@ -552,25 +611,33 @@ Lexer* lexer) {
 	== false)
 		goto DESTROY;
 
+	Token* tokens = lexer->tokens.base;
+
 	while(lexer_get_next_word(
 		code,
 		&start,
 		&end)
 	== true) {
-		while(lexer_skip_comment(
-			code,
-			&start,
-			&end));
+		// comments
+		{
+			int comment;
+
+			while((comment = lexer_skip_comment(
+				code,
+				&start,
+				&end)) == 1);
+
+			if(comment == -1)
+				set_error(-1);
+		}
 
 		if(code[start] == '\0')
 			break;
 		// create tokens
-		Token* token = (Token*) lexer->tokens.base + i;
-
 		if(if_COM_emit_token(
 			code,
 			start,
-			token)
+			tokens + i)
 		== true) {
 			// OK
 		} else if(if_ID_emit_token(
@@ -582,7 +649,7 @@ Lexer* lexer) {
 		== true) {
 			// OK
 		} else if(set_error(
-			if_Q_emit_tokens(
+			if_Qs_emit_tokens(
 				&start,
 				&end,
 				&i,
@@ -604,13 +671,20 @@ Lexer* lexer) {
 				lexer))
 		== 1) {
 			if(code[end] == '(') {
-				emit_token_RSPE(
-					code,
-					end,
-					token + 1);
-				count_RSPE_parenthesis_nest += 1;
-				end += 1;
 				i += 1;
+				tokens[i] = make_token_RSPE(
+					code,
+					end);
+
+				if(lexer_delimiter_update(
+					code,
+					tokens + i,
+					NULL,
+					stack_delimiter)
+				== false)
+					set_error(-1);
+
+				end += 1;
 			}
 		} else if(if_L_emit_token(
 			start,
@@ -623,21 +697,21 @@ Lexer* lexer) {
 			code,
 			start,
 			&end,
-			token)
+			tokens + i)
 		== true) {
 			// OK
 		} else if(if_LIT_emit_token(
 			code,
 			start,
 			&end,
-			token)
+			tokens + i)
 		== true) {
 			// OK
 		} else if(lexer_is_special(code[start])) {
-			long int buffer_end = end;
 			// modifiers on the left case
 			if(lexer_is_operator_modifier(code[start])) {
 				long int buffer_start = start;
+				long int buffer_end = end;
 				long int buffer_i = i;
 				// consume all the modifiers
 				while(lexer_is_operator_modifier(code[buffer_start])) {
@@ -646,14 +720,21 @@ Lexer* lexer) {
 						&buffer_start,
 						&buffer_end);
 				}
-
+				// the modifiers are RSPEs
 				if(code[buffer_start] == ':') {
 					do {
-						Token* const tokens = lexer->tokens.base;
-						emit_token_RSPE(
+						tokens[buffer_i] = make_token_RSPE(
 							code,
-							start,
-							tokens + buffer_i);
+							start);
+
+						if(lexer_delimiter_update(
+							code,
+							tokens + buffer_i,
+							NULL,
+							stack_delimiter)
+						== false)
+							set_error(-1);
+
 						lexer_get_next_word(
 							code,
 							&start,
@@ -664,39 +745,68 @@ Lexer* lexer) {
 					end -= 1;
 					i = buffer_i - 1;
 				} else {
-					emit_token_LSPE(
+					tokens[i] = make_token_LSPE(
 						code,
-						start,
-						token);
+						start);
+
+					if(lexer_delimiter_update(
+						code,
+						tokens + i,
+						NULL,
+						stack_delimiter)
+					== false)
+						set_error(-1);
 				}
 			} else if(code[start] == ':') {
-				if(code[start + 1] == '(') {
-					emit_token_RSPE(
+				if(lexer_is_delimiter_open(code[start + 1])) {
+					tokens[i] = make_token_RSPE(
 						code,
-						start + 1,
-						token);
+						start + 1);
+
+					if(lexer_delimiter_update(
+						code,
+						tokens + i,
+						NULL,
+						stack_delimiter)
+					== false)
+						set_error(-1);
+
 					end = start + 2;
-					count_RSPE_parenthesis_nest += 1;
 				} else {
-					*token = (Token) {
+					tokens[i] = (Token) {
 						.type = TokenType_COLON_LONELY,
 						.subtype = TokenSubtype_NO,
 						.start = start,
 						.end = start + 1};
 				}
-			} else if(code[start] == ')'
-			       && count_RSPE_parenthesis_nest
-			> 0) {
-				emit_token_RSPE(
+			} else if(lexer_is_delimiter_close(code[start])) {
+				const Token* token_open;
+				tokens[i] = make_token_LSPE(
 					code,
-					start,
-					token);
-				count_RSPE_parenthesis_nest -= 1;
+					start);
+
+				if(lexer_delimiter_update(
+					code,
+					tokens + i,
+					&token_open,
+					stack_delimiter)
+				== false) {
+					set_error(-1);
+				} else {
+					tokens[i].type = token_open->type;
+				}
 			} else {
-				emit_token_LSPE(
+				tokens[i] = make_token_LSPE(
 					code,
-					start,
-					token);
+					start);
+
+				if(lexer_delimiter_update(
+					code,
+					tokens + i,
+					NULL,
+					stack_delimiter)
+				== false)
+					set_error(-1);
 			}
 		} else
 			goto DESTROY;
@@ -706,8 +816,10 @@ Lexer* lexer) {
 
 		i += 1;
 	}
-
-	if(i == 1)
+	// a delimiter is not closed
+	if(!memory_stack_is_empty(stack_delimiter)
+	// no tokens but the first null token
+	|| i == 1)
 		goto DESTROY;
 
 	lexer->tokens.count = i;
