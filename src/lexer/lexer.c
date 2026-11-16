@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -486,7 +487,18 @@ Lexer* lexer) {
 
 	return true;
 }
-// later: check the literal (for 0b0110, we have to check what follows `b`, it has to be `0` or `1`)
+
+[[nodiscard]] static long int lexer_skip_digits(
+const char* code,
+long int end,
+bool (*is_base)(char c)) {
+	while(code[end] != '\0'
+	   && (is_base(code[end])
+	    || code[end] == '`')) end += 1;
+
+	return end;
+}
+
 static bool if_LIT_emit_token(
 const char* code,
 long int start,
@@ -496,35 +508,33 @@ Token* token) {
 	long int buffer_end = start + 1;
 
 	if(isdigit(code[start])) {
-#define EXHAUST(is_base) \
-		while(code[buffer_end] != '\0' \
-		   && (is_base(code[buffer_end]) \
-		    || code[buffer_end] == '`')) buffer_end += 1;
 		// base check
 		if(code[start] == '0') {
+			bool (*is_base)(char c) = NULL;
+
 			switch(code[buffer_end]) {
-				case 'b':
-					buffer_end += 1;
-					EXHAUST(isBdigit);
-					break;
-				case 'o':
-					buffer_end += 1;
-					EXHAUST(isOdigit);
-					break;
-				case 'x':
-					buffer_end += 1;
-					EXHAUST(isXdigit);
-					break;
-				default:
-					break;
+				case 'b': is_base = isBdigit; break;
+				case 'o': is_base = isOdigit; break;
+				case 'x': is_base = isXdigit; break;
+				default: break; // `0` alone
 			}
-		// a base must be followed by at least one digit
+
+			if(is_base != NULL) {
+				buffer_end = lexer_skip_digits(
+					code,
+					buffer_end + 1,
+					is_base);
+			}
+			// a base must be followed by at least one digit
 			if(buffer_end == start + 2) {
 				set_error(-1);
 				return false;
 			}
 		} else {
-			EXHAUST(isdigit);
+			buffer_end = lexer_skip_digits(
+				code,
+				buffer_end,
+				isDdigit);
 		}
 		// a number cannot be followed by '`' and must be followed by a blank or a special symbol
 		if(code[buffer_end - 1] == '`'
@@ -533,7 +543,7 @@ Token* token) {
 			set_error(-1);
 			return false;
 		}
-#undef EXHAUST
+
 		subtype = TokenSubtype_LIT_NUM;
 	} else if(code[start] == '\\') {
 		if(code[start + 1] == '\0'

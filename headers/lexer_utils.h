@@ -1,13 +1,14 @@
 #ifndef LEXER_UTILS_H
 #define LEXER_UTILS_H
 
-#include <ctype.h>
 #include "lexer.h"
 
 TokenSubtype lexer_character_to_subtype(char c);
-bool isBdigit(char c);
-bool isOdigit(char c);
-bool isXdigit(char c);
+// inlined because these functions are short and won't change
+static inline bool isBdigit(char c) { return c == '0' || c == '1'; }
+static inline bool isOdigit(char c) { return c >= '0' && c <= '7'; }
+static inline bool isDdigit(char c) { return c >= '0' && c <= '9'; }
+static inline bool isXdigit(char c) { return isDdigit(c) || (c >= 'A' && c <= 'F'); }
 bool lexer_is_delimiter_open(char c);
 bool lexer_is_delimiter_close(char c);
 bool lexer_is_parenthesis(char c);
